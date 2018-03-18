@@ -1,6 +1,14 @@
 def null():
-    return None
+    return "nothing"
 
 
 def capture():
     return None
+
+
+def read(what: str):
+    return "read: " + what
+
+
+def goto(where: str):
+    return "goto: " + where

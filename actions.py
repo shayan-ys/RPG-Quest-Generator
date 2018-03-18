@@ -1,15 +1,17 @@
-import atomic_actions
+from atomic_actions import *
 
 
 class InfiniteAction:
-    def __init__(self):
+    action_string = ""
+    story = ""
+
+    def __init__(self, rule_number: int, *args, **kwargs):
         pass
 
     def effect(self):
-        pass
+        return self.action_string
 
     rule_number = 0
-    definition = []
 
 
 class Quest(InfiniteAction):
@@ -17,31 +19,58 @@ class Quest(InfiniteAction):
 
 
 class Goto(InfiniteAction):
-    pass
+    action_string = "go somewhere"
+    rules = {}
+
+    def __init__(self, rule_number: int, *args, **kwargs):
+        self.rules = {
+            3: self.r3,
+            4: self.r4,
+            5: self.r5,
+        }
+        print("----------")
+        print(rule_number)
+        print(args)
+        effect = self.rules[rule_number](*args)
+        self.story += effect
+        print("==========")
+        super(Goto, self).__init__(rule_number, *args, **kwargs)
+
+    def effect(self):
+        return self.story
+
+    def r3(self, *args, **kwargs):
+        pass
+
+    def r4(self, *args, **kwargs):
+        pass
+
+    def r5(self, *args, **kwargs):
+        pass
 
 
 class Learn(InfiniteAction):
-    pass
+    action_string = "Learn something"
 
 
 class Get(InfiniteAction):
-    pass
+    action_string = "Get something"
 
 
 class Steal(InfiniteAction):
-    pass
+    action_string = "Steal something"
 
 
 class Spy(InfiniteAction):
-    pass
+    action_string = "Spy on someone"
 
 
 class Capture(InfiniteAction):
-    pass
+    action_string = "Capture something"
 
 
 class Kill(InfiniteAction):
-    pass
+    action_string = "Kill someone"
 
 
 class GotoDef(Goto):
@@ -53,14 +82,20 @@ class GotoDef(Goto):
         # return explore
         pass
 
-    def r5(self, learn: Learn):
-        effect = learn.effect()
-        effect += atomic_actions.null()
+    def r5(self, learn: Learn, goto):
+        effect = learn.effect() + " to know where to go, "
+        effect += goto
         return effect
-    
 
 
-rules = {
-    0: None,
-    3: Goto
-}
+story = GotoDef(5,
+                Learn(8, goto("somewhere"), Get(1), read("something")),
+                goto("somewhere")
+                ).effect()
+
+print(story)
+
+# GotoDef(5,
+#         Learn(8, GotoDef(1), Get(1), Read("something")),
+#         Goto("somewhere")
+#         )
