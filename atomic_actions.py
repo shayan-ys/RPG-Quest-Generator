@@ -12,3 +12,7 @@ def read(what: str):
 
 def goto(where: str):
     return "goto: " + where
+
+
+def explore(where: str):
+    return "explore " + where
