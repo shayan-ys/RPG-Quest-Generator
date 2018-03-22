@@ -30,11 +30,9 @@ class InfiniteAction:
 
     def story(self, depth: int=0) -> str:
         story_line = ""
-        # story_line += ("\t" * depth)
         story_line += self.action_string + " " + self.target + ": {"
         if not self.steps:
             story_line += "You already " + self.null_action_string
-        # story_line += "\n"
         steps_story_lines_list = []
         for step in self.steps:
             if type(step) == str:
@@ -105,15 +103,6 @@ class Get(GetType):
     }
 
 
-# story = GotoDef(5,
-#                 Learn(8, goto("somewhere"), Get(1), read("something")),
-#                 goto("somewhere")
-#                 ).effect()
-
-# Goto("Azeroth", 5,
-#      Learn("how to go to Azeroth", 1),
-#      goto("Azeroth"))
-
 story = Goto("Azeroth", 5,
              Learn("how to go to Azeroth", 8,
                    Goto("Dark Gate", 4,
@@ -124,19 +113,8 @@ story = Goto("Azeroth", 5,
 
 print(story)
 
-# Goto("Azeroth", 5,
-#      Learn("how to go to Azeroth", 8,
-#            Goto("Dark Gate", 4,
-#                 explore("the forest")),
-#            Get("map", 10),
-#            read("map")),
-#      goto("Azeroth"))
-
-# GotoDef(5,
-#         Learn(8, GotoDef(1), Get(1), Read("something")),
-#         Goto("somewhere")
-#         )
-
+# Indented result:
+#
 # Goto Azeroth: {
 #     Learn how to go to Azeroth: {
 #         Goto Dark Gate: {
@@ -146,5 +124,6 @@ print(story)
 #             You already have it
 #         },
 #         read: portal manual
-#     }, goto: Azeroth
+#     },
+#     goto: Azeroth
 # }
