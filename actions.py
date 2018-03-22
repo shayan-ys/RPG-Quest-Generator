@@ -2,24 +2,58 @@ from enum import Enum, auto
 
 
 class Terminals(Enum):
+    null = auto()
+    capture = auto()
+    damage = auto()
+    defend = auto()
+    escort = auto()
+    exchange = auto()
+    experiment = auto()
     explore = auto()
+    gather = auto()
     give = auto()
     goto = auto()
+    kill = auto()
     listen = auto()
     read = auto()
+    repair = auto()
+    report = auto()
+    spy = auto()
+    stealth = auto()
+    take = auto()
+    use = auto()
 
 
 class NonTerminals(Enum):
+    knowledge = auto()
+    quest = auto()
     sub_quest = auto()
     goto = auto()
     learn = auto()
     get = auto()
+    steal = auto()
+    spy = auto()
+    capture = auto()
+    kill = auto()
 
 
 T = Terminals
 NT = NonTerminals
 
 rules = {
+    NT.knowledge: {
+        1: [NT.get, NT.goto, T.give],
+        2: [NT.spy],
+        3: [NT.goto, T.listen, NT.goto, T.report],
+        4: [NT.get, NT.goto, T.use, NT.goto, T.give]
+    },
+    NT.quest: {
+        1: [NT.knowledge]
+    },
+    NT.sub_quest: {
+        1: [NT.goto],
+        2: [NT.goto, NT.quest, T.goto]
+    },
     NT.goto: {
         1: [],
         2: [T.explore],
@@ -32,7 +66,23 @@ rules = {
         4: [NT.get, NT.sub_quest, T.give, T.listen]
     },
     NT.get: {
-        1: []
+        1: [],
+        2: [NT.steal],
+        3: [NT.goto, T.gather],
+        4: [NT.goto, NT.get, NT.goto, NT.sub_quest, T.exchange]
+    },
+    NT.steal: {
+        1: [NT.goto, T.stealth, T.take],
+        2: [NT.goto, NT.kill, T.take]
+    },
+    NT.spy: {
+        1: [NT.goto, T.spy, NT.goto, T.report]
+    },
+    NT.capture: {
+        1: [NT.get, NT.goto, T.capture]
+    },
+    NT.kill: {
+        1: [NT.goto, T.kill]
     }
 }
 
@@ -94,18 +144,27 @@ class ActionLeaf(ActionTree):
         super(ActionLeaf, self).__init__(action, None)
 
 
-tree = ActionTree(NT.goto, 2,
-                  ActionLeaf(T.explore))
+Node = ActionTree
+Leaf = ActionLeaf
 
-tree2 = ActionTree(NT.goto, 3,
-                   ActionTree(NT.learn, 1),
-                   ActionLeaf(T.goto))
+tree = Node(NT.quest, 1,
+            Node(NT.knowledge, 3,
+                 Node(NT.goto, 3,
+                      Node(NT.learn, 3,
+                           Node(NT.goto, 1),
+                           Node(NT.get, 2,
+                                Node(NT.steal, 1,
+                                     Node(NT.goto, 2,
+                                          Leaf(T.explore)),
+                                     Leaf(T.stealth),
+                                     Leaf(T.take))),
+                           Leaf(T.read)),
+                      Leaf(T.goto)),
+                 Leaf(T.listen),
+                 Node(NT.goto, 1),
+                 Leaf(T.report)))
 
-tree3 = ActionTree(NT.goto, 3,
-                   ActionTree(NT.learn, 3,
-                              ActionTree(NT.goto, 2, ActionLeaf(T.explore)),
-                              ActionTree(NT.get, 1),
-                              ActionLeaf(T.read)),
-                   ActionLeaf(T.goto))
+print(tree)
 
-print(tree3)
+# Output:
+# NonTerminals.quest(1):{NonTerminals.knowledge(3):{NonTerminals.goto(3):{NonTerminals.learn(3):{NonTerminals.goto(1), NonTerminals.get(2):{NonTerminals.steal(1):{NonTerminals.goto(2):{Terminals.explore}, Terminals.stealth, Terminals.take}}, Terminals.read}, Terminals.goto}, Terminals.listen, NonTerminals.goto(1), Terminals.report}}
