@@ -1,179 +1,97 @@
-#    This file is part of DEAP.
+#    This file is part of EAP.
 #
-#    DEAP is free software: you can redistribute it and/or modify
+#    EAP is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Lesser General Public License as
 #    published by the Free Software Foundation, either version 3 of
 #    the License, or (at your option) any later version.
 #
-#    DEAP is distributed in the hope that it will be useful,
+#    EAP is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 #    GNU Lesser General Public License for more details.
 #
 #    You should have received a copy of the GNU Lesser General Public
-#    License along with DEAP. If not, see <http://www.gnu.org/licenses/>.
+#    License along with EAP. If not, see <http://www.gnu.org/licenses/>.
 
-
-#    example which maximizes the sum of a list of integers
-#    each of which can be 0 or 1
-
+import operator
+import math
 import random
 
+import numpy
+
+from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
+from deap import gp
 
-IND_SIZE = 5
+
+# Define new functions
+def protectedDiv(left, right):
+    try:
+        return left / right
+    except ZeroDivisionError:
+        return 1
+
+
+pset = gp.PrimitiveSet("MAIN", 1)
+pset.addPrimitive(operator.add, 2)
+pset.addPrimitive(operator.sub, 2)
+pset.addPrimitive(operator.mul, 2)
+pset.addPrimitive(protectedDiv, 2)
+pset.addPrimitive(operator.neg, 1)
+pset.addPrimitive(math.cos, 1)
+pset.addPrimitive(math.sin, 1)
+pset.addEphemeralConstant("rand101", lambda: random.randint(-1, 1))
+pset.renameArguments(ARG0='x')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMin)
+creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
 toolbox = base.Toolbox()
-
-# Attribute generator
-#                      define 'attr_bool' to be an attribute ('gene')
-#                      which corresponds to integers sampled uniformly
-#                      from the range [0,1] (i.e. 0 or 1 with equal
-#                      probability)
-toolbox.register("indices", random.sample, range(IND_SIZE), IND_SIZE)
-toolbox.register("individual", tools.initIterate, creator.Individual,
-                 toolbox.indices)
-
-# define the population to be a list of individuals
+toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=2)
+toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+toolbox.register("compile", gp.compile, pset=pset)
 
 
-distances = [
-    [0, 29, 82, 46, 68],
-    [29, 0, 55, 46, 42],
-    [82, 55, 0, 68, 46],
-    [46, 46, 68, 0, 82],
-    [68, 42, 46, 82, 0]
-]
+def evalSymbReg(individual, points):
+    # Transform the tree expression in a callable function
+    func = toolbox.compile(expr=individual)
+    # Evaluate the mean squared error between the expression
+    # and the real function : x**4 + x**3 + x**2 + x
+    sqerrors = ((func(x) - x ** 4 - x ** 3 - x ** 2 - x) ** 2 for x in points)
+    return math.fsum(sqerrors) / len(points),
 
 
-def evalOneMin(individual):
-    total_dist = 0
-    if len(individual) != len(set(individual)):
-        return False, False
-    for city1, city2 in zip(individual[::2], individual[1::2]):
-        total_dist += distances[city1][city2]
-    return total_dist,
-
-
-# ----------
-# Operator registration
-# ----------
-# register the goal / fitness function
-toolbox.register("evaluate", evalOneMin)
-
-# register the crossover operator
-toolbox.register("mate", tools.cxOrdered)
-
-# register a mutation operator with a probability to
-# flip each attribute/gene of 0.05
-toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.05)
-
-# operator for selecting individuals for breeding the next
-# generation: each individual of the current generation
-# is replaced by the 'fittest' (best) of three individuals
-# drawn randomly from the current generation.
+toolbox.register("evaluate", evalSymbReg, points=[x / 10. for x in range(-10, 10)])
 toolbox.register("select", tools.selTournament, tournsize=3)
+toolbox.register("mate", gp.cxOnePoint)
+toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
+toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
+toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
+toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
 
-# ----------
 
 def main():
-    random.seed(64)
+    random.seed(318)
 
-    # create an initial population of 300 individuals (where
-    # each individual is a list of integers)
     pop = toolbox.population(n=300)
-    # print(" ========= Population ========")
-    # print(pop)
-    # print(" ======= Population End ======")
+    hof = tools.HallOfFame(1)
 
-    # CXPB  is the probability with which two individuals
-    #       are crossed
-    #
-    # MUTPB is the probability for mutating an individual
-    CXPB, MUTPB, NGEN = 0.5, 0.2, 500
+    stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
+    stats_size = tools.Statistics(len)
+    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
+    mstats.register("avg", numpy.mean)
+    mstats.register("std", numpy.std)
+    mstats.register("min", numpy.min)
+    mstats.register("max", numpy.max)
 
-    print("Start of evolution")
-
-    # Evaluate the entire population
-    fitnesses = list(map(toolbox.evaluate, pop))
-    for ind, fit in zip(pop, fitnesses):
-        ind.fitness.values = fit
-
-    print("  Evaluated %i individuals" % len(pop))
-
-    # Begin the evolution
-    for g in range(NGEN):
-        # A new generation
-        g = g + 1
-        print("-- Generation %i --" % g)
-
-        # Select the next generation individuals
-        offspring = toolbox.select(pop, len(pop))
-        # Clone the selected individuals
-        offspring = list(map(toolbox.clone, offspring))
-
-        # Apply crossover and mutation on the offspring
-        for child1, child2 in zip(offspring[::2], offspring[1::2]):
-
-            # cross two individuals with probability CXPB
-            if random.random() < CXPB:
-                toolbox.mate(child1, child2)
-
-                # fitness values of the children
-                # must be recalculated later
-                del child1.fitness.values
-                del child2.fitness.values
-
-        for mutant in offspring:
-
-            # mutate an individual with probability MUTPB
-            if random.random() < MUTPB:
-                toolbox.mutate(mutant)
-                del mutant.fitness.values
-
-        # Evaluate the individuals with an invalid fitness
-
-        # print(" ========= Offspring ========")
-        # print(offspring)
-        # print(" ======= Offspring End ======")
-
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit
-
-        print("  Evaluated %i individuals" % len(invalid_ind))
-
-        # The population is entirely replaced by the offspring
-        pop[:] = offspring
-
-        # print(" ========= Population ========")
-        # print(pop)
-        # print(" ======= Population End ======")
-        # Gather all the fitnesses in one list and print the stats
-        fits = [ind.fitness.values[0] for ind in pop]
-
-        length = len(pop)
-        mean = sum(fits) / length
-        sum2 = sum(x * x for x in fits)
-        std = abs(sum2 / length - mean ** 2) ** 0.5
-
-        print("  Min %s" % min(fits))
-        print("  Max %s" % max(fits))
-        print("  Avg %s" % mean)
-        print("  Std %s" % std)
-
-    print("-- End of (successful) evolution --")
-
-    best_ind = tools.selBest(pop, 1)[0]
-    print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.5, 0.1, 40, stats=mstats,
+                                   halloffame=hof, verbose=True)
+    # print log
+    return pop, log, hof
 
 
 if __name__ == "__main__":

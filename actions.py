@@ -164,7 +164,7 @@ tree = Node(NT.quest, 1,
                  Node(NT.goto, 1),
                  Leaf(T.report)))
 
-print(tree)
+# print(tree)
 
 # Output:
 # NonTerminals.quest(1):{NonTerminals.knowledge(3):{NonTerminals.goto(3):{NonTerminals.learn(3):{NonTerminals.goto(1), NonTerminals.get(2):{NonTerminals.steal(1):{NonTerminals.goto(2):{Terminals.explore}, Terminals.stealth, Terminals.take}}, Terminals.read}, Terminals.goto}, Terminals.listen, NonTerminals.goto(1), Terminals.report}}
