@@ -25,8 +25,17 @@ class Terminals(Enum):
 
 
 class NonTerminals(Enum):
-    knowledge = auto()
     quest = auto()
+    knowledge = auto()
+    comfort = auto()
+    reputation = auto()
+    serenity = auto()
+    protection = auto()
+    conquest = auto()
+    wealth = auto()
+    ability = auto()
+    equipment = auto()
+
     sub_quest = auto()
     goto = auto()
     learn = auto()
@@ -41,35 +50,71 @@ T = Terminals
 NT = NonTerminals
 
 rules = {
+    NT.quest: {
+        1: [NT.knowledge],
+        2: [NT.comfort],
+        3: [NT.reputation],
+        4: [NT.serenity],
+        5: [NT.protection],
+        6: [NT.conquest],
+        7: [NT.wealth],
+        8: [NT.ability],
+        9: [NT.equipment]
+    },
     NT.knowledge: {
         1: [NT.get, NT.goto, T.give],
         2: [NT.spy],
         3: [NT.goto, T.listen, NT.goto, T.report],
         4: [NT.get, NT.goto, T.use, NT.goto, T.give]
     },
-    NT.quest: {
-        1: [NT.knowledge]
+    NT.comfort: {
+        1: [NT.get, NT.goto, T.give],
+        2: [NT.goto, T.damage, NT.goto, T.report]
     },
+    NT.serenity: {
+        1: [NT.goto, T.damage],
+        2: [NT.get, NT.goto, T.use, NT.goto, T.give],
+        3: [NT.get, NT.goto, T.use, T.capture, NT.goto, T.give],
+        4: [NT.goto, T.listen, NT.goto, T.report],
+        5: [NT.goto, T.take, NT.goto, T.give],
+        6: [NT.get, NT.goto, T.give],
+        7: [NT.goto, T.damage, T.escort, NT.goto, T.report]
+    },
+    NT.protection: {
+        1: [NT.goto, T.damage, NT.goto, T.report],
+        2: [NT.get, NT.goto, T.use],
+        3: [NT.goto, T.repair],
+        4: [NT.get, NT.goto, T.use],
+        5: [NT.goto, T.damage]
+    },
+    NT.conquest: {},
+    NT.wealth: {},
+    NT.ability: {},
+    NT.equipment: {},
+
     NT.sub_quest: {
         1: [NT.goto],
         2: [NT.goto, NT.quest, T.goto]
     },
     NT.goto: {
-        1: [],
+        0: [],
+        1: [T.null],
         2: [T.explore],
         3: [NT.learn, T.goto]
     },
     NT.learn: {
-        1: [],
+        0: [],
+        1: [T.null],
         2: [NT.goto, NT.sub_quest, T.listen],
         3: [NT.goto, NT.get, T.read],
         4: [NT.get, NT.sub_quest, T.give, T.listen]
     },
     NT.get: {
-        1: [],
+        0: [],
+        1: [T.null],
         2: [NT.steal],
         3: [NT.goto, T.gather],
-        4: [NT.goto, NT.get, NT.goto, NT.sub_quest, T.exchange]
+        4: [NT.goto, NT.get, NT.sub_quest, NT.goto, T.exchange]
     },
     NT.steal: {
         1: [NT.goto, T.stealth, T.take],
@@ -109,6 +154,7 @@ class ActionTree(Tree):
         self.action = action
         self.rule = rule
         self.branches = None
+        self.flatten = []
         if rule:
             if action in rules:
                 if rule in rules[action]:
@@ -124,6 +170,8 @@ class ActionTree(Tree):
                                 raise Exception("branch is not of type '" + str(type(ActionTree))
                                                 + "', instead it is '" + str(type(sub_tree)) + "'")
                         self.branches = branches
+                        # create/update flatten branches
+                        self.flat()
                     else:
                         raise Exception("branches for Tree action are not valid, as the node is of action type '"
                                         + str(action) + "' and rule is '" + str(rule)
@@ -138,33 +186,38 @@ class ActionTree(Tree):
                 raise Exception("action '" + str(action) + "' is not in rules. It should be one of "
                                 + str(rules.keys()))
 
+    def flat(self, update: bool=False) -> list:
+
+        if self.flatten:
+            return self.flatten
+
+        flatten_branches = []
+
+        if self.branches:
+            for branch in self.branches:
+                if branch.action != T.null:
+
+                    if branch.flatten and not update:
+                        flatten_branches += branch.flatten
+                    else:
+                        flatten_branches += branch.flat()
+
+            if len(flatten_branches) > 1:
+                self.flatten = [self.action] + flatten_branches
+            else:
+                self.flatten = flatten_branches
+
+        else:
+            self.flatten = [self.action]
+
+        return self.flatten
+
 
 class ActionLeaf(ActionTree):
     def __init__(self, action: T):
+        # ActionTree expects a NonTerminal action, but I'm giving a Terminal and that's fine!
         super(ActionLeaf, self).__init__(action, None)
 
 
 Node = ActionTree
 Leaf = ActionLeaf
-
-tree = Node(NT.quest, 1,
-            Node(NT.knowledge, 3,
-                 Node(NT.goto, 3,
-                      Node(NT.learn, 3,
-                           Node(NT.goto, 1),
-                           Node(NT.get, 2,
-                                Node(NT.steal, 1,
-                                     Node(NT.goto, 2,
-                                          Leaf(T.explore)),
-                                     Leaf(T.stealth),
-                                     Leaf(T.take))),
-                           Leaf(T.read)),
-                      Leaf(T.goto)),
-                 Leaf(T.listen),
-                 Node(NT.goto, 1),
-                 Leaf(T.report)))
-
-# print(tree)
-
-# Output:
-# NonTerminals.quest(1):{NonTerminals.knowledge(3):{NonTerminals.goto(3):{NonTerminals.learn(3):{NonTerminals.goto(1), NonTerminals.get(2):{NonTerminals.steal(1):{NonTerminals.goto(2):{Terminals.explore}, Terminals.stealth, Terminals.take}}, Terminals.read}, Terminals.goto}, Terminals.listen, NonTerminals.goto(1), Terminals.report}}
