@@ -169,7 +169,7 @@ class ActionTree(Tree):
                             else:
                                 raise Exception("branch is not of type '" + str(type(ActionTree))
                                                 + "', instead it is '" + str(type(sub_tree)) + "'")
-                        self.branches = branches
+                        self.branches = list(branches)
                         # create/update flatten branches
                         self.flat()
                     else:
@@ -211,6 +211,11 @@ class ActionTree(Tree):
             self.flatten = [self.action]
 
         return self.flatten
+
+    def replace_by_path(self, path: list, sub_tree):
+        if not path:
+            return
+        pass
 
 
 class ActionLeaf(ActionTree):
