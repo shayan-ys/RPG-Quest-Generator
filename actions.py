@@ -71,6 +71,11 @@ rules = {
         1: [NT.get, NT.goto, T.give],
         2: [NT.goto, T.damage, NT.goto, T.report]
     },
+    NT.reputation: {
+        1: [NT.get, NT.goto, T.give],
+        2: [NT.goto, NT.kill, NT.goto, T.report],
+        3: [NT.goto, NT.goto, T.report]
+    },
     NT.serenity: {
         1: [NT.goto, T.damage],
         2: [NT.get, NT.goto, T.use, NT.goto, T.give],
@@ -87,30 +92,47 @@ rules = {
         4: [NT.get, NT.goto, T.use],
         5: [NT.goto, T.damage]
     },
-    NT.conquest: {},
-    NT.wealth: {},
-    NT.ability: {},
-    NT.equipment: {},
+    NT.conquest: {
+        1: [NT.goto, T.damage],
+        2: [NT.goto, NT.steal, NT.goto, T.give]
+    },
+    NT.wealth: {
+        1: [NT.goto, NT.get],
+        2: [NT.goto, NT.steal],
+        3: [T.repair]
+    },
+    NT.ability: {
+        1: [T.repair, T.use],
+        2: [NT.get, T.use],
+        3: [T.use],
+        4: [T.damage],
+        5: [T.use],
+        6: [NT.get, T.use],
+        7: [NT.get, T.experiment]
+    },
+    NT.equipment: {
+        1: [T.repair],
+        2: [NT.get, NT.goto, T.give],
+        3: [NT.steal],
+        4: [NT.goto, T.exchange]
+    },
 
     NT.sub_quest: {
         1: [NT.goto],
         2: [NT.goto, NT.quest, T.goto]
     },
     NT.goto: {
-        0: [],
         1: [T.null],
         2: [T.explore],
         3: [NT.learn, T.goto]
     },
     NT.learn: {
-        0: [],
         1: [T.null],
         2: [NT.goto, NT.sub_quest, T.listen],
         3: [NT.goto, NT.get, T.read],
         4: [NT.get, NT.sub_quest, T.give, T.listen]
     },
     NT.get: {
-        0: [],
         1: [T.null],
         2: [NT.steal],
         3: [NT.goto, T.gather],

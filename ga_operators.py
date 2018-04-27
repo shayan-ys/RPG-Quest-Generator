@@ -44,3 +44,24 @@ def crossover_flatten(parent1: Node, parent2: Node) -> (Node, Node):
     child2 = replace_node_by_path(parent2, p2_paths[p2_rand], p1_node)
 
     return child1, child2
+
+
+def quest_generator(root_type: NT, depth: int=7) -> Node:
+
+    if root_type not in rules:
+        print("###### rule: " + str(root_type) + " is not in the rules list !!!")
+    rules_for_type = rules[root_type]
+    if depth > 0:
+        rule_number, rule_requirements_list = random.choice(list(rules_for_type.items()))
+    else:
+        rule_number, rule_requirements_list = 1, rules_for_type[1]
+
+    branches = []
+    for action_type in rule_requirements_list:
+        if type(action_type) == T:
+            branch = Leaf(action_type)
+        else:
+            branch = quest_generator(root_type=action_type, depth=depth-1)
+        branches.append(branch)
+
+    return Node(root_type, rule_number, *branches)
