@@ -1,5 +1,7 @@
 from actions import rules
-from actions_operators import pattern_finder, flat_non_terminals_subtrees, replace_node_by_path
+from actions_operators import pattern_finder, flat_non_terminals_subtrees, replace_node_by_path, length_event
+from helper import bell_curve
+from statics import terminal_xp_map
 from quests import *
 
 import random
@@ -29,6 +31,10 @@ def crossover_flatten(parent1: Node, parent2: Node) -> (Node, Node):
     while p1_rand_validity_for_p2:
         p1_rand = random.randint(0, len(p1_flat) - 1)
         selected_type = p1_types_flat[p1_rand]
+
+        if p1_rand_validity_for_p2 > 750 and (selected_type == NT.quest or selected_type in rules[NT.quest].values()):
+            p1_rand_validity_for_p2 -= 1
+            continue
 
         p2_indices_with_selected_type = [i for i, node_type in enumerate(p2_types_flat) if node_type == selected_type]
         if p2_indices_with_selected_type:
@@ -65,3 +71,23 @@ def quest_generator(root_type: NT, depth: int=7) -> Node:
         branches.append(branch)
 
     return Node(root_type, rule_number, *branches)
+
+
+def fitness_sum(quest: Node, bell_curve_dict: dict=None) -> float:
+    if not bell_curve_dict:
+        bell_curve_dict = {
+            'rep_fact': {'opt_value': 0, 'scaling_value': (1/1024)},
+            'len_fact': {'opt_value': 25, 'scaling_value': (1/8)},
+            'xp_fact': {'opt_value': 25, 'scaling_value': (1/8)}
+        }
+
+    rep_fact = repetition_factor(quest.flatten, pattern_max_length=4)
+    len_fact = sum(map(length_event, quest.flatten))
+    xp_fact = sum(map(terminal_xp_map, quest.flatten))
+
+    if bell_curve_dict:
+        rep_fact = bell_curve(rep_fact, **bell_curve_dict['rep_fact'])
+        len_fact = bell_curve(len_fact, **bell_curve_dict['len_fact'])
+        xp_fact = bell_curve(xp_fact, **bell_curve_dict['xp_fact'])
+
+    return (rep_fact + len_fact + xp_fact) / 3

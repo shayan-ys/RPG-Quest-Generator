@@ -1,17 +1,14 @@
 from statics import terminal_xp_map
 from helper import list_to_str, bell_curve
 from actions_operators import flat_non_terminals_subtrees, replace_node_by_path, length_event
-from ga_operators import repetition_factor, crossover_flatten, quest_generator
+from ga_operators import repetition_factor, crossover_flatten, quest_generator, fitness_sum
+from ga import init, generation, ga_run
 from quests import *
 
 
 # print("----- cure -----")
 # print(list_to_str(cure.flatten))
-
-# patterns = pattern_finder(cure.flatten, pat_length=2, in_order=True)
-# print(patterns)
-
-
+#
 # print("repr_factor= " + str(repetition_factor(cure.flatten, pattern_max_length=3)))
 # print("length_factor= " + str(sum(map(length_event, cure.flatten))))
 # print("xp_factor= " + str(sum(map(terminal_xp_map, cure.flatten))))
@@ -31,6 +28,14 @@ from quests import *
 # print("length_factor= " + str(sum(map(length_event, spy.flatten))))
 # print("xp_factor= " + str(sum(map(terminal_xp_map, spy.flatten))))
 # print("occurrence_factor= " + str(spy.flatten.count(T.kill)))
+#
+# f_spy = (
+#              bell_curve(repetition_factor(spy.flatten, pattern_max_length=4), opt_value=0, scaling_value=(1/1024)) +
+#              bell_curve(sum(map(length_event, spy.flatten)), opt_value=27, scaling_value=(1/8)) +
+#              bell_curve(sum(map(terminal_xp_map, spy.flatten)), opt_value=25, scaling_value=(1/8))
+#          ) / 3
+#
+# print("fitness: spy= " + str(f_spy))
 #
 # print("------- flat non_terminals subtree - arbitrary quest 2 ------")
 # flatten_subtrees_arbitrary_2, flatten_types_arbitrary_2, path_nodes_arbitrary_2 = flat_non_terminals_subtrees(arbitrary_quest2)
@@ -66,8 +71,47 @@ from quests import *
 # print(spy_cure_child1)
 # print(spy_cure_child2)
 
-print("------- Random Generated Quest Tree --------")
-for i in range(500):
-    print("+++++ Quest " + str(i) + " +++++")
-    qs_rand_1 = quest_generator(NT.quest)
-    print(qs_rand_1)
+# print("------- Random Generated Quest Tree --------")
+# for i in range(500):
+#     print("+++++ Quest " + str(i) + " +++++")
+#     qs_rand_1 = quest_generator(NT.quest)
+#     print(qs_rand_1)
+
+# print("----- cure -----")
+# f_cure_new = fitness_sum(cure, bell_curve_dict={
+#     'rep_fact': {'opt_value': 0, 'scaling_value': (1/1024)},
+#     'len_fact': {'opt_value': 24, 'scaling_value': (1/8)},
+#     'xp_fact': {'opt_value': 25, 'scaling_value': (1/8)}
+# })
+# print("fitness (new): cure= " + str(f_cure_new))
+#
+# print("----- spy -----")
+# f_spy_new = fitness_sum(spy, bell_curve_dict={
+#     'rep_fact': {'opt_value': 0, 'scaling_value': (1/1024)},
+#     'len_fact': {'opt_value': 27, 'scaling_value': (1/8)},
+#     'xp_fact': {'opt_value': 25, 'scaling_value': (1/8)}
+# })
+# print("fitness (new): spy= " + str(f_spy_new))
+
+# pop_0 = init(10)
+# pop_1 = generation(pop_0)
+pop = ga_run(generations_count=200, pop_size=50)
+
+# for indv in pop:
+#     print(indv)
+
+print(pop[0])
+print("len(" + str(len(pop)) + ")")
+
+# a = [4, 1, 2, 5, 3, 6]
+# sorted_a = []
+#
+# for aa in a:
+#     i = 0
+#     for sorted_aa in sorted_a:
+#         if aa > sorted_aa:
+#             break
+#         i += 1
+#     sorted_a.insert(i, aa)
+#
+# print(sorted_a)

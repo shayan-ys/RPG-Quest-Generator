@@ -9,6 +9,12 @@ xp_values = {
     5: [T.kill]
 }
 
+# GA parameters
+ga_params = {
+    'selection_factor': 0.4,
+    'mutation_factor': 0.1
+}
+
 terminal_xp = {}
 
 
