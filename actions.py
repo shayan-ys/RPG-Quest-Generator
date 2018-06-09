@@ -1,49 +1,4 @@
-from enum import Enum, auto
 
-
-class Terminals(Enum):
-    null = auto()
-    capture = auto()
-    damage = auto()
-    defend = auto()
-    escort = auto()
-    exchange = auto()
-    experiment = auto()
-    explore = auto()
-    gather = auto()
-    give = auto()
-    goto = auto()
-    kill = auto()
-    listen = auto()
-    read = auto()
-    repair = auto()
-    report = auto()
-    spy = auto()
-    stealth = auto()
-    take = auto()
-    use = auto()
-
-
-class NonTerminals(Enum):
-    quest = auto()
-    knowledge = auto()
-    comfort = auto()
-    reputation = auto()
-    serenity = auto()
-    protection = auto()
-    conquest = auto()
-    wealth = auto()
-    ability = auto()
-    equipment = auto()
-
-    sub_quest = auto()
-    goto = auto()
-    learn = auto()
-    get = auto()
-    steal = auto()
-    spy = auto()
-    capture = auto()
-    kill = auto()
 
 
 T = Terminals

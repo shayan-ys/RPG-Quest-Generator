@@ -1,4 +1,5 @@
-from actions import Node, Leaf, NT, T
+from Grammar.actions import NonTerminals as NT, Terminals as T
+from Grammar.tree import Node, Leaf
 
 
 # ================================================================
@@ -119,23 +120,6 @@ spy = Node(NT.quest, 1,
 # ================================================================
 # ======================= Arbitrary Quests =======================
 # ================================================================
-
-# arbitrary_quest1 = Node(NT.quest, 1,
-#                         Node(NT.knowledge, 3,
-#                              Node(NT.goto, 3,
-#                                   Node(NT.learn, 3,
-#                                        Node(NT.goto, 0),
-#                                        Node(NT.get, 2,
-#                                             Node(NT.steal, 1,
-#                                                  Node(NT.goto, 2,
-#                                                       Leaf(T.explore)),
-#                                                  Leaf(T.stealth),
-#                                                  Leaf(T.take))),
-#                                        Leaf(T.read)),
-#                                   Leaf(T.goto)),
-#                              Leaf(T.listen),
-#                              Node(NT.goto, 0),
-#                              Leaf(T.report)))
 
 arbitrary_quest1 = Node(NT.quest, 1,
                         Node(NT.knowledge, 3,

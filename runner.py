@@ -1,10 +1,4 @@
-from statics import terminal_xp_map
-from helper import list_to_str, bell_curve
-from actions_operators import flat_non_terminals_subtrees, replace_node_by_path, length_event
-from ga_operators import repetition_factor, crossover_flatten, quest_generator, fitness_sum
-from ga import init, generation, ga_run
-from quests import *
-
+from ga import ga_run
 
 # print("----- cure -----")
 # print(list_to_str(cure.flatten))

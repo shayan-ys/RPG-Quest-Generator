@@ -2,7 +2,7 @@ from actions import rules
 from actions_operators import pattern_finder, flat_non_terminals_subtrees, replace_node_by_path, length_event
 from helper import bell_curve
 from statics import terminal_xp_map
-from quests import *
+from data.quests import *
 
 import random
 
