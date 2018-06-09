@@ -1,4 +1,3 @@
-from actions import T
 from itertools import tee, islice
 
 
@@ -18,11 +17,3 @@ def grouped(iterable, n):
 def bell_curve(value: float, opt_value: float, scaling_value: float) -> float:
     """MWinter Paper: Genetic Programming for Automated Quest Generation"""
     return 1 / (1 + scaling_value * pow(opt_value - value, 2))
-
-
-def list_to_str(actions_flatten: list) -> str:
-    flt_str_list = []
-    for flt in actions_flatten:
-        flt_str_list.append(flt.name if type(flt) == T else "<" + flt.name + ">")
-
-    return ", ".join(flt_str_list)

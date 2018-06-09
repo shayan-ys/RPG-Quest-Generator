@@ -80,10 +80,7 @@ class Node(Tree):
                 raise Exception("action '" + str(action) + "' is not in rules. It should be one of "
                                 + str(rules.keys()))
 
-    def flat(self, update: bool=False) -> list:
-
-        if self.flatten:
-            return self.flatten
+    def flat(self) -> list:
 
         flatten_branches = []
 
@@ -91,10 +88,7 @@ class Node(Tree):
             for branch in self.branches:
                 if branch.action != T.null:
 
-                    if branch.flatten and not update:
-                        flatten_branches += branch.flatten
-                    else:
-                        flatten_branches += branch.flat()
+                    flatten_branches += branch.flat()
 
             if len(flatten_branches) > 1:
                 self.flatten = [self.action] + flatten_branches
