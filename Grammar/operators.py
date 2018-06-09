@@ -1,30 +1,8 @@
-from actions import Node, Leaf
-from helper import nwise
+from Grammar.tree import Node, Leaf
 
-from collections import Counter
-
-
-def pattern_finder(items: list, pat_length: int=2, min_repeat: int=2, in_order: bool=True) -> (int, int):
-
-    repeats_list = []
-    found_indices = []
-
-    for index, comp_base in enumerate(nwise(items, n=pat_length)):
-
-        if index in found_indices:
-            # this pattern is already counted, nothing new will be found here. => skip!
-            continue
-        repeats = 1
-
-        for index_needle, comp_needle in enumerate(nwise(items[index+1:], n=pat_length)):
-            if (in_order and comp_base == comp_needle) or (not in_order and set(comp_base) == set(comp_needle)):
-                repeats += 1
-                found_indices.append(index_needle)
-
-        if repeats >= min_repeat:
-            repeats_list.append(repeats)
-
-    return [(r, s) for r, s in Counter(repeats_list).items()]
+import json
+from Logger import logger
+logger.name = __name__
 
 
 def flat_non_terminals_subtrees(tree: Node) -> (list, list):
@@ -59,15 +37,28 @@ def flat_non_terminals_subtrees(tree: Node) -> (list, list):
     return recursion(root=tree, root_path=[])
 
 
-def replace_node_by_path(root: Node, path: list, replace_by: Node) -> Node:
+def replace_node_by_path(tree: Node, path_in_tree: list, replace_by: Node) -> Node:
+    """
+    Finds the correct node in the 'tree', using the given 'path' to it, replace it with the given node in 'replace_by'
+    :param tree: tree that one of its nodes are going to be replaced by something else
+    :param path_in_tree: path to the node inside the tree, path is a list of branch indices
+    :param replace_by: the node which will replace the existing one inside the tree
+    :return: altered tree
+    """
 
-    if path:
-        root.branches[path[0]] = replace_node_by_path(root.branches[path[0]], path[1:], replace_by)
-    else:
-        return replace_by
+    def recursion(root: Node, path: list) -> Node:
 
-    return root
+        if path:
+            root.branches[path[0]] = recursion(root.branches[path[0]], path[1:])
+        else:
+            return replace_by
 
+        return root
 
-def length_event(event) -> int:
-    return 1
+    try:
+        new_tree = recursion(root=tree, path=path_in_tree)
+        new_tree.flat()
+        return new_tree
+    except:
+        logger.error("Error in replace node | tree: %s | path_in_tree: %s " % (json.dumps(tree), str(path_in_tree)))
+        return None

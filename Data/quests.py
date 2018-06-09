@@ -147,3 +147,11 @@ arbitrary_quest2 = Node(NT.steal, 1,
                              Leaf(T.goto)),
                         Leaf(T.stealth),
                         Leaf(T.take))
+
+tiny_goto = Node(NT.goto, 1,
+                 Leaf(T.null))
+
+small_goto = Node(NT.goto, 3,
+                  Node(NT.learn, 1,
+                       Leaf(T.null)),
+                  Leaf(T.goto))

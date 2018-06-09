@@ -6,6 +6,20 @@ class GAParams:
     selection_factor = 0.4
     mutation_factor = 0.1
 
+    class Fitness:
+        class BellCurves:
+            class Factors:
+                def __init__(self, opt_value: int, scaling_value: float):
+                    self.opt_value = opt_value
+                    self.scaling_value = scaling_value
+
+                def items(self) -> dict:
+                    return {'opt_value': self.opt_value, 'scaling_value': self.scaling_value}
+
+            rep_fact = Factors(opt_value=0, scaling_value=(1 / 1024))
+            len_fact = Factors(opt_value=25, scaling_value=(1 / 8))
+            xp_fact = Factors(opt_value=25, scaling_value=(1 / 8))
+
 
 class XP:
     values = {

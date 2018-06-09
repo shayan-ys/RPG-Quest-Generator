@@ -31,7 +31,7 @@ class Tree(object):
             rule_str = "(" + str(self.rule) + ")"
         if not self.branches:
             return str(self.action) + rule_str
-        return str(self.action) + rule_str + ":{" + ", ".join(map(str, self.branches)) + "}"
+        return str(self.action) + rule_str + ":{" + ", ".join(map(Tree.pretty_string, self.branches)) + "}"
 
     def __dict__(self) -> dict:
         return self.serialize()
@@ -40,7 +40,7 @@ class Tree(object):
         return json.dumps(self.serialize())
 
     def __repr__(self):
-        return self.__str__()
+        return self.pretty_string()
 
 
 class Node(Tree):

@@ -1,30 +1,31 @@
-from data.quests import arbitrary_quest2
-from Grammar.serializers import deserialize_tree_json_str, write_file
+from Data.quests import arbitrary_quest1, arbitrary_quest2, cure, small_goto, tiny_goto
+from Grammar.operators import flat_non_terminals_subtrees, replace_node_by_path
+from Grammar.serializers import write_file
+# from Logger import logger
+# logger.name = __name__
 
 
-# print(serialize_tree(arbitrary_quest2))
+subtrees, node_types, paths = flat_non_terminals_subtrees(cure)
 
-# json_string = json.dumps(arbitrary_quest2, default=serialize_tree)
-# print(json_string)
+# for index in range(len(subtrees)):
+#     print('================================== %d ================' % index)
+#     print(node_types[index])
+#     print(paths[index])
+# 0010 = 6
 
-# tree_dict = serialize_tree(arbitrary_quest2)
-# print(type(tree_dict))
-# print(tree_dict)
-#
-# tree = deserialize_tree_json(tree_dict)
-# print(type(tree))
-# print(tree)
+new = replace_node_by_path(arbitrary_quest2, [0], tiny_goto)
+print(new.pretty_string())
 
-# tree_dict = json.loads(json_string)
-# tree = deserialize_tree_json(tree_dict)
-#
-# print(type(tree))
-# print(tree)
+new_2 = replace_node_by_path(arbitrary_quest1, [0, 0], small_goto)
+print(new_2)
 
-print(arbitrary_quest2)
+prev_flatten = cure.flatten
+new_cure = replace_node_by_path(cure, paths[6], tiny_goto)
+print(new_cure)
 
-write_file(arbitrary_quest2)
-# tree_json_str = str(arbitrary_quest2)
-#
-# tree = deserialize_tree_json_str(tree_json_str)
-# print(tree)
+after_flatten = cure.flatten
+
+print('prev_flatten len = %d' % len(prev_flatten))
+print('after_flatten len = %d' % len(after_flatten))
+
+write_file(new_cure)
