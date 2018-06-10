@@ -42,6 +42,11 @@ class Tree(object):
     def __repr__(self):
         return self.pretty_string()
 
+    def __eq__(self, other):
+        if isinstance(other, Tree):
+            return self.action == other.action and self.rule == other.rule and self.branches == other.branches
+        return False
+
 
 class Node(Tree):
     def __init__(self, action: NT, rule: int=None, *branches):
