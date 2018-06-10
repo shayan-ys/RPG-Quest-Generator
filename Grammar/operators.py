@@ -57,7 +57,7 @@ def replace_node_by_path(tree: Node, path_in_tree: list, replace_by: Node) -> No
 
     try:
         new_tree = recursion(root=tree, path=path_in_tree)
-        new_tree.flat()
+        new_tree.update()
         return new_tree
     except:
         logger.error("Error in replace node | tree: %s | path_in_tree: %s " % (json.dumps(tree), str(path_in_tree)))

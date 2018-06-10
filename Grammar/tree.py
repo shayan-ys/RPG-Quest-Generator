@@ -49,6 +49,7 @@ class Node(Tree):
         self.rule = rule
         self.branches = None
         self.flatten = []
+        self.depth = 0
         if rule:
             if action in rules:
                 if rule in rules[action]:
@@ -64,8 +65,8 @@ class Node(Tree):
                                 raise Exception("branch is not of type '" + str(type(Node))
                                                 + "', instead it is '" + str(type(sub_tree)) + "'")
                         self.branches = list(branches)
-                        # create/update flatten branches
-                        self.flat()
+                        # update tree flat and depth vars
+                        self.update()
                     else:
                         raise Exception("branches for Tree action are not valid, as the node is of action type '"
                                         + str(action) + "' and rule is '" + str(rule)
@@ -99,6 +100,25 @@ class Node(Tree):
             self.flatten = [self.action]
 
         return self.flatten
+
+    def calc_depth(self, current_level: int=0) -> int:
+        if current_level > 900:
+            return 900
+
+        max_depth = 0
+        if self.branches:
+            for branch in self.branches:
+                branch_depth = branch.calc_depth(current_level + 1) + 1
+                if branch_depth > 900:
+                    return branch_depth
+                max_depth = max(branch_depth, max_depth)
+
+        self.depth = max_depth
+        return self.depth
+
+    def update(self):
+        self.flat()
+        self.calc_depth()
 
 
 class Leaf(Node):
