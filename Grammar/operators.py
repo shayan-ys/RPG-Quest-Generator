@@ -1,11 +1,12 @@
 from Grammar.tree import Node, Leaf
 
 import json
+from copy import deepcopy
 from Logger import logger
 logger.name = __name__
 
 
-def flat_non_terminals_subtrees(tree: Node) -> (list, list):
+def flat_non_terminals_subtrees(tree: Node) -> (list, list, list):
     """
     Flatten a tree to three lists, ignoring 'Terminals':
     - List of every subtrees
@@ -15,7 +16,7 @@ def flat_non_terminals_subtrees(tree: Node) -> (list, list):
     :return: A tuple of three lists described above
     """
 
-    def recursion(root: Node, root_path: list) -> (list, list):
+    def recursion(root: Node, root_path: list) -> (list, list, list):
 
         if not root or not root.branches:
             return [], [], []
@@ -49,16 +50,30 @@ def replace_node_by_path(tree: Node, path_in_tree: list, replace_by: Node) -> No
     def recursion(root: Node, path: list) -> Node:
 
         if path:
-            root.branches[path[0]] = recursion(root.branches[path[0]], path[1:])
+            res = recursion(root.branches[path[0]], path[1:])
+            root.branches[path[0]] = res
         else:
             return replace_by
 
         return root
 
     try:
-        new_tree = recursion(root=tree, path=path_in_tree)
-        new_tree.update()
+        new_tree = recursion(root=deepcopy(tree), path=path_in_tree)
+        new_tree.update_metrics()
         return new_tree
-    except:
-        logger.error("Error in replace node | tree: %s | path_in_tree: %s " % (json.dumps(tree), str(path_in_tree)))
+    except Exception as e:
+        logger.error("Error in replace node | tree: %s | path_in_tree: %s | exception: %s ",
+                     json.dumps(tree), str(path_in_tree), str(e))
         return None
+
+
+def get_node_by_path(tree: Node, path_in_tree: list) -> Node:
+
+    def recursion(root: Node, path: list) -> Node:
+
+        if path:
+            return recursion(root.branches[path[0]], path[1:])
+        else:
+            return root
+
+    return recursion(root=tree, path=path_in_tree)

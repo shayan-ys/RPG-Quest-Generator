@@ -1,5 +1,6 @@
 from Grammar.actions import NonTerminals as NT, Terminals as T
 from Grammar.rules import rules
+from copy import deepcopy
 import json
 
 
@@ -33,11 +34,40 @@ class Tree(object):
             return str(self.action) + rule_str
         return str(self.action) + rule_str + ":{" + ", ".join(map(Tree.pretty_string, self.branches)) + "}"
 
+    def dumps(self) -> str:
+        return json.dumps(self.serialize())
+
+    # def __dict__(self) -> dict:
+    #     return self.serialize()
+
+    def update(self, new_vars: dict):
+        self.action = new_vars['action']
+        self.rule = new_vars['rule']
+        self.branches = new_vars['branches']
+
     def __dict__(self) -> dict:
-        return self.serialize()
+        return {
+            "action": self.action,
+            "rule": self.rule,
+            "branches": self.branches
+        }
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.update(self.__dict__())
+        return result
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__().items():
+            setattr(result, k, deepcopy(v, memo))
+        return result
 
     def __str__(self):
-        return json.dumps(self.serialize())
+        return self.pretty_string()
 
     def __repr__(self):
         return self.pretty_string()
@@ -71,7 +101,7 @@ class Node(Tree):
                                                 + "', instead it is '" + str(type(sub_tree)) + "'")
                         self.branches = list(branches)
                         # update tree flat and depth vars
-                        self.update()
+                        self.update_metrics()
                     else:
                         raise Exception("branches for Tree action are not valid, as the node is of action type '"
                                         + str(action) + "' and rule is '" + str(rule)
@@ -121,7 +151,7 @@ class Node(Tree):
         self.depth = max_depth
         return self.depth
 
-    def update(self):
+    def update_metrics(self):
         self.flat()
         self.calc_depth()
 
