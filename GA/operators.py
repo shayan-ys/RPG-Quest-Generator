@@ -89,5 +89,5 @@ def quest_generator(root_type: NT=NT.quest) -> Node:
         return Node(node_type, rule_number, *branches)
 
     generated_tree = recursion(node_type=root_type, depth=GAParams.maximum_quest_depth)
-    generated_tree.update()
+    generated_tree.update_metrics()
     return generated_tree

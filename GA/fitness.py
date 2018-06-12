@@ -89,3 +89,6 @@ def fitness_sum(quest: Node, bell_curve_enabled: bool=True) -> float:
         xp_fact = bell_curve(xp_fact, **bell.xp_fact.items())
 
     return (rep_fact + len_fact + xp_fact) / 3.0
+
+
+fitness = fitness_sum
