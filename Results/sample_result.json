@@ -1,0 +1,221 @@
+{
+    "action_str": "NonTerminals.quest",
+    "rule": 3,
+    "branches": [
+        {
+            "action_str": "NonTerminals.reputation",
+            "rule": 2,
+            "branches": [
+                {
+                    "action_str": "NonTerminals.goto",
+                    "rule": 1,
+                    "branches": [
+                        {
+                            "action_str": "Terminals.null",
+                            "rule": null,
+                            "branches": []
+                        }
+                    ]
+                },
+                {
+                    "action_str": "NonTerminals.kill",
+                    "rule": 1,
+                    "branches": [
+                        {
+                            "action_str": "NonTerminals.goto",
+                            "rule": 3,
+                            "branches": [
+                                {
+                                    "action_str": "NonTerminals.learn",
+                                    "rule": 4,
+                                    "branches": [
+                                        {
+                                            "action_str": "NonTerminals.get",
+                                            "rule": 2,
+                                            "branches": [
+                                                {
+                                                    "action_str": "NonTerminals.steal",
+                                                    "rule": 1,
+                                                    "branches": [
+                                                        {
+                                                            "action_str": "NonTerminals.goto",
+                                                            "rule": 3,
+                                                            "branches": [
+                                                                {
+                                                                    "action_str": "NonTerminals.learn",
+                                                                    "rule": 1,
+                                                                    "branches": [
+                                                                        {
+                                                                            "action_str": "Terminals.null",
+                                                                            "rule": null,
+                                                                            "branches": []
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "action_str": "Terminals.goto",
+                                                                    "rule": null,
+                                                                    "branches": []
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "action_str": "Terminals.stealth",
+                                                            "rule": null,
+                                                            "branches": []
+                                                        },
+                                                        {
+                                                            "action_str": "Terminals.take",
+                                                            "rule": null,
+                                                            "branches": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "action_str": "NonTerminals.sub_quest",
+                                            "rule": 2,
+                                            "branches": [
+                                                {
+                                                    "action_str": "NonTerminals.goto",
+                                                    "rule": 1,
+                                                    "branches": [
+                                                        {
+                                                            "action_str": "Terminals.null",
+                                                            "rule": null,
+                                                            "branches": []
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "action_str": "NonTerminals.quest",
+                                                    "rule": 7,
+                                                    "branches": [
+                                                        {
+                                                            "action_str": "NonTerminals.wealth",
+                                                            "rule": 2,
+                                                            "branches": [
+                                                                {
+                                                                    "action_str": "NonTerminals.goto",
+                                                                    "rule": 3,
+                                                                    "branches": [
+                                                                        {
+                                                                            "action_str": "NonTerminals.learn",
+                                                                            "rule": 1,
+                                                                            "branches": [
+                                                                                {
+                                                                                    "action_str": "Terminals.null",
+                                                                                    "rule": null,
+                                                                                    "branches": []
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "action_str": "Terminals.goto",
+                                                                            "rule": null,
+                                                                            "branches": []
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "action_str": "NonTerminals.steal",
+                                                                    "rule": 2,
+                                                                    "branches": [
+                                                                        {
+                                                                            "action_str": "NonTerminals.goto",
+                                                                            "rule": 1,
+                                                                            "branches": [
+                                                                                {
+                                                                                    "action_str": "Terminals.null",
+                                                                                    "rule": null,
+                                                                                    "branches": []
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "action_str": "NonTerminals.kill",
+                                                                            "rule": 1,
+                                                                            "branches": [
+                                                                                {
+                                                                                    "action_str": "NonTerminals.goto",
+                                                                                    "rule": 2,
+                                                                                    "branches": [
+                                                                                        {
+                                                                                            "action_str": "Terminals.explore",
+                                                                                            "rule": null,
+                                                                                            "branches": []
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "action_str": "Terminals.kill",
+                                                                                    "rule": null,
+                                                                                    "branches": []
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "action_str": "Terminals.take",
+                                                                            "rule": null,
+                                                                            "branches": []
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "action_str": "Terminals.goto",
+                                                    "rule": null,
+                                                    "branches": []
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "action_str": "Terminals.give",
+                                            "rule": null,
+                                            "branches": []
+                                        },
+                                        {
+                                            "action_str": "Terminals.listen",
+                                            "rule": null,
+                                            "branches": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "action_str": "Terminals.goto",
+                                    "rule": null,
+                                    "branches": []
+                                }
+                            ]
+                        },
+                        {
+                            "action_str": "Terminals.kill",
+                            "rule": null,
+                            "branches": []
+                        }
+                    ]
+                },
+                {
+                    "action_str": "NonTerminals.goto",
+                    "rule": 1,
+                    "branches": [
+                        {
+                            "action_str": "Terminals.null",
+                            "rule": null,
+                            "branches": []
+                        }
+                    ]
+                },
+                {
+                    "action_str": "Terminals.report",
+                    "rule": null,
+                    "branches": []
+                }
+            ]
+        }
+    ]
+}

@@ -9,22 +9,26 @@ class Tree(object):
     action = None
     rule = None
 
-    def serialize(self) -> dict:
+    def serialize(self, simple=False) -> dict:
 
         serialized_branches = []
         if self.branches:
             for branch in self.branches:
                 if branch:
-                    ser = branch.serialize()
+                    ser = branch.serialize(simple=simple)
                     serialized_branches.append(ser)
 
-        return {
+        serialized = {
             "action_str": str(self.action),
             "rule": self.rule,
-            "branches": serialized_branches,
-            "action": self.action.value,
-            "terminal": True if isinstance(self.action, T) else False
+            "branches": serialized_branches
         }
+
+        if not simple:
+            serialized['action'] = self.action.value
+            serialized['terminal'] = True if isinstance(self.action, T) else False
+
+        return serialized
 
     def pretty_string(self):
         rule_str = ""
@@ -34,11 +38,8 @@ class Tree(object):
             return str(self.action) + rule_str
         return str(self.action) + rule_str + ":{" + ", ".join(map(Tree.pretty_string, self.branches)) + "}"
 
-    def dumps(self) -> str:
-        return json.dumps(self.serialize())
-
-    # def __dict__(self) -> dict:
-    #     return self.serialize()
+    def dumps(self, simple=False) -> str:
+        return json.dumps(self.serialize(simple=simple))
 
     def update(self, new_vars: dict):
         self.action = new_vars['action']
@@ -67,7 +68,7 @@ class Tree(object):
         return result
 
     def __str__(self):
-        return self.pretty_string()
+        return self.dumps()
 
     def __repr__(self):
         return self.pretty_string()
