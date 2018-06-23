@@ -1,13 +1,15 @@
+from World.status import Belongings, VitalStat, Inhabitants
 from World.tags import ActionTags
 
 from Grammar.actions import Terminals as T
 
 
 class Type:
-    tags = []
-    
+    tags = []            # list of Tags class
+    status_classes = []  # list of Status classes for this type
+
     def __str__(self):
-        return self.__class__
+        return str(self.__class__)
 
 
 class Person(Type):
@@ -21,6 +23,14 @@ class Person(Type):
         ActionTags(action=T.spy),
         ActionTags(action=T.stealth)
     ]
+    status_classes = [
+        Belongings,
+        VitalStat
+    ]
+
+
+class Player(Person):
+    pass
 
 
 class Place(Type):
@@ -32,6 +42,9 @@ class Place(Type):
 
 class Territory(Place):
     tags = Place.tags + []
+    status_list = [
+        Inhabitants
+    ]
 
 
 class Object(Type):

@@ -14,7 +14,6 @@ elements = [
     Element(UnknownObject(), properties=[properties.Name('honeycomb')]),
     Element(Territory(), properties=[properties.Name('rivervale')]),
     Element(Tool(), properties=[properties.Name('bondage')]),
-    Element(Place(), properties=[properties.Name('bondage')]),
     Element(Territory(), properties=[properties.Name('bixies territory')]),
     Element(Person(), properties=[properties.Name('bixies')]),
     Element(Territory(), properties=[properties.Name('qeynos')]),

@@ -1,4 +1,5 @@
 from itertools import tee, islice
+import re
 
 
 def nwise(iterable, n=2):
@@ -17,3 +18,16 @@ def grouped(iterable, n):
 def bell_curve(value: float, opt_value: float, scaling_value: float) -> float:
     """MWinter Paper: Genetic Programming for Automated Quest Generation"""
     return 1 / (1 + scaling_value * pow(opt_value - value, 2))
+
+
+def camel_case_to_underscore(name):
+    """ https://stackoverflow.com/a/1176023/4744051 """
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def dict_pretty_str(dictionary: dict) -> str:
+    pretty_str = '{'
+    for key, value in dictionary.items():
+        re += '\n\t' + str(key) + ': ' + str(value)
+    return pretty_str + '\n}'

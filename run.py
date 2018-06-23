@@ -9,5 +9,5 @@ from Data import quests
 #     print(ind)
 
 world = World()
-print(world)
-# world.parse_quest(quest=quests.arbitrary_quest3)
+print(world.str__actions_map())
+world.parse_quest(quest=quests.cure)
