@@ -2,7 +2,7 @@ class Properties:
     pass
 
 
-class Locations(Properties):
+class Location(Properties):
     x = 0
     y = 0
 

@@ -1,31 +1,34 @@
+from World import Narrative
 from World.elements import Element
 from World.properties import Name
 from World.tags import ActionTags
 from World.types import Player
 
-from Grammar.actions import Terminals
+from Grammar.actions import Terminals, NonTerminals
 from Grammar.tree import Node
 
 
 class World:
-    from World.Instances import Everquest
-    elements = Everquest.elements
+    from World.Instances import Custom as WorldElements
+    elements = WorldElements.elements
 
-    player = Element(Player(), properties=[Name('Player1')])
+    player = Element(Player, name='player_1')
+    player.type.intel = WorldElements.player_pre_intel
     actions_map = {}
 
     def __init__(self):
         # populating 'actions_map' property
-        for element in self.elements:
-            if not isinstance(element, Element):
-                continue
-            for tag in element.type.tags:
-                if isinstance(tag, ActionTags):
-                    act = tag.action
-                    if act in self.actions_map:
-                        self.actions_map[act].append(element)
-                    else:
-                        self.actions_map[act] = [element]
+        # for element in self.elements:
+        #     if not isinstance(element, Element):
+        #         continue
+        #     for tag in element.type.tags:
+        #         if isinstance(tag, ActionTags):
+        #             act = tag.action
+        #             if act in self.actions_map:
+        #                 self.actions_map[act].append(element)
+        #             else:
+        #                 self.actions_map[act] = [element]
+        pass
 
     def parse_quest(self, quest: Node) -> None:
         """
@@ -34,15 +37,35 @@ class World:
         :param quest: Quest to be traversed
         :return: None, prints the results in console
         """
-        for index, action in enumerate(quest.flatten):
-            print("%d:" % (index + 1))
-            print(action)
-            if isinstance(action, Terminals):
-                elem = self.find(action=action)    # type: Element
-                print(elem.name)
-                self.player.remember(action=action, receivers=[elem])
 
-            print('---')
+        def recursion(root: Node, index: int, depth: int):
+            if index > 1:
+                return index
+
+            print('-------  depth= %d, index is: %d ------------------------------------------------' % (depth, index))
+            print(root)
+
+            results = Narrative.find(root, depth)(self.elements)
+            print(results)
+
+            traversed = index
+
+            if root.branches:
+                for branch in root.branches:
+                    traversed = recursion(branch, traversed + 1, depth + 1)
+
+            return traversed
+
+        recursion(quest, 0, 0)
+        # for index, action in enumerate(quest.flatten):
+        #     print("%d:" % (index + 1))
+        #     print(action)
+        #     if isinstance(action, Terminals):
+        #         elem = self.find(action=action)    # type: Element
+        #         print(elem.name)
+        #         self.player.remember(action=action, receivers=[elem])
+        #
+        #     print('---')
 
         # print('memory: (from oldest to newest)')
         # for memo in reversed(self.player.memory):

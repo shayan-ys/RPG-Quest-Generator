@@ -1,5 +1,5 @@
 from Grammar.actions import Terminals as T
-from World.properties import Locations, Distances
+from World.properties import Location, Distances
 
 
 class Tags:
@@ -18,9 +18,9 @@ class RelativeTags(Tags):
 
 
 class DistanceTags(RelativeTags):
-    location = None   # type: Locations
+    location = None   # type: Location
     distances = None  # type: Distances
 
-    def __init__(self, location: Locations, distances: Distances):
+    def __init__(self, location: Location, distances: Distances):
         self.location = location
         self.distances = distances

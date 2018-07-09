@@ -11,28 +11,30 @@ class Element:
     properties = []   # list of Non-Changeable properties (unlike status)
     stats = {}        # @autofill dict key: status.name, value: status object is changeable throughout the game
     memory = []       # list of Interactions
-    name = ""         # @autofil
+    name = ""         # element's name
 
-    def __init__(self, elem_type: Type, properties: list):
+    def __init__(self, elem_type, name: str, properties: list=None):
         # set 'type'
-        self.type = elem_type
+        self.type = elem_type()
 
         # set (or add 'properties' to pre-defined ones in the world instantiation)
-        self.properties += properties
+        # self.properties += properties
 
         # reset 'memory'
         self.memory = []
 
-        # reset and fill stats dict: (status.name) -> status object
-        self.stats = {}
-        for status_class in self.type.status_classes:
-            status_obj = status_class()
-            self.stats[status_obj.name] = status_obj
+        self.name = name
 
-        # set 'name' property automatically
-        for prop in self.properties:
-            if isinstance(prop, Name):
-                self.name = str(prop)
+        # reset and fill stats dict: (status.name) -> status object
+        # self.stats = {}
+        # for status_class in self.type.status_classes:
+        #     status_obj = status_class()
+        #     self.stats[status_obj.name] = status_obj
+        #
+        # # set 'name' property automatically
+        # for prop in self.properties:
+        #     if isinstance(prop, Name):
+        #         self.name = str(prop)
 
     def remember(self, action: Terminals, receivers: list) -> None:
         """
