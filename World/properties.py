@@ -10,6 +10,12 @@ class Location(Properties):
         self.x = x
         self.y = y
 
+    def __str__(self):
+        return '(%d, %d)' % (self.x, self.y)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class Distances(Properties):
     short = None

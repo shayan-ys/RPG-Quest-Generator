@@ -55,6 +55,12 @@ bad_1.type.belongings = [
     book_1
 ]
 
+good_1.type.allies = [good_2]
+good_2.type.allies = [good_1]
+good_1.type.enemies = [bad_1]
+good_2.type.enemies = [bad_1]
+bad_1.type.enemies = [good_1, good_2]
+
 player_pre_intel = [
     intel_1,
     intel_4

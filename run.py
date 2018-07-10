@@ -1,5 +1,7 @@
-from World.world import World
 from Data import quests
+from Grammar.serializers import write_file
+
+from World.world import World
 
 # from GA.ga import *
 #
@@ -9,5 +11,6 @@ from Data import quests
 #     print(ind)
 
 world = World()
-# print(world.str__actions_map())
 world.parse_quest(quest=quests.arbitrary_quest1)
+
+write_file(quests.arbitrary_quest1)

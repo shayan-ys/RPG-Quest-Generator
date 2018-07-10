@@ -17,59 +17,38 @@ class World:
     actions_map = {}
 
     def __init__(self):
-        # populating 'actions_map' property
-        # for element in self.elements:
-        #     if not isinstance(element, Element):
-        #         continue
-        #     for tag in element.type.tags:
-        #         if isinstance(tag, ActionTags):
-        #             act = tag.action
-        #             if act in self.actions_map:
-        #                 self.actions_map[act].append(element)
-        #             else:
-        #                 self.actions_map[act] = [element]
         pass
 
     def parse_quest(self, quest: Node) -> None:
         """
-        Traverse the given 'quest' actions to, assign elements to each action
-        and update the World's status and Player's memory
         :param quest: Quest to be traversed
         :return: None, prints the results in console
         """
 
-        def recursion(root: Node, index: int, depth: int):
-            if index > 1:
-                return index
+        def recursion(root: Node, pre_semantics: list, index: int, depth: int):
+            # if index > 18:
+            #     return index
+            # elif index == 8:
+            #     nothing = 0
 
-            print('-------  depth= %d, index is: %d ------------------------------------------------' % (depth, index))
-            print(root)
+            # print('-------  depth= %d, index is: %d ------------------------------------------------' % (depth, index))
+            # if hasattr(root, 'rule') and root.rule:
+            #     print(root.action.name + '[%d]' % root.rule)
+            # else:
+            #     print(root.action.name)
 
-            results = Narrative.find(root, depth)(self.elements)
-            print(results)
+            node_semantic, children_pre_semantics = Narrative.find(root, depth)(self.elements, *pre_semantics)
+            # print(node_semantic)
 
             traversed = index
 
-            if root.branches:
-                for branch in root.branches:
-                    traversed = recursion(branch, traversed + 1, depth + 1)
+            if root.branches and node_semantic:
+                for i, branch in enumerate(root.branches):
+                    traversed = recursion(branch, children_pre_semantics[i], traversed + 1, depth + 1)
 
             return traversed
 
-        recursion(quest, 0, 0)
-        # for index, action in enumerate(quest.flatten):
-        #     print("%d:" % (index + 1))
-        #     print(action)
-        #     if isinstance(action, Terminals):
-        #         elem = self.find(action=action)    # type: Element
-        #         print(elem.name)
-        #         self.player.remember(action=action, receivers=[elem])
-        #
-        #     print('---')
-
-        # print('memory: (from oldest to newest)')
-        # for memo in reversed(self.player.memory):
-        #     print(memo)
+        recursion(quest, [], 0, 0)
 
     def find(self, action: Terminals) -> Element:
         """
