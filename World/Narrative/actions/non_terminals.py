@@ -1,7 +1,7 @@
-from World import types
+from World import elements as element_types
 
 
-def goto_1(elements: list, destination: types.Place):
+def goto_1(elements: list, destination: element_types.Place):
     """
     You are already there.
     :return:
@@ -9,36 +9,36 @@ def goto_1(elements: list, destination: types.Place):
     print('==> Teleported to %s, (goto.1: already in your destination)' % destination)
     # return or fix, the given destination is same as the player's current location
     # todo: OR the game will automatically take you to the destination!
-    return None, []
+    return destination, [[]]
 
 
-def goto_2(elements: list, destination: types.Place):
+def goto_2(elements: list, destination: element_types.Place):
     """
     Just wander around and look.
     :return:
     """
     # place[1] is destination
     # area around location[1] is given to player to explore and find location[1]
-    area_destination = destination.type.location
+    area_destination = destination.location
 
     # steps:
     # T.explore
     steps = [
         [area_destination]
     ]
-    print("==> Explore around '%s' to find '%s'." % (area_destination, destination.type.location))
+    print("==> Explore around '%s' to find '%s'." % (area_destination, destination.location))
 
     return destination, steps
 
 
-def goto_3(elements: list, destination: types.Place):
+def goto_3(elements: list, destination: element_types.Place):
     """
     Find out where to go and go there.
     :return:
     """
     # place[1] is destination
     # location[1] is place[1] exact location
-    destination_location = destination.type.location
+    destination_location = destination.location
 
     # steps:
     #   learn: location[1]
@@ -52,25 +52,29 @@ def goto_3(elements: list, destination: types.Place):
     return destination, steps
 
 
-def learn_3(elements: list, required_intel: types.Intel):
+def learn_3(elements: list, required_intel: element_types.Intel):
     """
     Go someplace, get something, and read what is written on it.
+    :param list[element_types.Intel] elements:
+    :param required_intel:
     :return:
     """
+    
     # intel[1] is to be learned
     intel_elem = None
     for elem in elements:
-        if isinstance(elem.type, types.Intel):
-            if required_intel == elem.type.value:
+        if isinstance(elem, element_types.Intel):
+            if required_intel == elem.value:
                 intel_elem = elem
+                break
     if not intel_elem:
         return None, []
 
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
     books = []
     for elem in elements:
-        if isinstance(elem.type, types.Readable):
-            if intel_elem in elem.type.intel:
+        if isinstance(elem, element_types.Readable):
+            if intel_elem in elem.intel:
                 books.append(elem)
     if books:
         book_containing_intel = books[0]
@@ -78,19 +82,19 @@ def learn_3(elements: list, required_intel: types.Intel):
         return None, []
 
     book_holder_place = None
-    if hasattr(book_containing_intel.type, 'place'):
-        book_holder_place = book_containing_intel.type.place
+    if hasattr(book_containing_intel, 'place'):
+        book_holder_place = book_containing_intel.place
     else:
         # NPC[1] has the book[1]
         holders = []
         for elem in elements:
-            if hasattr(elem.type, 'belongings') and book_containing_intel in elem.type.belongings:
+            if hasattr(elem, 'belongings') and book_containing_intel in elem.belongings:
                 holders.append(elem)
 
         if holders:
-            book_holder = holders[0]
-            if hasattr(book_holder.type, 'place'):
-                book_holder_place = book_holder.type.place
+            book_holder = holders[0]    # type: element_types.NPC
+            if hasattr(book_holder, 'place'):
+                book_holder_place = book_holder.place
 
     # place[1] is where the NPC[1] is
     if not book_holder_place:
@@ -110,7 +114,7 @@ def learn_3(elements: list, required_intel: types.Intel):
     return book_containing_intel, steps
 
 
-def get_2(elements: list, item_to_fetch: types.Object):
+def get_2(elements: list, item_to_fetch: element_types.Object):
     """
     Steal it from somebody.
     :return:
@@ -123,8 +127,8 @@ def get_2(elements: list, item_to_fetch: types.Object):
     #   not too far from Player's current location
     holders = []
     for elem in elements:
-        if isinstance(elem.type, types.NPC):
-            if item_to_fetch in elem.type.belongings:
+        if isinstance(elem, element_types.NPC):
+            if item_to_fetch in elem.belongings:
                 holders.append(elem)
 
     if holders:
@@ -142,7 +146,7 @@ def get_2(elements: list, item_to_fetch: types.Object):
     return item_holder, steps
 
 
-def steal_1(elements: list, item_to_steal: types.Object, item_holder: types.NPC):
+def steal_1(elements: list, item_to_steal: element_types.Object, item_holder: element_types.NPC):
     """
     Go someplace, sneak up on somebody, and take something.
     :return:
@@ -150,7 +154,7 @@ def steal_1(elements: list, item_to_steal: types.Object, item_holder: types.NPC)
     # item[1] is to be stolen from NPC[1] who has it
 
     # place[1] is where NPC[1] lives
-    item_holder_place = item_holder.type.place
+    item_holder_place = item_holder.place
 
     # steps:
     #   goto: place[1]

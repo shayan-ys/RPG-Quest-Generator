@@ -1,65 +1,39 @@
 from Grammar.actions import NonTerminals as NT
 
-from World.elements import Element as Elem
 from World.properties import Location
-from World.types import NPC, IntelLocation, IntelSpell, Place, Readable
+from World.elements import NPC, Clan, IntelLocation, IntelSpell, Place, Readable
 
 
-location_1 = Location(10, 10)
+place_1 = Place('place_1', Location(10, 10))
 
-place_1 = Elem(Place, 'place_1')
-place_1.type.location = location_1
+good_1 = NPC('good_1', motivations={NT.knowledge: 0.7}, place=place_1)
 
-good_1 = Elem(NPC, 'good_1')
-good_1.type.motivations = {
-    NT.knowledge: 0.7
-}
-good_1.type.place = place_1
+intel_1 = IntelLocation(good_1.place.location)
 
-intel_1 = Elem(IntelLocation, 'intel_1')
-intel_1.type.value = location_1
+intel_2 = IntelSpell("Spell!")
 
-intel_2 = Elem(IntelSpell, 'intel_2')
-intel_2.type.value = "Spell!"
+place_2 = Place('place_2', Location(10, 90))
 
-location_2 = Location(10, 90)
+good_2 = NPC('good_2', motivations={}, place=place_2, intel=[intel_2])
 
-place_2 = Elem(Place, 'place_2')
-place_2.type.location = location_2
+intel_3 = IntelLocation(good_2.place.location)
 
-good_2 = Elem(NPC, 'good_2')
-good_2.type.intel = [
-    intel_2
-]
-good_2.type.place = place_2
+book_1 = Readable('book_1', intel=[
+    IntelLocation(good_2.place.location)
+])
 
-intel_3 = Elem(IntelLocation, 'intel_3')
-intel_3.type.value = location_2
+place_3 = Place('place_3', Location(90, 90))
 
-book_1 = Elem(Readable, 'book_1')
-book_1.type.intel = [
-    intel_3
-]
+bad_1 = NPC('bad_1', motivations={}, place=place_3, belongings=[book_1])
 
-location_3 = Location(90, 90)
+intel_4 = IntelLocation(bad_1.place.location)
 
-place_3 = Elem(Place, 'place_3')
-place_3.type.location = location_3
-
-intel_4 = Elem(IntelLocation, 'intel_4')
-intel_4.type.value = location_3
-
-bad_1 = Elem(NPC, 'bad_1')
-bad_1.type.place = place_3
-bad_1.type.belongings = [
-    book_1
-]
-
-good_1.type.allies = [good_2]
-good_2.type.allies = [good_1]
-good_1.type.enemies = [bad_1]
-good_2.type.enemies = [bad_1]
-bad_1.type.enemies = [good_1, good_2]
+Clan([
+    good_1,
+    good_2
+]).set_enemy(Clan([
+        bad_1
+    ]))
 
 player_pre_intel = [
     intel_1,

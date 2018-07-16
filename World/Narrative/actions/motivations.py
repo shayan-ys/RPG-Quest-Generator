@@ -1,7 +1,6 @@
 from Grammar.actions import NonTerminals as NT
 
-from World.elements import Element
-from World.types import NPC
+from World.elements import list_of_elements, BaseElement, NPC
 
 
 def quest_1(elements: list):
@@ -12,11 +11,11 @@ def quest_1(elements: list):
     # select an ally NPC with knowledge motivation
     results = []
     for elem in elements:
-        elem = elem     # type: Element
-        if isinstance(elem.type, NPC):
-            if elem.type.motivations \
-                    and NT.knowledge in elem.type.motivations \
-                    and elem.type.motivations[NT.knowledge] > 0.5:
+        elem = elem     # type: BaseElement
+        if isinstance(elem, NPC):
+            if elem.motivations \
+                    and NT.knowledge in elem.motivations \
+                    and elem.motivations[NT.knowledge] > 0.5:
                 results.append(elem)
 
     if results:

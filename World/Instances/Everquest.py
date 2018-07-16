@@ -1,5 +1,5 @@
 from World import properties
-from World.types import *
+from World.elements import *
 from World.elements import Element
 
 

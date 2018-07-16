@@ -1,66 +1,151 @@
-from World.interactions import Interaction
-from World.properties import Name
-from World.statics import ElementParams
-from World.types import Type
+from World.properties import Location
 
-from Grammar.actions import Terminals
+from Grammar.actions import Terminals as T
+
+from typing import List
 
 
-class Element:
-    type = Type()     # type: Type
-    properties = []   # list of Non-Changeable properties (unlike status)
-    stats = {}        # @autofill dict key: status.name, value: status object is changeable throughout the game
-    memory = []       # list of Interactions
-    name = ""         # element's name
-
-    def __init__(self, elem_type, name: str, properties: list=None):
-        # set 'type'
-        self.type = elem_type()
-
-        # set (or add 'properties' to pre-defined ones in the world instantiation)
-        # self.properties += properties
-
-        # reset 'memory'
-        self.memory = []
-
-        self.name = name
-
-        # reset and fill stats dict: (status.name) -> status object
-        # self.stats = {}
-        # for status_class in self.type.status_classes:
-        #     status_obj = status_class()
-        #     self.stats[status_obj.name] = status_obj
-        #
-        # # set 'name' property automatically
-        # for prop in self.properties:
-        #     if isinstance(prop, Name):
-        #         self.name = str(prop)
-
-    def remember(self, action: Terminals, receivers: list) -> None:
-        """
-        Create and store an interaction into the memory's list
-        :param action: Action to be remembered
-        :param receivers: Elements the 'action' is being done on them
-        :return: Nothing, method just stores in the memory
-        """
-        interact = Interaction(action=action, doers=[self], receivers=receivers)
-        self.memory.insert(0, interact)
-
-    def short_memory(self) -> list:
-        """
-        Retrieve short version of memory (most recent ones) using 'short_term_memory_length' variable
-        :return: list
-        """
-        if len(self.memory) > ElementParams.short_term_memory_length:
-            return self.memory[:ElementParams.short_term_memory_length]
-        else:
-            return self.memory
-
-    def __eq__(self, other):
-        return self.type == other.type and self.name == other.name and self.properties == other.properties
+class BaseElement:
+    applied_actions = []    # Grammar.actions Terminals you can do to this type
 
     def __str__(self):
-        return self.name
+        if hasattr(self, 'name'):
+            return self.name
+        return str(self.__class__)
 
     def __repr__(self):
         return self.__str__()
+
+
+list_of_elements = List[BaseElement]
+
+
+class Intel(BaseElement):
+    value = None
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+    def __eq__(self, other: 'Intel'):
+        return self.value == other.value
+
+
+class IntelSpell(Intel):
+    value = ""  # type: str
+
+
+class IntelLocation(Intel):
+    value = None    # type: Location
+
+
+class Place(BaseElement):
+    name = ""
+    applied_actions = [
+        T.explore,
+        T.goto
+    ]
+    location = None     # type: Location
+
+    def __init__(self, name: str, location: Location):
+        self.name = name
+        self.location = location
+
+
+class Person(BaseElement):
+    name = ""
+    applied_actions = [
+        T.capture,
+        T.damage,
+        T.defend,
+        T.escort,
+        T.kill,
+        T.listen,
+        T.spy,
+        T.stealth
+    ]
+    place = None    # type: Place
+    allies = []     # list of ally characters
+    enemies = []    # list of enemy characters
+    intel = []
+    belongings = []
+
+
+class NPC(Person):
+    """
+    Non Player Character
+    """
+    motivations = {
+        # NT.knowledge: 0.7,
+        # NT.conquest: 0.2
+    }
+
+    def __init__(self, name: str, motivations: dict, place: Place, **kwargs):
+        self.name = name
+        self.motivations = motivations
+        self.place = place
+        self.__dict__.update(kwargs)
+
+
+class Player(Person):
+
+    def __init__(self, name: str, intel: List[Intel]):
+        self.name = name
+        self.intel = intel
+
+
+class Clan:
+    members: List[NPC] = []
+
+    def __init__(self, members: List[NPC]):
+        self.members = []
+        for mem in members:
+            mem.allies = members
+            self.members.append(mem)
+
+    def set_enemy(self, enemy: 'Clan'):
+        for mem in self.members:
+            mem.enemies = enemy.members
+
+
+class Object(BaseElement):
+    applied_actions = [
+        T.damage,
+        T.defend,
+        T.exchange,
+        T.gather,
+        T.give,
+        T.repair,
+        T.take,
+        T.use
+    ]
+
+
+class UnknownObject(Object):
+    applied_actions = Object.applied_actions + [
+        T.experiment,
+        T.spy,
+    ]
+
+
+class Tool(Object):
+    applied_actions = Object.applied_actions + [
+        T.use
+    ]
+
+
+class Readable(Object):
+    name: str = ""
+    applied_actions = Object.applied_actions + [
+        T.read
+    ]
+    intel: List[Intel] = []
+
+    def __init__(self, name: str, intel: list):
+        """
+        :param list[Intel] intel:
+        """
+        self.name = name
+        self.intel = intel

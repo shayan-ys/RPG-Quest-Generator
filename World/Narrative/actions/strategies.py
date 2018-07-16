@@ -1,8 +1,8 @@
-from World.elements import Element
-from World import types
+from World.elements import BaseElement
+from World import elements as element_types
 
 
-def knowledge_3(elements: list, NPC_knowledge_motivated: types.NPC):
+def knowledge_3(elements: list, NPC_knowledge_motivated: element_types.NPC):
     """
     Interview an NPC
     :return:
@@ -18,24 +18,24 @@ def knowledge_3(elements: list, NPC_knowledge_motivated: types.NPC):
     results = []
     intended_intel = None
     for elem in elements:
-        elem = elem  # type: Element
-        if isinstance(elem.type, types.NPC):
+        elem = elem  # type: BaseElement
+        if isinstance(elem, element_types.NPC):
             useful_intel = None
-            if not NPC_knowledge_motivated and elem.type.intel:
-                useful_intel = elem.type.intel[0]
+            if not NPC_knowledge_motivated and elem.intel:
+                useful_intel = elem.intel[0]
             else:
-                for intel in elem.type.intel:
-                    if intel not in NPC_knowledge_motivated.type.intel:
+                for intel in elem.intel:
+                    if intel not in NPC_knowledge_motivated.intel:
                         useful_intel = intel
                         break
             if useful_intel:
                 intended_intel = useful_intel
-                if not NPC_knowledge_motivated or elem not in NPC_knowledge_motivated.type.enemies:
+                if not NPC_knowledge_motivated or elem not in NPC_knowledge_motivated.enemies:
                     # if location not too far
                     results.append(elem)
 
     if results:
-        NPC_knowledgeable = results[0]  # type: Element
+        NPC_knowledgeable = results[0]  # type: element_types.NPC
     else:
         return None
 
@@ -50,11 +50,11 @@ def knowledge_3(elements: list, NPC_knowledge_motivated: types.NPC):
     #   goto[2]: from place[1] | destination place[0]
     #   report: give intel[1] to NPC[0]
     steps = [
-        [NPC_knowledgeable.type.place],
+        [NPC_knowledgeable.place],
         [intended_intel, NPC_knowledgeable],
-        [NPC_knowledge_motivated.type.place],
+        [NPC_knowledge_motivated.place],
         [intended_intel, NPC_knowledge_motivated]
     ]
-    print("==> Interview '%s' to get the intel '%s', which is about '%s'." % (NPC_knowledgeable, intended_intel, intended_intel.type.value))
+    print("==> Interview '%s' to get the intel '%s', which is about '%s'." % (NPC_knowledgeable, intended_intel, intended_intel.value))
 
     return NPC_knowledgeable, steps
