@@ -2,6 +2,7 @@ from World.properties import Location
 
 from Grammar.actions import Terminals as T
 
+from enum import Enum
 from typing import List
 
 
@@ -18,6 +19,26 @@ class BaseElement:
 
 
 list_of_elements = List[BaseElement]
+
+
+class DistanceMeasures(Enum):
+    near = 20
+    close = 75
+    far = 150
+    unreachable = 300
+
+
+def distance_meter(src: Location, dest: Location) -> DistanceMeasures:
+    distance = ((src.x - dest.x)**2 + (src.y - dest.y)**2)**(1/2)
+
+    if distance <= DistanceMeasures.near.value:
+        return DistanceMeasures.near
+    elif distance <= DistanceMeasures.close.value:
+        return DistanceMeasures.close
+    elif distance <= DistanceMeasures.far.value:
+        return DistanceMeasures.far
+    else:
+        return DistanceMeasures.unreachable
 
 
 class Intel(BaseElement):
@@ -52,6 +73,9 @@ class Place(BaseElement):
     def __init__(self, name: str, location: Location):
         self.name = name
         self.location = location
+
+    def distance_from(self, player: 'Player') -> DistanceMeasures:
+        return distance_meter(self.location, player.current_location)
 
 
 class Person(BaseElement):
@@ -90,6 +114,7 @@ class NPC(Person):
 
 
 class Player(Person):
+    current_location: Location = None
 
     def __init__(self, name: str, intel: List[Intel]):
         self.name = name

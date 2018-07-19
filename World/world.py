@@ -10,6 +10,9 @@ class World:
 
     player = Player(name='player_1', intel=WorldElements.player_pre_intel)
 
+    def __init__(self):
+        self.elements.append(self.player)
+
     def parse_quest(self, quest: Node) -> None:
         """
         :param quest: Quest to be traversed
@@ -40,6 +43,12 @@ class World:
             return traversed
 
         recursion(quest, [], 0, 0)
+
+        for elem in self.elements:
+            if isinstance(elem, Player):
+                print(">\nplayer's final location: " + str(elem.current_location))
+                print("player's intel: " + str(elem.intel))
+                print("player's belongings: " + str(elem.belongings))
 
     # def find(self, action: Terminals) -> Element:
     #     """

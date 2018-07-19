@@ -131,6 +131,16 @@ def get_2(elements: list, item_to_fetch: element_types.Object):
             if item_to_fetch in elem.belongings:
                 holders.append(elem)
 
+    if len(holders) > 1:
+        holders_reachable = []
+        player = None
+        for elem in elements:
+            if isinstance(elem, element_types.Player):
+                player = elem
+        for holder in holders:
+            if not holder.place.distance_from(player).unreachable:
+                holders_reachable.append(holder)
+
     if holders:
         item_holder = holders[0]
     else:
