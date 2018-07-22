@@ -17,6 +17,7 @@ class Terminals(Enum):
     listen = auto()
     read = auto()
     repair = auto()
+    treat = auto()
     report = auto()
     spy = auto()
     stealth = auto()

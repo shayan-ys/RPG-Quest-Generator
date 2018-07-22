@@ -3,7 +3,7 @@ from World.properties import Location
 from Grammar.actions import Terminals as T
 
 from enum import Enum
-from typing import List
+from typing import List, Dict
 
 
 class BaseElement:
@@ -53,14 +53,31 @@ class Intel(BaseElement):
     def __eq__(self, other: 'Intel'):
         return self.value == other.value
 
+    def __hash__(self):
+        return hash(self.value)
+
 
 class IntelSpell(Intel):
     value = ""  # type: str
 
 
 class IntelLocation(Intel):
-    value = None    # type: Location
+    value = None    # type: Place
 
+
+class IntelHolding(Intel):
+    value = None    # type: Object
+    holder = None   # type: Person
+
+    def __init__(self, value: 'Object', holder: 'Person'):
+        super(IntelHolding, self).__init__(value)
+        self.holder = holder
+
+    def __eq__(self, other: 'IntelHolding'):
+        return self.value == other.value and self.holder == other.holder
+
+    def __hash__(self):
+        return hash((self.value, self.holder))
 
 class Place(BaseElement):
     name = ""
@@ -69,10 +86,16 @@ class Place(BaseElement):
         T.goto
     ]
     location = None     # type: Location
+    items = []          # type: List[Object]
+    # list of items can be found at the place
 
-    def __init__(self, name: str, location: Location):
+    def __init__(self, name: str, location: Location, items: List['Object']=None):
         self.name = name
         self.location = location
+        if items:
+            self.items = items
+            for item in self.items:
+                item.place = self
 
     def distance_from(self, player: 'Player') -> DistanceMeasures:
         return distance_meter(self.location, player.current_location)
@@ -90,11 +113,14 @@ class Person(BaseElement):
         T.spy,
         T.stealth
     ]
-    place = None    # type: Place
-    allies = []     # list of ally characters
-    enemies = []    # list of enemy characters
-    intel = []
-    belongings = []
+    place: Place = None                               # the place where Person is
+    allies: List['Person'] = []                       # list of ally characters
+    enemies: List['Person'] = []                      # list of enemy characters
+    intel: List[Intel] = []                           # list of intel pieces
+    belongings: List['Object'] = []                   # list of holding items
+    needs: List['Object'] = []                        # list of items needed
+    exchange_motives: Dict['Object', 'Object'] = {}   # dictionary of exchange motivations,
+    #   key is what Person has, value is list of items they need
 
 
 class NPC(Person):
@@ -111,6 +137,8 @@ class NPC(Person):
         self.motivations = motivations
         self.place = place
         self.__dict__.update(kwargs)
+        for item in self.belongings:
+            item.place = place
 
 
 class Player(Person):
@@ -136,6 +164,7 @@ class Clan:
 
 
 class Object(BaseElement):
+    name = ""
     applied_actions = [
         T.damage,
         T.defend,
@@ -146,6 +175,10 @@ class Object(BaseElement):
         T.take,
         T.use
     ]
+    place = None   # Person's place or the Place where the object is
+
+    def __init__(self, name: str=""):
+        self.name = name
 
 
 class UnknownObject(Object):
@@ -156,21 +189,25 @@ class UnknownObject(Object):
 
 
 class Tool(Object):
+    usage: T = None
     applied_actions = Object.applied_actions + [
         T.use
     ]
 
+    def __init__(self, name: str, usage: T):
+        super(Tool, self).__init__(name=name)
+        self.usage = usage
+
 
 class Readable(Object):
-    name: str = ""
     applied_actions = Object.applied_actions + [
         T.read
     ]
     intel: List[Intel] = []
 
     def __init__(self, name: str, intel: list):
+        super(Readable, self).__init__(name=name)
         """
         :param list[Intel] intel:
         """
-        self.name = name
         self.intel = intel

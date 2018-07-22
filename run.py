@@ -11,6 +11,4 @@ from World.world import World
 #     print(ind)
 
 world = World()
-world.parse_quest(quest=quests.arbitrary_quest1)
-
-write_file(quests.arbitrary_quest1)
+world.parse_quest(quest=quests.cure)

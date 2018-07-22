@@ -58,3 +58,33 @@ def knowledge_3(elements: list, NPC_knowledge_motivated: element_types.NPC):
     print("==> Interview '%s' to get the intel '%s', which is about '%s'." % (NPC_knowledgeable, intended_intel, intended_intel.value))
 
     return NPC_knowledgeable, steps
+
+
+def protection_2(elements: list, NPC_protection_motivated: element_types.NPC):
+    # find an NPC, ally to motivated_NPC who needs something, and who that has it
+    needed_item = None  # type: element_types.Tool
+    npc_in_need = None  # type: element_types.NPC
+    holder_item = None  # type: element_types.NPC
+    for elem in elements:
+        if isinstance(elem, element_types.NPC):
+            if elem in NPC_protection_motivated.allies:
+                if elem.needs and len(elem.needs) > 0:
+                    needed_item = elem.needs[0]
+                    npc_in_need = elem
+                    break
+
+    if not needed_item or not npc_in_need:
+        return None, []
+
+    # get
+    # goto
+    # use
+    steps = [
+        [needed_item],
+        [npc_in_need.place],
+        [needed_item, npc_in_need]
+    ]
+
+    print("==> Treat or repair '%s' using '%s'." % (npc_in_need, needed_item))
+
+    return npc_in_need, steps

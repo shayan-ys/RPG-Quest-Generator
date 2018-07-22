@@ -1,6 +1,37 @@
 from World import elements as element_types
 
 
+def sub_quest_1(elements: list):
+    # just go somewhere - pick a place unknown to player to go to
+    # the reason for unknown place is, if "learn" comes up in next level, we'll be lucky,
+    # if it doesn't, intel can be added to Players knowledge right away.
+    places_to_go = []
+    place = None
+    for elem in elements:
+        if isinstance(elem, element_types.Place):
+            place = elem
+            for player in elements:
+                if isinstance(player, element_types.Player):
+                    for intel in player.intel:
+                        if isinstance(intel, element_types.IntelLocation):
+                            if intel.value != place:
+                                places_to_go.append(place)
+
+    if not places_to_go:
+        return None, []
+
+    place_to_go = places_to_go[0]
+    # steps:
+    # goto
+    steps = [
+        [place_to_go]
+    ]
+
+    print("==> Goto '%s'." % place_to_go)
+
+    return place_to_go, steps
+
+
 def goto_1(elements: list, destination: element_types.Place):
     """
     You are already there.
@@ -40,16 +71,36 @@ def goto_3(elements: list, destination: element_types.Place):
     # location[1] is place[1] exact location
     destination_location = destination.location
 
+    intel_location = None
+    for elem in elements:
+        if isinstance(elem, element_types.IntelLocation):
+            if elem.value == destination:
+                intel_location = elem
+
+    if not intel_location:
+        return None, [[]]
+
     # steps:
     #   learn: location[1]
     #   T.goto: location[1]
     steps = [
-        [destination_location],
+        [intel_location],
         [destination_location]
     ]
     print("==> Find out how to get to '%s', then goto it" % destination)
 
     return destination, steps
+
+
+def learn_1(elements: list, required_intel: element_types.Intel):
+    for elem in elements:
+        if isinstance(elem, element_types.Player):
+            if required_intel not in elem.intel:
+                elem.intel.append(required_intel)
+
+    print("==> Intel '%s' added." % required_intel)
+
+    return required_intel, [[]]
 
 
 def learn_3(elements: list, required_intel: element_types.Intel):
@@ -114,6 +165,37 @@ def learn_3(elements: list, required_intel: element_types.Intel):
     return book_containing_intel, steps
 
 
+def learn_4(elements: list, required_intel: element_types.Intel):
+    # find an NPC who has the required intel in exchange, get the NPC's needed item to give
+    item_to_exchange = None
+    informer = None
+    for elem in elements:
+        if isinstance(elem, element_types.NPC):
+            if required_intel in elem.exchange_motives.keys():
+                item_to_exchange = elem.exchange_motives[required_intel]
+                informer = elem
+
+    if not item_to_exchange or not informer:
+        return None, []
+
+    # steps:
+    # get
+    # sub-quest
+    # give
+    # listen
+    steps = [
+        [item_to_exchange],
+        [],
+        [item_to_exchange, informer],
+        [required_intel, informer]
+    ]
+
+    print("==> Get '%s', perform sub-quest, give the acquired item to '%s' in return get an intel on '%s'" %
+          (item_to_exchange, informer, required_intel))
+
+    return required_intel, steps
+
+
 def get_2(elements: list, item_to_fetch: element_types.Object):
     """
     Steal it from somebody.
@@ -156,6 +238,56 @@ def get_2(elements: list, item_to_fetch: element_types.Object):
     return item_holder, steps
 
 
+def get_3(elements: list, item_to_fetch: element_types.Object):
+    # steps:
+    # goto
+    # gather
+    steps = [
+        [item_to_fetch.place],
+        [item_to_fetch]
+    ]
+    print("==> Goto '%s' and gather '%s'." % (item_to_fetch.place, item_to_fetch))
+
+    return item_to_fetch, steps
+
+
+def get_4(elements: list, item_to_fetch: element_types.Object):
+    """
+    an NPC have the item, but you need to give the NPC something for an exchange
+    :param elements:
+    :param item_to_fetch:
+    :return:
+    """
+    # find an NPC who has the needed item, and has it in exchange list
+    item_to_exchange = None  # type: element_types.Object
+    item_holder = None       # type: element_types.NPC
+    for elem in elements:
+        if isinstance(elem, element_types.NPC):
+            if item_to_fetch in elem.belongings:
+                if item_to_fetch in elem.exchange_motives.keys():
+                    item_holder = elem
+                    item_to_exchange = elem.exchange_motives[item_to_fetch]
+
+    # steps:
+    # goto
+    # get
+    # sub-quest
+    # goto
+    # exchange
+    steps = [
+        [item_to_exchange.place],
+        [item_to_exchange],
+        [],
+        [item_holder.place],
+        [item_holder, item_to_exchange, item_to_fetch]
+    ]
+
+    print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+          (item_to_exchange.place, item_to_exchange, item_holder.place, item_holder, item_to_exchange, item_to_fetch))
+
+    return item_to_fetch, steps
+
+
 def steal_1(elements: list, item_to_steal: element_types.Object, item_holder: element_types.NPC):
     """
     Go someplace, sneak up on somebody, and take something.
@@ -178,3 +310,33 @@ def steal_1(elements: list, item_to_steal: element_types.Object, item_holder: el
     print("==> Goto '%s', sneak up on '%s', and take '%s'." % (item_holder_place, item_holder, item_to_steal))
 
     return item_holder, steps
+
+
+def steal_2(elements: list, item_to_steal: element_types.Object, item_holder: element_types.NPC):
+    # steps:
+    # goto holder
+    # kill holder
+    # take item
+    steps = [
+        [item_holder.place],
+        [item_holder],
+        [item_to_steal]
+    ]
+
+    print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
+
+    return item_to_steal, steps
+
+
+def kill_1(elements: list, target: element_types.NPC):
+    # steps:
+    # goto target
+    # kill target
+    steps = [
+        [target.place],
+        [target]
+    ]
+
+    print("==> Goto '%s' and kill '%s'." % (target.place, target))
+
+    return target, steps
