@@ -5,7 +5,7 @@ from World.elements import Player
 
 
 class World:
-    from World.Instances import Everquest as WorldElements
+    from World.Instances import Custom as WorldElements
     elements = WorldElements.elements
 
     player = Player(name='player_1', intel=WorldElements.player_pre_intel)
@@ -20,7 +20,7 @@ class World:
         """
 
         def recursion(root: Node, pre_semantics: list, index: int, depth: int):
-            # if index > 54:
+            # if index > 12:
             #     return index
             # elif index == 4:
             #     nothing = 0
@@ -32,7 +32,7 @@ class World:
                 print(root.action.name)
 
             node_semantic, children_pre_semantics = Narrative.find(root, depth)(self.elements, *pre_semantics)
-            # print(node_semantic)
+            print(node_semantic)
 
             traversed = index
 

@@ -115,7 +115,7 @@ def learn_3(elements: list, required_intel: element_types.Intel):
     intel_elem = None
     for elem in elements:
         if isinstance(elem, element_types.Intel):
-            if required_intel == elem.value:
+            if required_intel == elem:
                 intel_elem = elem
                 break
     if not intel_elem:
