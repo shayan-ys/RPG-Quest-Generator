@@ -8,7 +8,7 @@ from datetime import datetime
 class Interaction:
     action = Terminals.null
     doers = []        # list of Elements, most likely of type Person who are doing the 'action'
-    receivers = []    # list of Elements, most likely of type Person or Object, that the 'action' is being done on them
+    receivers = []    # list of Elements, most likely of type Person or Item, that the 'action' is being done on them
     timestamp = None  # timestamp of the 'action' initiated
 
     def __init__(self, action: Terminals, doers: list, receivers: list):

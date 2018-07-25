@@ -1,3 +1,4 @@
+from Grammar.actions import Terminals
 from Grammar.tree import Node
 
 from World import Narrative
@@ -5,12 +6,13 @@ from World.elements import Player
 
 
 class World:
-    from World.Instances import Custom as WorldElements
+    from World.Instances import Everquest as WorldElements
     elements = WorldElements.elements
 
     player = Player(name='player_1', intel=WorldElements.player_pre_intel)
 
     def __init__(self):
+        self.player.coins = self.WorldElements.player_starting_money
         self.elements.append(self.player)
 
     def parse_quest(self, quest: Node) -> None:
@@ -20,10 +22,14 @@ class World:
         """
 
         def recursion(root: Node, pre_semantics: list, index: int, depth: int):
-            # if index > 12:
+            # if index > 38:
             #     return index
-            # elif index == 4:
+            # elif index == 24:
             #     nothing = 0
+            #     print(list(root.branches))
+
+            if root.action == Terminals.null:
+                return index
 
             print('-------  depth= %d, index is: %d ------------------------------------------------' % (depth, index))
             if hasattr(root, 'rule') and root.rule:
@@ -32,17 +38,17 @@ class World:
                 print(root.action.name)
 
             node_semantic, children_pre_semantics = Narrative.find(root, depth)(self.elements, *pre_semantics)
-            print(node_semantic)
+            # print(node_semantic)
 
             traversed = index
 
-            if root.branches and node_semantic:
+            if root.branches:
                 for i, branch in enumerate(root.branches):
                     traversed = recursion(branch, children_pre_semantics[i], traversed + 1, depth + 1)
 
             return traversed
 
-        recursion(quest, [], 0, 0)
+        recursion(quest.clean_nulls(), [], 0, 0)
 
         for elem in self.elements:
             if isinstance(elem, Player):

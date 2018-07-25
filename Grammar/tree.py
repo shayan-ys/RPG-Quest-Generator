@@ -117,6 +117,24 @@ class Node(Tree):
                 raise Exception("action '" + str(action) + "' is not in rules. It should be one of "
                                 + str(rules.keys()))
 
+    def clean_nulls(self) -> 'Node':
+
+        all_branches_null = True
+        if self.branches:
+            cleaned_branches = []
+            for branch in self.branches:
+                cleaned = branch.clean_nulls()
+                if cleaned.action != T.null:
+                    all_branches_null = False
+                cleaned_branches.append(cleaned)
+            self.branches = cleaned_branches
+
+            if all_branches_null:
+                self.action = T.null
+                self.branches = []
+                self.rule = None
+        return self
+
     def flat(self) -> list:
 
         flatten_branches = []

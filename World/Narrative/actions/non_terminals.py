@@ -69,7 +69,6 @@ def goto_3(elements: list, destination: element_types.Place):
     """
     # place[1] is destination
     # location[1] is place[1] exact location
-    destination_location = destination.location
 
     intel_location = None
     for elem in elements:
@@ -85,7 +84,7 @@ def goto_3(elements: list, destination: element_types.Place):
     #   T.goto: location[1]
     steps = [
         [intel_location],
-        [destination_location]
+        [destination.location]
     ]
     print("==> Find out how to get to '%s', then goto it" % destination)
 
@@ -101,6 +100,33 @@ def learn_1(elements: list, required_intel: element_types.Intel):
     print("==> Intel '%s' added." % required_intel)
 
     return required_intel, [[]]
+
+
+def learn_2(elements: list, required_intel: element_types.Intel):
+    # find NPC who has the intel, goto the NPC and listen to get the intel
+    knowledgeable_npc = None  # type: element_types.NPC
+    for elem in elements:
+        if isinstance(elem, element_types.NPC):
+            if required_intel in elem.intel:
+                knowledgeable_npc = elem
+
+    if not knowledgeable_npc:
+        return None, []
+
+    # steps:
+    # do sub-quest
+    # goto knowledgeable_npc place
+    # listen knowledgeable_npc to get required_intel
+    steps = [
+        [],
+        [knowledgeable_npc.place],
+        [required_intel, knowledgeable_npc]
+    ]
+
+    print("==> Do a sub-quest, goto '%s', listen intel '%s' from '%s'." %
+          (knowledgeable_npc.place, required_intel, knowledgeable_npc))
+
+    return required_intel, steps
 
 
 def learn_3(elements: list, required_intel: element_types.Intel):
@@ -196,7 +222,7 @@ def learn_4(elements: list, required_intel: element_types.Intel):
     return required_intel, steps
 
 
-def get_2(elements: list, item_to_fetch: element_types.Object):
+def get_2(elements: list, item_to_fetch: element_types.Item):
     """
     Steal it from somebody.
     :return:
@@ -238,7 +264,7 @@ def get_2(elements: list, item_to_fetch: element_types.Object):
     return item_holder, steps
 
 
-def get_3(elements: list, item_to_fetch: element_types.Object):
+def get_3(elements: list, item_to_fetch: element_types.Item):
     # steps:
     # goto
     # gather
@@ -251,7 +277,7 @@ def get_3(elements: list, item_to_fetch: element_types.Object):
     return item_to_fetch, steps
 
 
-def get_4(elements: list, item_to_fetch: element_types.Object):
+def get_4(elements: list, item_to_fetch: element_types.Item):
     """
     an NPC have the item, but you need to give the NPC something for an exchange
     :param elements:
@@ -259,36 +285,57 @@ def get_4(elements: list, item_to_fetch: element_types.Object):
     :return:
     """
     # find an NPC who has the needed item, and has it in exchange list
-    item_to_exchange = None  # type: element_types.Object
+    item_to_exchange = None  # type: element_types.Item
     item_holder = None       # type: element_types.NPC
+    count_item_to_exchange = 0
+    alter_steps = []
     for elem in elements:
         if isinstance(elem, element_types.NPC):
             if item_to_fetch in elem.belongings:
                 if item_to_fetch in elem.exchange_motives.keys():
                     item_holder = elem
                     item_to_exchange = elem.exchange_motives[item_to_fetch]
+                    if (type(item_to_exchange) is list or type(item_to_exchange) is tuple) \
+                            and len(item_to_exchange) > 1:
+                        item_to_exchange, count_item_to_exchange = item_to_exchange
+                        if item_to_exchange == element_types.coin:
+                            # find Player object
+                            for player in elements:
+                                if isinstance(player, element_types.Player):
+                                    if player.coins >= count_item_to_exchange:
+                                        alter_steps = [
+                                            [None],
+                                            [element_types.coin],
+                                            [],
+                                            [item_holder.place],
+                                            [item_holder, (element_types.coin, count_item_to_exchange), item_to_fetch]
+                                        ]
 
-    # steps:
-    # goto
-    # get
-    # sub-quest
-    # goto
-    # exchange
-    steps = [
-        [item_to_exchange.place],
-        [item_to_exchange],
-        [],
-        [item_holder.place],
-        [item_holder, item_to_exchange, item_to_fetch]
-    ]
-
-    print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
-          (item_to_exchange.place, item_to_exchange, item_holder.place, item_holder, item_to_exchange, item_to_fetch))
+    if alter_steps:
+        steps = alter_steps
+        print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%d' of '%s' with '%s'" %
+              (item_holder.place, item_holder, count_item_to_exchange, item_to_exchange, item_to_fetch))
+    else:
+        # steps:
+        # goto
+        # get
+        # sub-quest
+        # goto
+        # exchange
+        steps = [
+            [item_to_exchange.place],
+            [item_to_exchange],
+            [],
+            [item_holder.place],
+            [item_holder, item_to_exchange, item_to_fetch]
+        ]
+        print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+              (item_to_exchange.place, item_to_exchange, item_holder.place, item_holder, item_to_exchange, item_to_fetch))
 
     return item_to_fetch, steps
 
 
-def steal_1(elements: list, item_to_steal: element_types.Object, item_holder: element_types.NPC):
+def steal_1(elements: list, item_to_steal: element_types.Item, item_holder: element_types.NPC):
     """
     Go someplace, sneak up on somebody, and take something.
     :return:
@@ -312,7 +359,26 @@ def steal_1(elements: list, item_to_steal: element_types.Object, item_holder: el
     return item_holder, steps
 
 
-def steal_2(elements: list, item_to_steal: element_types.Object, item_holder: element_types.NPC):
+def spy_1(elements: list, spy_on: element_types.NPC, intel_needed: element_types.Intel, receiver: element_types.NPC):
+    # steps:
+    # goto spy_on place
+    # spy on 'spy_on' get the intel_needed
+    # goto receiver place
+    # report intel_needed to receiver
+    steps = [
+        [spy_on.place],
+        [spy_on, intel_needed],
+        [receiver.place],
+        [intel_needed, receiver]
+    ]
+
+    print("==> Goto '%s', spy on '%s' to get intel '%s', goto '%s', report the intel to '%s'." %
+          (spy_on.place, spy_on, intel_needed, receiver.place, receiver))
+
+    return spy_on, steps
+
+
+def steal_2(elements: list, item_to_steal: element_types.Item, item_holder: element_types.NPC):
     # steps:
     # goto holder
     # kill holder

@@ -12,7 +12,7 @@ class BaseElement:
     def __str__(self):
         if hasattr(self, 'name'):
             return self.name
-        return str(self.__class__)
+        return str(self.__class__.__name__)
 
     def __repr__(self):
         return self.__str__()
@@ -43,6 +43,7 @@ def distance_meter(src: Location, dest: Location) -> DistanceMeasures:
 
 class Intel(BaseElement):
     value = None
+    worth = 0.0     # general worth (price)
 
     def __init__(self, value):
         self.value = value
@@ -59,17 +60,20 @@ class Intel(BaseElement):
 
 class IntelSpell(Intel):
     value = ""  # type: str
+    worth = 1.0
 
 
 class IntelLocation(Intel):
     value = None    # type: Place
+    worth = 0.1
 
 
 class IntelHolding(Intel):
-    value = None    # type: Object
+    value = None    # type: Item
     holder = None   # type: Person
+    worth = 0.3
 
-    def __init__(self, value: 'Object', holder: 'Person'):
+    def __init__(self, value: 'Item', holder: 'Person'):
         super(IntelHolding, self).__init__(value)
         self.holder = holder
 
@@ -79,6 +83,7 @@ class IntelHolding(Intel):
     def __hash__(self):
         return hash((self.value, self.holder))
 
+
 class Place(BaseElement):
     name = ""
     applied_actions = [
@@ -86,10 +91,10 @@ class Place(BaseElement):
         T.goto
     ]
     location = None     # type: Location
-    items = []          # type: List[Object]
+    items = []          # type: List[Item]
     # list of items can be found at the place
 
-    def __init__(self, name: str, location: Location, items: List['Object']=None):
+    def __init__(self, name: str, location: Location, items: List['Item']=None):
         self.name = name
         self.location = location
         if items:
@@ -117,9 +122,9 @@ class Person(BaseElement):
     allies: List['Person'] = []                       # list of ally characters
     enemies: List['Person'] = []                      # list of enemy characters
     intel: List[Intel] = []                           # list of intel pieces
-    belongings: List['Object'] = []                   # list of holding items
-    needs: List['Object'] = []                        # list of items needed
-    exchange_motives: Dict['Object', 'Object'] = {}   # dictionary of exchange motivations,
+    belongings: List['Item'] = []                   # list of holding items
+    needs: List['Item'] = []                        # list of items needed
+    exchange_motives: Dict['Item', 'Item'] = {}   # dictionary of exchange motivations,
     #   key is what Person has, value is list of items they need
 
 
@@ -143,6 +148,7 @@ class NPC(Person):
 
 class Player(Person):
     current_location: Location = None
+    coins = 0
 
     def __init__(self, name: str, intel: List[Intel]):
         self.name = name
@@ -163,7 +169,7 @@ class Clan:
             mem.enemies = enemy.members
 
 
-class Object(BaseElement):
+class Item(BaseElement):
     name = ""
     applied_actions = [
         T.damage,
@@ -181,16 +187,16 @@ class Object(BaseElement):
         self.name = name
 
 
-class UnknownObject(Object):
-    applied_actions = Object.applied_actions + [
+class UnknownItem(Item):
+    applied_actions = Item.applied_actions + [
         T.experiment,
         T.spy,
     ]
 
 
-class Tool(Object):
+class Tool(Item):
     usage: T = None
-    applied_actions = Object.applied_actions + [
+    applied_actions = Item.applied_actions + [
         T.use
     ]
 
@@ -199,8 +205,8 @@ class Tool(Object):
         self.usage = usage
 
 
-class Readable(Object):
-    applied_actions = Object.applied_actions + [
+class Readable(Item):
+    applied_actions = Item.applied_actions + [
         T.read
     ]
     intel: List[Intel] = []
@@ -211,3 +217,10 @@ class Readable(Object):
         :param list[Intel] intel:
         """
         self.intel = intel
+
+
+class Coin(BaseElement):
+    pass
+
+
+coin = Coin()

@@ -80,7 +80,7 @@ rules = {
     },
     NT.learn: {
         1: [T.null],
-        2: [NT.goto, NT.sub_quest, T.listen],
+        2: [NT.sub_quest, NT.goto, T.listen],
         3: [NT.goto, NT.get, T.read],
         4: [NT.get, NT.sub_quest, T.give, T.listen]
     },

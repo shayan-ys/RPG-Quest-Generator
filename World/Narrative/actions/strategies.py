@@ -2,6 +2,28 @@ from World.elements import BaseElement
 from World import elements as element_types
 
 
+def knowledge_2(elements: list, NPC_knowledge_motivated: element_types.NPC):
+    # find someone enemy to the given NPC who has a worthy intel the ally NPC doesn't.
+    spy_target = None  # type: element_types.NPC
+    spy_intel = None   # type: element_types.Intel
+    for elem in elements:
+        if isinstance(elem, element_types.NPC):
+            if elem in NPC_knowledge_motivated.enemies:
+                for worthy_intel in elem.intel:
+                    if worthy_intel.worth > 0.5:
+                        if worthy_intel not in NPC_knowledge_motivated.intel:
+                            spy_target = elem
+                            spy_intel = worthy_intel
+
+    steps = [
+        [spy_target, spy_intel, NPC_knowledge_motivated]
+    ]
+
+    print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
+
+    return spy_target, steps
+
+
 def knowledge_3(elements: list, NPC_knowledge_motivated: element_types.NPC):
     """
     Interview an NPC

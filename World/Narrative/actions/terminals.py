@@ -17,8 +17,8 @@ def null(elements: list):
 #     return target, []
 
 
-def exchange(elements: list, item_holder: element_types.NPC, item_to_give: element_types.Object,
-             item_to_take: element_types.Object):
+def exchange(elements: list, item_holder: element_types.NPC, item_to_give: element_types.Item,
+             item_to_take: element_types.Item):
 
     # update Player's location
     for elem in elements:
@@ -46,7 +46,7 @@ def explore(elements: list, area_location: Location):
     return area_location, []
 
 
-def gather(elements: list, item_to_gather: element_types.Object):
+def gather(elements: list, item_to_gather: element_types.Item):
 
     # update Player's belongings
     for elem in elements:
@@ -57,7 +57,7 @@ def gather(elements: list, item_to_gather: element_types.Object):
     return item_to_gather, []
 
 
-def give(elements: list, item: element_types.Object, receiver: element_types.NPC):
+def give(elements: list, item: element_types.Item, receiver: element_types.NPC):
 
     # update Player's belongings
     for elem in elements:
@@ -71,12 +71,24 @@ def give(elements: list, item: element_types.Object, receiver: element_types.NPC
     return item, []
 
 
+def spy(elements: list, spy_on: element_types.NPC, intel_target: element_types.Intel):
+
+    # update Player's intel
+    for elem in elements:
+        if isinstance(elem, element_types.Player):
+            if intel_target not in elem.intel:
+                elem.intel.append(intel_target)
+
+    print("==> Spy on '%s' to get intel '%s'." % (spy_on, intel_target))
+    return intel_target, []
+
+
 def stealth(elements: list, target: element_types.NPC):
     print("==> Stealth on '%s'." % target)
     return target, []
 
 
-def take(elements: list, item_to_take: element_types.Object):
+def take(elements: list, item_to_take: element_types.Item):
 
     # TODO: remove item from holder's belongings
 
@@ -138,6 +150,6 @@ def report(elements: list, intel: element_types.Intel, target: element_types.NPC
     return target, []
 
 
-def use(elements: list, item_to_use: element_types.Object, target: element_types.NPC):
+def use(elements: list, item_to_use: element_types.Item, target: element_types.NPC):
     print("==> Use '%s' on '%s'." % (item_to_use, target))
     return item_to_use, []
