@@ -1,0 +1,95 @@
+-------  depth= 0, index is: 0 ------------------------------------------------
+quest[1]
+==> 'Steve' has 'knowledge' motivation!
+-------  depth= 1, index is: 1 ------------------------------------------------
+knowledge[2]
+==> Spy on 'Goblin' to get the intel 'Magical Spell' for 'Steve'.
+-------  depth= 2, index is: 2 ------------------------------------------------
+spy[1]
+==> Goto 'goblin_place', spy on 'Goblin' to get intel 'Magical Spell', goto 'steve_loc', report the intel to 'Steve'.
+-------  depth= 3, index is: 3 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'goblin_place', then goto it
+-------  depth= 4, index is: 4 ------------------------------------------------
+learn[3]
+==> Goto 'tomas_place', get 'address-book (goblin)', and read the 'goblin_place' from it.
+-------  depth= 5, index is: 5 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'tomas_place', then goto it
+-------  depth= 6, index is: 6 ------------------------------------------------
+learn[2]
+==> Do a sub-quest, goto 'lempeck_hiding', listen intel 'tomas_place' from 'lempeck (Denros)'.
+-------  depth= 7, index is: 8 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'lempeck_hiding', then goto it
+-------  depth= 8, index is: 9 ------------------------------------------------
+learn[2]
+==> Do a sub-quest, goto 'qeynos_place', listen intel 'lempeck_hiding' from 'Qeynos'.
+-------  depth= 9, index is: 11 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'qeynos_place', then goto it
+-------  depth= 10, index is: 12 ------------------------------------------------
+learn[2]
+==> Do a sub-quest, goto 'Rivervale', listen intel 'qeynos_place' from 'NPC2'.
+-------  depth= 11, index is: 14 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'Rivervale', then goto it
+-------  depth= 12, index is: 16 ------------------------------------------------
+goto
+==> Goto '(10, 80)'.
+-------  depth= 11, index is: 17 ------------------------------------------------
+listen
+==> Listen to 'NPC2' to get the intel 'qeynos_place'.
+==> + New intel added: 'qeynos_place'
+-------  depth= 10, index is: 18 ------------------------------------------------
+goto
+==> Goto '(50, 50)'.
+-------  depth= 9, index is: 19 ------------------------------------------------
+listen
+==> Listen to 'Qeynos' to get the intel 'lempeck_hiding'.
+==> + New intel added: 'lempeck_hiding'
+-------  depth= 8, index is: 20 ------------------------------------------------
+goto
+==> Goto '(80, 10)'.
+-------  depth= 7, index is: 21 ------------------------------------------------
+listen
+==> Listen to 'lempeck (Denros)' to get the intel 'tomas_place'.
+==> + New intel added: 'tomas_place'
+-------  depth= 6, index is: 22 ------------------------------------------------
+goto
+==> Goto '(10, 10)'.
+-------  depth= 5, index is: 23 ------------------------------------------------
+get[4]
+==> Do a sub-quest, goto 'tomas_place' to meet 'NPC1 (Tomas)' and exchange '200' of 'Coin' with 'address-book (goblin)'
+-------  depth= 6, index is: 27 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'tomas_place', then goto it
+-------  depth= 7, index is: 29 ------------------------------------------------
+goto
+==> Goto '(10, 10)'.
+-------  depth= 6, index is: 30 ------------------------------------------------
+exchange
+==> Exchange '(Coin, 200)' for 'address-book (goblin)', with 'NPC1 (Tomas)'.
+-------  depth= 5, index is: 31 ------------------------------------------------
+read
+==> Read 'goblin_place' from 'address-book (goblin)'.
+==> + New intel added: 'goblin_place'
+-------  depth= 4, index is: 32 ------------------------------------------------
+goto
+==> Goto '(80, 85)'.
+-------  depth= 3, index is: 33 ------------------------------------------------
+spy
+==> Spy on 'Goblin' to get intel 'Magical Spell'.
+-------  depth= 3, index is: 34 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'steve_loc', then goto it
+-------  depth= 4, index is: 36 ------------------------------------------------
+goto
+==> Goto '(60, 20)'.
+-------  depth= 3, index is: 37 ------------------------------------------------
+report
+==> Report 'Magical Spell' (Magical Spell) to 'Steve'.
+>
+player's final location: (60, 20)
+player's intel: [lempeck_hiding, qeynos_place, bixies_place, bandage_place, Rivervale, steve_loc, qeynos_place, lempeck_hiding, tomas_place, goblin_place, Magical Spell]
+player's belongings: [address-book (goblin)]
