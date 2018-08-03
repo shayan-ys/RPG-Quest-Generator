@@ -2,17 +2,17 @@ from Grammar.actions import Terminals
 from Grammar.tree import Node
 
 from World import Narrative
-from World.elements import Player
+from World.elements import Player, Coin
 
 
 class World:
     from World.Instances import Everquest as WorldElements
     elements = WorldElements.elements
 
-    player = Player(name='player_1', intel=WorldElements.player_pre_intel)
+    player = None
 
     def __init__(self):
-        self.player.coins = self.WorldElements.player_starting_money
+        self.player = Player(name='player_1', intel=self.WorldElements.player_pre_intel)
         self.elements.append(self.player)
 
     def parse_quest(self, quest: Node) -> None:

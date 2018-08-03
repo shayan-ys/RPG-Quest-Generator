@@ -1,7 +1,7 @@
 from Grammar.actions import NonTerminals as NT, Terminals as T
 
 from World.properties import Location
-from World.elements import NPC, Clan, IntelLocation, IntelSpell, IntelHolding, Place, UnknownItem, Tool, Readable, coin
+from World.elements import NPC, Clan, IntelLocation, IntelSpell, IntelHolding, Place, UnknownItem, Tool, Readable, Coin
 
 
 potion = Tool(name='potion', usage=T.treat)
@@ -23,7 +23,7 @@ intel_goblin_loc.worth = 0.8
 letter = Readable(name='address-book (goblin)', intel=[IntelLocation(goblin.place)])
 
 tomas = NPC('NPC1 (Tomas)', motivations={NT.protection: 0.8}, place=Place('tomas_place', Location(10, 10)),
-            belongings=[letter], exchange_motives={letter: (coin, 200)})
+            belongings=[letter], exchange_motives={letter: Coin()})
 intel_tomas_place = IntelLocation(tomas.place)
 lempeck = NPC('lempeck (Denros)', motivations={}, place=Place('lempeck_hiding', location=Location(80, 10)),
               needs=[potion], intel=[intel_tomas_place])
@@ -61,7 +61,7 @@ player_pre_intel = [
     IntelLocation(steve.place)
 ]
 
-player_starting_money = 400
+player_starting_money = 4
 
 elements = player_pre_intel + [
 

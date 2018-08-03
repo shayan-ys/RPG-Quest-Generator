@@ -25,7 +25,7 @@ class DistanceMeasures(Enum):
     near = 20
     close = 75
     far = 150
-    unreachable = 300
+    unreachable = 1000
 
 
 def distance_meter(src: Location, dest: Location) -> DistanceMeasures:
@@ -41,47 +41,51 @@ def distance_meter(src: Location, dest: Location) -> DistanceMeasures:
         return DistanceMeasures.unreachable
 
 
-class Intel(BaseElement):
-    value = None
+class Worthy(BaseElement):
     worth = 0.0     # general worth (price)
 
-    def __init__(self, value):
-        self.value = value
+
+class Intel(Worthy):
+    data = None
+    worth = 0.1
+
+    def __init__(self, data):
+        self.data = data
 
     def __str__(self):
-        return str(self.value)
+        return str(self.data)
 
     def __eq__(self, other: 'Intel'):
-        return self.value == other.value
+        return self.data == other.data
 
     def __hash__(self):
-        return hash(self.value)
+        return hash(self.data)
 
 
 class IntelSpell(Intel):
-    value = ""  # type: str
+    data = ""  # type: str
     worth = 1.0
 
 
 class IntelLocation(Intel):
-    value = None    # type: Place
-    worth = 0.1
+    data = None    # type: Place
+    worth = 0.3
 
 
 class IntelHolding(Intel):
-    value = None    # type: Item
+    data = None    # type: Item
     holder = None   # type: Person
-    worth = 0.3
+    worth = 0.5
 
     def __init__(self, value: 'Item', holder: 'Person'):
         super(IntelHolding, self).__init__(value)
         self.holder = holder
 
     def __eq__(self, other: 'IntelHolding'):
-        return self.value == other.value and self.holder == other.holder
+        return self.data == other.data and self.holder == other.holder
 
     def __hash__(self):
-        return hash((self.value, self.holder))
+        return hash((self.data, self.holder))
 
 
 class Place(BaseElement):
@@ -125,7 +129,7 @@ class Person(BaseElement):
     belongings: List['Item'] = []                   # list of holding items
     needs: List['Item'] = []                        # list of items needed
     exchange_motives: Dict['Item', 'Item'] = {}   # dictionary of exchange motivations,
-    #   key is what Person has, value is list of items they need
+    #   key is what Person has, data is list of items they need
 
 
 class NPC(Person):
@@ -150,9 +154,10 @@ class Player(Person):
     current_location: Location = None
     coins = 0
 
-    def __init__(self, name: str, intel: List[Intel]):
+    def __init__(self, name: str, intel: List[Intel], starting_money: int=0):
         self.name = name
         self.intel = intel
+        self.belongings += [Coin()] * starting_money
 
 
 class Clan:
@@ -169,7 +174,7 @@ class Clan:
             mem.enemies = enemy.members
 
 
-class Item(BaseElement):
+class Item(Worthy):
     name = ""
     applied_actions = [
         T.damage,
@@ -188,6 +193,7 @@ class Item(BaseElement):
 
 
 class UnknownItem(Item):
+    worth = 0.2
     applied_actions = Item.applied_actions + [
         T.experiment,
         T.spy,
@@ -195,6 +201,7 @@ class UnknownItem(Item):
 
 
 class Tool(Item):
+    worth = 0.6
     usage: T = None
     applied_actions = Item.applied_actions + [
         T.use
@@ -206,6 +213,7 @@ class Tool(Item):
 
 
 class Readable(Item):
+    worth = 0.4
     applied_actions = Item.applied_actions + [
         T.read
     ]
@@ -219,8 +227,13 @@ class Readable(Item):
         self.intel = intel
 
 
-class Coin(BaseElement):
-    pass
+class Coin(Item):
+    worth = 1.0
+    applied_actions = [
+        T.exchange,
+        T.gather,
+        T.give
+    ]
 
-
-coin = Coin()
+    def __init__(self):
+        super(Coin, self).__init__(name="coin")

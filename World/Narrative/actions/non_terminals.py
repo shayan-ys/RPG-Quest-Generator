@@ -37,9 +37,13 @@ def goto_1(elements: list, destination: element_types.Place):
     You are already there.
     :return:
     """
-    print('==> Teleported to %s, (goto.1: already in your destination)' % destination)
-    # return or fix, the given destination is same as the player's current location
-    # todo: OR the game will automatically take you to the destination!
+    print('==> Already at your destination, %s.' % destination)
+
+    # update player's location
+    for player in elements:
+        if isinstance(player, element_types.Player):
+            player.current_location = destination.location
+
     return destination, [[]]
 
 
@@ -78,7 +82,7 @@ def goto_3(elements: list, destination: element_types.Place):
     intel_location = None
     for elem in elements:
         if isinstance(elem, element_types.IntelLocation):
-            if elem.value == destination:
+            if elem.data == destination:
                 intel_location = elem
 
     if not intel_location:
@@ -313,21 +317,6 @@ def get_4(elements: list, item_to_fetch: element_types.Item):
                 if item_to_fetch in elem.exchange_motives.keys():
                     item_holder = elem
                     item_to_exchange = elem.exchange_motives[item_to_fetch]
-                    if (type(item_to_exchange) is list or type(item_to_exchange) is tuple) \
-                            and len(item_to_exchange) > 1:
-                        item_to_exchange, count_item_to_exchange = item_to_exchange
-                        if item_to_exchange == element_types.coin:
-                            # find Player object
-                            for player in elements:
-                                if isinstance(player, element_types.Player):
-                                    if player.coins >= count_item_to_exchange:
-                                        alter_steps = [
-                                            [None],
-                                            [element_types.coin],
-                                            [],
-                                            [item_holder.place],
-                                            [item_holder, (element_types.coin, count_item_to_exchange), item_to_fetch]
-                                        ]
 
     if alter_steps:
         steps = alter_steps

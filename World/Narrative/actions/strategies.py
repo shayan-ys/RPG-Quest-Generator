@@ -77,7 +77,7 @@ def knowledge_3(elements: list, NPC_knowledge_motivated: element_types.NPC):
         [NPC_knowledge_motivated.place],
         [intended_intel, NPC_knowledge_motivated]
     ]
-    print("==> Interview '%s' to get the intel '%s', which is about '%s'." % (NPC_knowledgeable, intended_intel, intended_intel.value))
+    print("==> Interview '%s' to get the intel '%s', which is about '%s'." % (NPC_knowledgeable, intended_intel, intended_intel.data))
 
     return NPC_knowledgeable, steps
 

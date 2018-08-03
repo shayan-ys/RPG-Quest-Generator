@@ -109,7 +109,7 @@ def read(elements: list, intel: element_types.Intel, readable: element_types.Rea
             elem.intel.append(intel)
 
     print("==> Read '%s' from '%s'." % (intel, readable))
-    print("==> + New intel added: '%s'" % intel.value)
+    print("==> + New intel added: '%s'" % intel.data)
     return readable, []
 
 
@@ -137,7 +137,7 @@ def listen(elements: list, intel: element_types.Intel, informer: element_types.N
             elem.intel.append(intel)
 
     print("==> Listen to '%s' to get the intel '%s'." %(informer, intel))
-    print("==> + New intel added: '%s'" % intel.value)
+    print("==> + New intel added: '%s'" % intel.data)
     return informer, []
 
 
@@ -146,7 +146,7 @@ def report(elements: list, intel: element_types.Intel, target: element_types.NPC
     # update target's intel list
     target.intel.append(intel)
 
-    print("==> Report '%s' (%s) to '%s'." % (intel, intel.value, target))
+    print("==> Report '%s' (%s) to '%s'." % (intel, intel.data, target))
     return target, []
 
 
