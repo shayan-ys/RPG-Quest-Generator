@@ -88,6 +88,11 @@ def goto_3(elements: list, destination: element_types.Place):
     if not intel_location:
         return None, [[]]
 
+    # update player's next location
+    for player in elements:
+        if isinstance(player, element_types.Player):
+            player.next_location = destination.location
+
     # steps:
     #   learn: location[1]
     #   T.goto: location[1]

@@ -128,7 +128,7 @@ class Person(BaseElement):
     intel: List[Intel] = []                           # list of intel pieces
     belongings: List['Item'] = []                   # list of holding items
     needs: List['Item'] = []                        # list of items needed
-    exchange_motives: Dict['Item', 'Item'] = {}   # dictionary of exchange motivations,
+    exchange_motives: Dict[Worthy, Worthy] = {}   # dictionary of exchange motivations,
     #   key is what Person has, data is list of items they need
 
 
@@ -152,6 +152,7 @@ class NPC(Person):
 
 class Player(Person):
     current_location: Location = None
+    next_location: Location = None
     coins = 0
     favours_book = {}   # keeping track of who owes the player (+) and player owes to who(-).
 
