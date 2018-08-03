@@ -70,6 +70,11 @@ def goto_3(elements: list, destination: element_types.Place):
     # place[1] is destination
     # location[1] is place[1] exact location
 
+    # for player in elements:
+    #     if isinstance(player, element_types.Player):
+    #         if player.current_location == destination.location:
+    #             return None, []
+
     intel_location = None
     for elem in elements:
         if isinstance(elem, element_types.IntelLocation):
@@ -220,6 +225,19 @@ def learn_4(elements: list, required_intel: element_types.Intel):
           (item_to_exchange, informer, required_intel))
 
     return required_intel, steps
+
+
+def get_1(elements: list, item_to_fetch: element_types.Item):
+
+    print("==> You already have the item.")
+
+    # if not, add it to player's belongings
+    for player in elements:
+        if isinstance(player, element_types.Player):
+            if item_to_fetch not in player.belongings:
+                player.belongings.append(item_to_fetch)
+
+    return None, []
 
 
 def get_2(elements: list, item_to_fetch: element_types.Item):

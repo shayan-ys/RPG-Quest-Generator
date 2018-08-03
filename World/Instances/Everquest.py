@@ -28,7 +28,7 @@ intel_tomas_place = IntelLocation(tomas.place)
 lempeck = NPC('lempeck (Denros)', motivations={}, place=Place('lempeck_hiding', location=Location(80, 10)),
               needs=[potion], intel=[intel_tomas_place])
 intel_lempeck_place = IntelLocation(lempeck.place)
-qeynos = NPC('Qeynos', motivations={}, place=Place('qeynos_place', location=Location(50, 50)), belongings=[potion],
+qeynos = NPC('Qeynos (Angie)', motivations={}, place=Place('qeynos_place', location=Location(50, 50)), belongings=[potion],
              needs=[jum], exchange_motives={potion: jum}, intel=[intel_lempeck_place])
 intel_qeynos_place = IntelLocation(qeynos.place)
 
@@ -36,7 +36,7 @@ bixies = NPC('bixies', motivations={}, place=Place('bixies_place', location=Loca
 
 bixies_place_intel = IntelLocation(bixies.place)
 comb_holder = IntelHolding(comb, bixies)
-npc_2 = NPC('NPC2', motivations={}, place=rivervale, belongings=[jum], needs=[comb, bandage],
+npc_2 = NPC('NPC2 (adon)', motivations={}, place=rivervale, belongings=[jum], needs=[comb, bandage],
             intel=[comb_holder, intel_qeynos_place],
             exchange_motives={comb_holder: bandage, bixies_place_intel: bandage, jum: comb})
 

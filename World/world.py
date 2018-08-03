@@ -42,7 +42,7 @@ class World:
 
             traversed = index
 
-            if root.branches:
+            if root.branches and node_semantic:
                 for i, branch in enumerate(root.branches):
                     traversed = recursion(branch, children_pre_semantics[i], traversed + 1, depth + 1)
 
