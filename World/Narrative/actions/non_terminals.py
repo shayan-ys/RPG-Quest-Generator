@@ -14,7 +14,7 @@ def sub_quest_1(elements: list):
                 if isinstance(player, element_types.Player):
                     for intel in player.intel:
                         if isinstance(intel, element_types.IntelLocation):
-                            if intel.value != place:
+                            if intel.data != place:
                                 places_to_go.append(place)
 
     if not places_to_go:
@@ -355,11 +355,11 @@ def steal_1(elements: list, item_to_steal: element_types.Item, item_holder: elem
     # steps:
     #   goto: place[1]
     #   T.stealth: stealth NPC[1]
-    #   T.take: take item[1]
+    #   T.take: take item[1] from NPC[1]
     steps = [
         [item_holder_place],
         [item_holder],
-        [item_to_steal]
+        [item_to_steal, item_holder]
     ]
     print("==> Goto '%s', sneak up on '%s', and take '%s'." % (item_holder_place, item_holder, item_to_steal))
 
@@ -389,11 +389,11 @@ def steal_2(elements: list, item_to_steal: element_types.Item, item_holder: elem
     # steps:
     # goto holder
     # kill holder
-    # take item
+    # T.take item from holder
     steps = [
         [item_holder.place],
         [item_holder],
-        [item_to_steal]
+        [item_to_steal, item_holder]
     ]
 
     print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))

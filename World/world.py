@@ -55,3 +55,4 @@ class World:
                 print(">\nplayer's final location: " + str(elem.current_location))
                 print("player's intel: " + str(elem.intel))
                 print("player's belongings: " + str(elem.belongings))
+                print("player's favours book: " + str(elem.favours_book))

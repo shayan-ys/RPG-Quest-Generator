@@ -153,6 +153,7 @@ class NPC(Person):
 class Player(Person):
     current_location: Location = None
     coins = 0
+    favours_book = {}   # keeping track of who owes the player (+) and player owes to who(-).
 
     def __init__(self, name: str, intel: List[Intel], starting_money: int=0):
         self.name = name
