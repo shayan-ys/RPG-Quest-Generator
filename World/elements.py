@@ -161,8 +161,8 @@ class Place(BaseElement):
             for item in self.items:
                 item.place = self
 
-    def distance_from(self, player: 'Player') -> DistanceMeasures:
-        return distance_meter(self.location, player.current_location)
+    def distance_from(self, player: 'Player') -> float:
+        return triangle_dist_meter(src=player.current_location, dest=self.location, later=player.next_location)
 
 
 class Person(BaseElement):
