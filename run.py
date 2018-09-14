@@ -13,4 +13,4 @@ from World.properties import Location
 #     print(ind)
 
 world = World()
-world.parse_quest(quest=quests.spy)
+world.parse_quest(quest=quests.cure)
