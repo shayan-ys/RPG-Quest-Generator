@@ -10,7 +10,7 @@ def flat_non_terminals_subtrees(tree: Node) -> (list, list, list):
     """
     Flatten a tree to three lists, ignoring 'Terminals':
     - List of every subtrees
-    - List of types of each node (NonTerminals), actually is root type of subtrees (the previous list)
+    - List of Types of each node (NonTerminals), actually is root type of subtrees (the previous list)
     - List of 'paths' to reach the subtree, each path itself is a list of 'branch' index (starting from 0)
     :param tree: Input tree to be flatten
     :return: A tuple of three lists described above
