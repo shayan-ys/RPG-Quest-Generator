@@ -23,7 +23,7 @@ class Intel(BaseElement, Worthy):
         if self.type == str(IntelTypes.spell.name):
             return self.spell
         elif self.type == str(IntelTypes.place.name):
-            return self.place
+            return self.npc_place
         elif self.type == str(IntelTypes.holding.name):
             return self.holding_item, self.holding_holder
 

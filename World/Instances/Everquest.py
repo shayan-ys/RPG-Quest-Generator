@@ -40,25 +40,29 @@ def create():
     address_book = Item.create(type=ItemTypes.readable, generic=GenericItem.get_or_create(name=ItemTypes.singleton)[0], name='address-book (goblin loc)', belongs_to=tomas)
     coin = Item.create(type=ItemTypes.unknown, generic=GenericItem.get_or_create(name='coin')[0], name='coin', belongs_to_player=player)
 
-    spell = Intel.create(type=IntelTypes.spell, spell='Earth, grass, trees and seeds reveal the path to suit my needs')
+    Need.create(npc=lempeck, item=potion)
+
+    spell = Intel.create(type=IntelTypes.spell.name, spell='Earth, grass, trees and seeds reveal the path to suit my needs')
     NPCKnowledgeBook.create(npc=goblin, intel=spell)
 
-    intel_goblin_loc = Intel.create(type=IntelTypes.place, npc_place=goblin, worth=0.8)
+    intel_rivervale_loc = Intel.create(type=IntelTypes.place.name, npc_place=npc_2, worth=0.6)
+
+    intel_goblin_loc = Intel.create(type=IntelTypes.place.name, npc_place=goblin, worth=0.8)
     ReadableKnowledgeBook.create(readable=address_book, intel=intel_goblin_loc)
 
-    intel_tomas_loc = Intel.create(type=IntelTypes.place, npc_place=tomas)
+    intel_tomas_loc = Intel.create(type=IntelTypes.place.name, npc_place=tomas)
     NPCKnowledgeBook.create(npc=lempeck, intel=intel_tomas_loc)
 
-    intel_lempeck_loc = Intel.create(type=IntelTypes.place, npc_place=lempeck)
+    intel_lempeck_loc = Intel.create(type=IntelTypes.place.name, npc_place=lempeck)
     NPCKnowledgeBook.create(npc=qeynos, intel=intel_lempeck_loc)
 
-    intel_qeynos_loc = Intel.create(type=IntelTypes.place, npc_place=qeynos)
+    intel_qeynos_loc = Intel.create(type=IntelTypes.place.name, npc_place=qeynos)
     NPCKnowledgeBook.create(npc=npc_2, intel=intel_qeynos_loc)
 
-    intel_comb_holder = Intel.create(type=IntelTypes.holding, holding_item=comb, holding_holder=bixies)
+    intel_comb_holder = Intel.create(type=IntelTypes.holding.name, holding_item=comb, holding_holder=bixies)
     NPCKnowledgeBook.create(npc=npc_2, intel=intel_comb_holder)
 
-    intel_bixies_place = Intel.create(type=IntelTypes.place, npc_place=bixies)
+    intel_bixies_place = Intel.create(type=IntelTypes.place.name, npc_place=bixies)
     NPCKnowledgeBook.create(npc=npc_2, intel=intel_bixies_place)
 
     Exchange.create(npc=qeynos, item=potion, need=Need.get_or_create(npc=qeynos, item=jum)[0])

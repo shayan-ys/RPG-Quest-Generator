@@ -1,9 +1,9 @@
 from World.elements import BaseElement
-from World.Types import db, fn
+from World.Types import db, fn, JOIN
 from World.Types.Person import NPC
 from World.Types.Intel import Intel, NPCKnowledgeBook
 from World.Types.Item import Item
-from World.Types.BridgeModels import Need
+from World.Types.BridgeModels import Need, Exchange
 
 from World import elements as element_types
 
@@ -84,12 +84,15 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
 def protection_2(NPC_protection_motivated: NPC):
     # find an NPC, who is ally to motivated_NPC and needs something, as well as an NPC who that has that thing
     results = NPC.select(NPC, Need.item_id.alias('needed_item_id'))\
-        .join(Need)\
+        .join(Need) \
+        .join(Exchange, JOIN.LEFT_OUTER)\
         .where(
             NPC.clan == NPC_protection_motivated.clan,
-            Need.item.is_null(False)
+            Need.item.is_null(False),
         )\
-        .limit(1).objects()
+        .group_by(Need)\
+        .having(fn.COUNT(Exchange.id) == 0)\
+        .objects()
 
     if results:
         npc_in_need = results[0]

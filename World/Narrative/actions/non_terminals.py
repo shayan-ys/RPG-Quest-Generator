@@ -1,7 +1,7 @@
-from World.Types import db
+from World.Types import db, JOIN
 from World.Types.Person import Player, NPC
 from World.Types.Place import Place
-from World.Types.Intel import Intel, ReadableKnowledgeBook
+from World.Types.Intel import Intel, ReadableKnowledgeBook, IntelTypes
 from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import BelongItem, BelongItemPlayer, Need, Exchange
 
@@ -79,9 +79,8 @@ def goto_3(destination: Place):
     """
     # place[1] is destination
     # location[1] is place[1] exact location
-    print(destination)
-    results = Intel.select().join(NPC, on=(Intel.npc_place.id == NPC.id))\
-        .where(Intel.npc_place.place == destination).limit(1)
+    results = Intel.select(Intel, NPC).join(NPC, on=(Intel.npc_place == NPC.id))\
+        .where(Intel.type == IntelTypes.place.name, Intel.npc_place.place == destination).limit(1)
 
     if not results:
         return []
@@ -171,35 +170,42 @@ def learn_3(required_intel: Intel):
     return steps
 
 
-def learn_4(elements: list, required_intel: element_types.Intel):
+def learn_4(required_intel: Intel):
     # find an NPC who has the required intel in exchange, get the NPC's needed item to give
-    item_to_exchange = None
-    informer = None
-    for elem in elements:
-        if isinstance(elem, element_types.NPC):
-            if required_intel in elem.exchange_motives.keys():
-                item_to_exchange = elem.exchange_motives[required_intel]
-                informer = elem
 
-    if not item_to_exchange or not informer:
-        return None, []
+    print(required_intel)
+    informer = Exchange.select().where(Exchange.intel == required_intel)
+
+    for row in informer:
+        print(row)
+
+    return []
+
+    # for elem in elements:
+    #     if isinstance(elem, element_types.NPC):
+    #         if required_intel in elem.exchange_motives.keys():
+    #             item_to_exchange = elem.exchange_motives[required_intel]
+    #             informer = elem
+
+    # if not item_to_exchange or not informer:
+    #     return None, []
 
     # steps:
     # get
     # sub-quest
     # give
     # listen
-    steps = [
-        [item_to_exchange],
-        [],
-        [item_to_exchange, informer],
-        [required_intel, informer]
-    ]
-
-    print("==> Get '%s', perform sub-quest, give the acquired item to '%s' in return get an intel on '%s'" %
-          (item_to_exchange, informer, required_intel))
-
-    return required_intel, steps
+    # steps = [
+    #     [item_to_exchange],
+    #     [],
+    #     [item_to_exchange, informer],
+    #     [required_intel, informer]
+    # ]
+    #
+    # print("==> Get '%s', perform sub-quest, give the acquired item to '%s' in return get an intel on '%s'" %
+    #       (item_to_exchange, informer, required_intel))
+    #
+    # return required_intel, steps
 
 
 def get_1(elements: list, item_to_fetch: element_types.Item):
@@ -259,8 +265,6 @@ def get_4(item_to_fetch: Item):
     """
     # find an NPC who has the needed item, and has it in exchange list
     exchanges = Exchange.select()
-
-    print(item_to_fetch)
 
     if item_to_fetch.generic.name == ItemTypes.singleton:
         exchanges = exchanges\
@@ -332,6 +336,22 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
     return steps
 
 
+def steal_2(item_to_steal: element_types.Item, item_holder: element_types.NPC):
+    # steps:
+    # goto holder
+    # kill holder
+    # T.take item from holder
+    steps = [
+        [item_holder.place],
+        [item_holder],
+        [item_to_steal, item_holder]
+    ]
+
+    print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
+
+    return item_to_steal, steps
+
+
 def spy_1(elements: list, spy_on: element_types.NPC, intel_needed: element_types.Intel, receiver: element_types.NPC):
     # steps:
     # goto spy_on place
@@ -349,22 +369,6 @@ def spy_1(elements: list, spy_on: element_types.NPC, intel_needed: element_types
           (spy_on.place, spy_on, intel_needed, receiver.place, receiver))
 
     return spy_on, steps
-
-
-def steal_2(elements: list, item_to_steal: element_types.Item, item_holder: element_types.NPC):
-    # steps:
-    # goto holder
-    # kill holder
-    # T.take item from holder
-    steps = [
-        [item_holder.place],
-        [item_holder],
-        [item_to_steal, item_holder]
-    ]
-
-    print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
-
-    return item_to_steal, steps
 
 
 def kill_1(elements: list, target: element_types.NPC):

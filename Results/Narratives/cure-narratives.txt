@@ -1,0 +1,102 @@
+-------  depth= 0, index is: 0 ------------------------------------------------
+quest[5]
+==> 'NPC1 (Tomas)' has 'protection' motivation!
+-------  depth= 1, index is: 1 ------------------------------------------------
+protection[2]
+==> Treat or repair 'lempeck (Denros)' using 'potion'.
+-------  depth= 2, index is: 2 ------------------------------------------------
+get[4]
+==> Goto 'Rivervale', get 'jum', do a sub-quest, goto 'qeynos_place' to meet 'Qeynos (Angie)' and exchange 'jum' with 'potion'
+-------  depth= 3, index is: 3 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'Rivervale', then goto it
+-------  depth= 4, index is: 5 ------------------------------------------------
+goto
+==> Goto '(10, 80)'.
+-------  depth= 3, index is: 6 ------------------------------------------------
+get[4]
+==> Goto 'bixies_place', get 'comb', do a sub-quest, goto 'Rivervale' to meet 'NPC2 (adon)' and exchange 'comb' with 'jum'
+-------  depth= 4, index is: 7 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'bixies_place', then goto it
+-------  depth= 5, index is: 8 ------------------------------------------------
+learn[4]
+==> Get 'bandage', perform sub-quest, give the acquired item to 'NPC2 (adon)' in return get an intel on 'bixies_place'
+-------  depth= 6, index is: 9 ------------------------------------------------
+get[3]
+==> Goto 'bandage_place' and gather 'bandage'.
+-------  depth= 7, index is: 10 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'bandage_place', then goto it
+-------  depth= 8, index is: 12 ------------------------------------------------
+goto
+==> Goto '(10, 60)'.
+-------  depth= 7, index is: 13 ------------------------------------------------
+gather
+==> Gather 'bandage'.
+-------  depth= 6, index is: 14 ------------------------------------------------
+sub_quest[1]
+==> Goto 'Rivervale'.
+-------  depth= 7, index is: 15 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'Rivervale', then goto it
+-------  depth= 8, index is: 17 ------------------------------------------------
+goto
+==> Goto '(10, 80)'.
+-------  depth= 6, index is: 18 ------------------------------------------------
+give
+==> Give 'bandage' to 'NPC2 (adon)'.
+-------  depth= 6, index is: 19 ------------------------------------------------
+listen
+==> Listen to 'NPC2 (adon)' to get the intel 'bixies_place'.
+==> + New intel added: 'bixies_place'
+-------  depth= 5, index is: 20 ------------------------------------------------
+goto
+==> Goto '(70, 90)'.
+-------  depth= 4, index is: 21 ------------------------------------------------
+get[2]
+==> Steal 'comb' from 'bixies'.
+-------  depth= 5, index is: 22 ------------------------------------------------
+steal[2]
+==> Goto and kill 'bixies', then take 'comb'.
+-------  depth= 6, index is: 24 ------------------------------------------------
+kill[1]
+==> Goto 'bixies_place' and kill 'bixies'.
+-------  depth= 7, index is: 26 ------------------------------------------------
+kill
+==> Kill 'bixies'.
+-------  depth= 6, index is: 27 ------------------------------------------------
+take
+==> Take 'comb'.
+-------  depth= 4, index is: 29 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'Rivervale', then goto it
+-------  depth= 5, index is: 31 ------------------------------------------------
+goto
+==> Goto '(10, 80)'.
+-------  depth= 4, index is: 32 ------------------------------------------------
+exchange
+==> Exchange 'comb' for 'jum', with 'NPC2 (adon)'.
+-------  depth= 3, index is: 34 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'qeynos_place', then goto it
+-------  depth= 4, index is: 36 ------------------------------------------------
+goto
+==> Goto '(50, 50)'.
+-------  depth= 3, index is: 37 ------------------------------------------------
+exchange
+==> Exchange 'jum' for 'potion', with 'Qeynos (Angie)'.
+-------  depth= 2, index is: 38 ------------------------------------------------
+goto[3]
+==> Find out how to get to 'lempeck_hiding', then goto it
+-------  depth= 3, index is: 40 ------------------------------------------------
+goto
+==> Goto '(80, 10)'.
+-------  depth= 2, index is: 41 ------------------------------------------------
+use
+==> Use 'potion' on 'lempeck (Denros)'.
+>
+player's final location: (80, 10)
+player's intel: [lempeck_hiding, qeynos_place, bixies_place, bandage_place, Rivervale, steve_loc, bixies_place]
+player's belongings: [potion]
+player's favours book: {NPC2 (adon): -0.09999999999999998, bixies: -0.2, Qeynos (Angie): -0.39999999999999997}
