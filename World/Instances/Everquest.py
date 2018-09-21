@@ -1,7 +1,7 @@
 from Grammar.actions import NonTerminals as NT, Terminals as T
 
 from World.Types.Item import Item, ItemTypes, GenericItem
-from World.Types.Intel import Intel, IntelTypes, NPCKnowledgeBook, ReadableKnowledgeBook
+from World.Types.Intel import Intel, IntelTypes, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
 from World.Types.Place import Place
 from World.Types.Person import Clan, NPC, Motivation, Player
 from World.Types.BridgeModels import Need, Exchange
@@ -42,27 +42,29 @@ def create():
 
     Need.create(npc=lempeck, item=potion)
 
-    spell = Intel.create(type=IntelTypes.spell.name, spell='Earth, grass, trees and seeds reveal the path to suit my needs')
+    spell = Intel.create(type=IntelTypes.spell.name,
+                         spell='Earth, grass, trees and seeds reveal the path to suit my needs')
     NPCKnowledgeBook.create(npc=goblin, intel=spell)
 
-    intel_rivervale_loc = Intel.create(type=IntelTypes.place.name, npc_place=npc_2, worth=0.6)
+    intel_bondage_loc = Intel.create(type=IntelTypes.place.name, place=bondage_place)
+    intel_rivervale_loc = Intel.create(type=IntelTypes.place.name, place=npc_2.place, npc_place=npc_2, worth=0.6)
 
-    intel_goblin_loc = Intel.create(type=IntelTypes.place.name, npc_place=goblin, worth=0.8)
+    intel_goblin_loc = Intel.create(type=IntelTypes.place.name, place=goblin.place, npc_place=goblin, worth=0.8)
     ReadableKnowledgeBook.create(readable=address_book, intel=intel_goblin_loc)
 
-    intel_tomas_loc = Intel.create(type=IntelTypes.place.name, npc_place=tomas)
+    intel_tomas_loc = Intel.create(type=IntelTypes.place.name, place=tomas.place, npc_place=tomas)
     NPCKnowledgeBook.create(npc=lempeck, intel=intel_tomas_loc)
 
-    intel_lempeck_loc = Intel.create(type=IntelTypes.place.name, npc_place=lempeck)
+    intel_lempeck_loc = Intel.create(type=IntelTypes.place.name, place=lempeck.place, npc_place=lempeck)
     NPCKnowledgeBook.create(npc=qeynos, intel=intel_lempeck_loc)
 
-    intel_qeynos_loc = Intel.create(type=IntelTypes.place.name, npc_place=qeynos)
+    intel_qeynos_loc = Intel.create(type=IntelTypes.place.name, place=qeynos.place, npc_place=qeynos)
     NPCKnowledgeBook.create(npc=npc_2, intel=intel_qeynos_loc)
 
     intel_comb_holder = Intel.create(type=IntelTypes.holding.name, holding_item=comb, holding_holder=bixies)
     NPCKnowledgeBook.create(npc=npc_2, intel=intel_comb_holder)
 
-    intel_bixies_place = Intel.create(type=IntelTypes.place.name, npc_place=bixies)
+    intel_bixies_place = Intel.create(type=IntelTypes.place.name, place=bixies.place, npc_place=bixies)
     NPCKnowledgeBook.create(npc=npc_2, intel=intel_bixies_place)
 
     Exchange.create(npc=qeynos, item=potion, need=Need.get_or_create(npc=qeynos, item=jum)[0])
@@ -70,6 +72,8 @@ def create():
     Exchange.create(npc=npc_2, intel=intel_bixies_place, need=Need.get_or_create(npc=npc_2, item=bandage)[0])
     Exchange.create(npc=npc_2, item=jum, need=Need.get_or_create(npc=npc_2, item=comb)[0])
 
+    PlayerKnowledgeBook.create(player=player, intel=intel_goblin_loc)
+    PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
 
 # elements = []
 #

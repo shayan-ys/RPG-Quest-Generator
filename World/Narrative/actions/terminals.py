@@ -5,6 +5,7 @@ from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Item import Item
 from World.Types.Intel import Intel, NPCKnowledgeBook, PlayerKnowledgeBook
+from World.Types.BridgeModels import BelongItemPlayer, BelongItem
 
 
 def null():
@@ -24,19 +25,22 @@ def null():
 def exchange(item_holder: NPC, item_to_give: Item,
              item_to_take: Item):
 
-    # update Player's location
-    for player in elements:
-        if isinstance(player, Player):
-            if item_to_give in player.belongings:
-                player.belongings.remove(item_to_give)
-            player.belongings.append(item_to_take)
-            if item_holder not in player.favours_book:
-                player.favours_book[item_holder] = 0
-            player.favours_book[item_holder] += item_to_give.worth - item_to_take.worth
+    # update Player's belongings
+    player = Player.get()
+    player_belonging = BelongItemPlayer.get_or_none(player=player, item=item_to_give)
+    if player_belonging:
+        player_belonging.delete_instance()
 
-    item_holder.belongings.append(item_to_give)
-    if item_to_take in item_holder.belongings:
-        item_holder.belongings.remove(item_to_take)
+    BelongItemPlayer.get_or_create(player=player, item=item_to_take)
+
+    # update NPC belongings
+    npc_belonging = BelongItem.get_or_none(npc=item_holder, item=item_to_take)
+    if npc_belonging:
+        npc_belonging.delete_instance()
+
+    BelongItem.get_or_create(npc=item_holder, item=item_to_give)
+
+    # todo: update favours book
 
     print("==> Exchange '%s' for '%s', with '%s'." % (item_to_give, item_to_take, item_holder))
     return []
@@ -54,26 +58,25 @@ def explore(area_location: Location):
 def gather(item_to_gather: Item):
 
     # update Player's belongings
-    for elem in elements:
-        if isinstance(elem, Player):
-            elem.belongings.append(item_to_gather)
+    BelongItemPlayer.get_or_create(player=Player.get(), item=item_to_gather)
 
-    print("==> Gather '%s'." % item_to_gather)
+    print("==> Gather '", item_to_gather, "'.")
     return []
 
 
 def give(item: Item, receiver: NPC):
 
     # update Player's belongings
-    for player in elements:
-        if isinstance(player, Player):
-            if item in player.belongings:
-                player.belongings.remove(item)
-            if receiver not in player.favours_book:
-                player.favours_book[receiver] = 0.0
-            player.favours_book[receiver] += item.worth
+    player = Player.get()
+    player_belonging = BelongItemPlayer.get_or_none(player=player, item=item)
+    if player_belonging:
+        player_belonging.delete_instance()
 
-    receiver.belongings.append(item)
+    # todo: update player-receiver favours book
+
+    # update receiver belongings
+    BelongItem.get_or_create(npc=receiver, item=item)
+    # todo: if not created (update) -> update count
 
     print("==> Give '%s' to '%s'." % (item, receiver))
     return []

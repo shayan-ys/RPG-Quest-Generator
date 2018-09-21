@@ -15,7 +15,8 @@ class IntelTypes(Enum):
 class Intel(BaseElement, Worthy):
     type = CharField()
     spell = CharField(null=True)
-    npc_place = ForeignKeyField(NPC, backref='intel_place', null=True)
+    place = ForeignKeyField(Place, backref='intel_place', null=True)
+    npc_place = ForeignKeyField(NPC, backref='intel_npc_place', null=True)
     holding_item = ForeignKeyField(Item, backref='intel_on_holder', null=True)
     holding_holder = ForeignKeyField(NPC, backref='intel_on_belonging', null=True)
 
