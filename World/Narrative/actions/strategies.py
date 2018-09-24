@@ -1,25 +1,31 @@
 from World.elements import BaseElement
 from World.Types import db, fn, JOIN
 from World.Types.Person import NPC
-from World.Types.Intel import Intel, NPCKnowledgeBook
+from World.Types.Intel import Intel
 from World.Types.Item import Item
-from World.Types.BridgeModels import Need, Exchange
+from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook
 
 from World import elements as element_types
 
 
-def knowledge_2(elements: list, NPC_knowledge_motivated: element_types.NPC):
-    # find someone enemy to the given NPC who has a worthy intel the ally NPC doesn't.
-    spy_target = None  # type: element_types.NPC
-    spy_intel = None   # type: element_types.Intel
-    for elem in elements:
-        if isinstance(elem, element_types.NPC):
-            if elem in NPC_knowledge_motivated.enemies:
-                for worthy_intel in elem.intel:
-                    if worthy_intel.worth > 0.5:
-                        if worthy_intel not in NPC_knowledge_motivated.intel:
-                            spy_target = elem
-                            spy_intel = worthy_intel
+def knowledge_2(NPC_knowledge_motivated: NPC):
+    # find someone enemy to the given NPC who has a worthy intel that the given NPC doesn't have.
+    already_known_intel_list = Intel.select()\
+        .join(NPCKnowledgeBook)\
+        .where(NPCKnowledgeBook.npc == NPC_knowledge_motivated)
+
+    results = NPC.select(NPC, Intel.id.alias('intel_id'))\
+        .join(NPCKnowledgeBook)\
+        .join(Intel)\
+        .where(NPC.clan != NPC_knowledge_motivated.clan, Intel.id.not_in(already_known_intel_list))\
+        .order_by(Intel.worth.desc()).objects()
+
+    if not results:
+        return []
+
+    spy_target = results[0]
+    spy_intel = Intel.get_by_id(spy_target.intel_id)
+    del spy_target.intel_id
 
     steps = [
         [spy_target, spy_intel, NPC_knowledge_motivated]
@@ -27,7 +33,7 @@ def knowledge_2(elements: list, NPC_knowledge_motivated: element_types.NPC):
 
     print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
 
-    return spy_target, steps
+    return steps
 
 
 def knowledge_3(NPC_knowledge_motivated: NPC):

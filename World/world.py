@@ -17,9 +17,9 @@ class World:
         """
 
         def recursion(root: Node, pre_semantics: list, index: int, depth: int):
-            # if index > 41:
+            # if index > 38:
             #     return index
-            # elif index == 24:
+            # elif index == 23:
             #     nothing = 0
             #     print(list(root.branches))
 

@@ -34,19 +34,4 @@ class Intel(BaseElement, Worthy):
         return str(self.type) + ': ' + str(self.data())
 
 
-class NPCKnowledgeBook(BaseElement):
-    intel = ForeignKeyField(Intel, backref='npc_bridge')
-    npc = ForeignKeyField(NPC, backref='intel_bridge')
-
-
-class PlayerKnowledgeBook(BaseElement):
-    intel = ForeignKeyField(Intel, backref='player_bridge')
-    player = ForeignKeyField(Player, backref='intel_bridge_player')
-
-
-class ReadableKnowledgeBook(BaseElement):
-    intel = ForeignKeyField(Intel, backref='readable_bridge')
-    readable = ForeignKeyField(Item, backref='intel_bridge')
-
-
-list_of_models = [Intel, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook]
+list_of_models = [Intel]

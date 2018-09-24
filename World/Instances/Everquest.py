@@ -1,10 +1,10 @@
 from Grammar.actions import NonTerminals as NT, Terminals as T
 
 from World.Types.Item import Item, ItemTypes, GenericItem
-from World.Types.Intel import Intel, IntelTypes, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
+from World.Types.Intel import Intel, IntelTypes
 from World.Types.Place import Place
 from World.Types.Person import Clan, NPC, Motivation, Player
-from World.Types.BridgeModels import Need, Exchange
+from World.Types.BridgeModels import Need, Exchange, BelongItemPlayer, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
 
 
 def create():
@@ -33,18 +33,22 @@ def create():
     steve_motive = Motivation.create(npc=steve, action=NT.knowledge.value, motive=0.6)
     tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.8)
 
-    potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value)
-    jum = Item.create(type=ItemTypes.unknown, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
-    comb = Item.create(type=ItemTypes.unknown, generic=GenericItem.get_or_create(name='comb')[0], name='comb', place=None, belongs_to=bixies)
-    bandage = Item.create(type=ItemTypes.tool, generic=GenericItem.get_or_create(name='bandage')[0], name='bondage', place=bondage_place, belongs_to=None, usage=T.treat.value)
-    address_book = Item.create(type=ItemTypes.readable, generic=GenericItem.get_or_create(name=ItemTypes.singleton)[0], name='address-book (goblin loc)', belongs_to=tomas)
-    coin = Item.create(type=ItemTypes.unknown, generic=GenericItem.get_or_create(name='coin')[0], name='coin', belongs_to_player=player)
+    potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value)
+    jum = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
+    comb = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='comb')[0], name='comb', place=None, belongs_to=bixies)
+    bandage = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name='bandage')[0], name='bondage', place=bondage_place, belongs_to=None, usage=T.treat.value)
+    address_book = Item.create(type=ItemTypes.readable.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='address-book (goblin loc)', belongs_to=tomas)
+    coin = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='coin')[0], name='coin', belongs_to_player=player)
 
     Need.create(npc=lempeck, item=potion)
 
     spell = Intel.create(type=IntelTypes.spell.name,
                          spell='Earth, grass, trees and seeds reveal the path to suit my needs')
+    spell_2 = Intel.create(type=IntelTypes.spell.name, spell='Earth is flat! LoL')
+    spell_3 = Intel.create(type=IntelTypes.spell.name, spell='Gravity is a myth')
     NPCKnowledgeBook.create(npc=goblin, intel=spell)
+    NPCKnowledgeBook.create(npc=bixies, intel=spell_2)
+    NPCKnowledgeBook.create(npc=steve, intel=spell_2)
 
     intel_bondage_loc = Intel.create(type=IntelTypes.place.name, place=bondage_place)
     intel_rivervale_loc = Intel.create(type=IntelTypes.place.name, place=npc_2.place, npc_place=npc_2, worth=0.6)
@@ -71,9 +75,14 @@ def create():
     Exchange.create(npc=npc_2, intel=intel_comb_holder, need=Need.get_or_create(npc=npc_2, item=bandage)[0])
     Exchange.create(npc=npc_2, intel=intel_bixies_place, need=Need.get_or_create(npc=npc_2, item=bandage)[0])
     Exchange.create(npc=npc_2, item=jum, need=Need.get_or_create(npc=npc_2, item=comb)[0])
+    Exchange.create(npc=tomas, item=address_book, need=Need.get_or_create(npc=tomas, item=coin)[0])
 
     PlayerKnowledgeBook.create(player=player, intel=intel_goblin_loc)
     PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
+    PlayerKnowledgeBook.create(player=player, intel=Intel.get_or_create(
+        type=IntelTypes.place.name, place=steve_place, npc_place=steve)[0])
+
+    BelongItemPlayer.create(player=player, item=coin)
 
 # elements = []
 #

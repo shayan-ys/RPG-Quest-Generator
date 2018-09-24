@@ -4,8 +4,8 @@ from World import elements as element_types
 from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Item import Item
-from World.Types.Intel import Intel, NPCKnowledgeBook, PlayerKnowledgeBook
-from World.Types.BridgeModels import BelongItemPlayer, BelongItem
+from World.Types.Intel import Intel
+from World.Types.BridgeModels import BelongItemPlayer, BelongItem, NPCKnowledgeBook, PlayerKnowledgeBook
 
 
 def null():
@@ -85,10 +85,8 @@ def give(item: Item, receiver: NPC):
 def spy(spy_on: NPC, intel_target: Intel):
 
     # update Player's intel
-    for elem in elements:
-        if isinstance(elem, Player):
-            if intel_target not in elem.intel:
-                elem.intel.append(intel_target)
+    player = Player.get()
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel_target)
 
     print("==> Spy on '%s' to get intel '%s'." % (spy_on, intel_target))
     return []

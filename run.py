@@ -32,6 +32,6 @@ db.create_tables(list_of_models)
 Everquest.create()
 
 world = World()
-world.parse_quest(quest=quests.cure)
+world.parse_quest(quest=quests.spy)
 
 db.close()

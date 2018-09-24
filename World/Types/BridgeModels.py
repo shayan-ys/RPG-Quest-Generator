@@ -31,4 +31,19 @@ class Exchange(BaseElement):
     need = ForeignKeyField(Need, backref='exchanges')
 
 
-list_of_models = [Need, BelongItem, BelongItemPlayer, Exchange]
+class NPCKnowledgeBook(BaseElement):
+    intel = ForeignKeyField(Intel, backref='npc_bridge')
+    npc = ForeignKeyField(NPC, backref='intel_bridge')
+
+
+class PlayerKnowledgeBook(BaseElement):
+    intel = ForeignKeyField(Intel, backref='player_bridge')
+    player = ForeignKeyField(Player, backref='intel_bridge_player')
+
+
+class ReadableKnowledgeBook(BaseElement):
+    intel = ForeignKeyField(Intel, backref='readable_bridge')
+    readable = ForeignKeyField(Item, backref='intel_bridge')
+
+
+list_of_models = [Need, BelongItem, BelongItemPlayer, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook]
