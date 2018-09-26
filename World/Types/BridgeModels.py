@@ -46,4 +46,28 @@ class ReadableKnowledgeBook(BaseElement):
     readable = ForeignKeyField(Item, backref='intel_bridge')
 
 
-list_of_models = [Need, BelongItem, BelongItemPlayer, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook]
+class FavoursBook(BaseElement):
+    # players favours book, how many favours he owes an NPC or they owe him
+    # keeping track of who owes the player (+) and player owes to who(-).
+    # ex: player1, npc1, owe_factor:+5 means npc1 owes 5 favour points to the player1
+    npc = ForeignKeyField(NPC, backref='favours_records')
+    owe_factor = SmallIntegerField(default=0)
+    player = ForeignKeyField(Player, backref='player_favour_books')
+
+    class Meta:
+        indexes = (
+            (('npc', 'owe_factor'), True),
+        )
+
+    @staticmethod
+    def construct(npc: NPC, owe_factor: float, player: Player=None):
+        if not player:
+            player = Player.get()
+
+        fav, created = FavoursBook.get_or_create(player=player, npc=npc, defaults={'owe_factor': owe_factor})
+        if not created:
+            fav.owe_factor += owe_factor
+
+
+list_of_models = [Need, BelongItem, BelongItemPlayer, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook,
+                  ReadableKnowledgeBook, FavoursBook]

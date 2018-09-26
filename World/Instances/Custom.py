@@ -1,10 +1,10 @@
 from Grammar.actions import NonTerminals as NT
 
 from World.Types.Place import Place
-from World.Types.Person import Clan, NPC, Motivation, Player, FavoursBook
+from World.Types.Person import Clan, NPC, Motivation, Player
 from World.Types.Intel import Intel, IntelTypes
 from World.Types.Item import Item, ItemTypes
-from World.Types.BridgeModels import NPCKnowledgeBook, ReadableKnowledgeBook
+from World.Types.BridgeModels import NPCKnowledgeBook, ReadableKnowledgeBook, FavoursBook
 
 
 def create():

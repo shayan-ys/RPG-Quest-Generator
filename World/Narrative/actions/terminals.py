@@ -1,11 +1,10 @@
 from World.properties import Location
-from World import elements as element_types
 
 from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Item import Item
 from World.Types.Intel import Intel
-from World.Types.BridgeModels import BelongItemPlayer, BelongItem, NPCKnowledgeBook, PlayerKnowledgeBook
+from World.Types.BridgeModels import BelongItemPlayer, BelongItem, NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook
 
 
 def null():
@@ -22,8 +21,7 @@ def null():
 #     return target, []
 
 
-def exchange(item_holder: NPC, item_to_give: Item,
-             item_to_take: Item):
+def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
 
     # update Player's belongings
     player = Player.get()
@@ -40,7 +38,8 @@ def exchange(item_holder: NPC, item_to_give: Item,
 
     BelongItem.get_or_create(npc=item_holder, item=item_to_give)
 
-    # todo: update favours book
+    npc_owing = item_to_give.worth_() - item_to_take.worth_()
+    FavoursBook.construct(item_holder, npc_owing, player)
 
     print("==> Exchange '%s' for '%s', with '%s'." % (item_to_give, item_to_take, item_holder))
     return []
@@ -72,7 +71,7 @@ def give(item: Item, receiver: NPC):
     if player_belonging:
         player_belonging.delete_instance()
 
-    # todo: update player-receiver favours book
+    FavoursBook.construct(receiver, item.worth_(), player)
 
     # update receiver belongings
     BelongItem.get_or_create(npc=receiver, item=item)
@@ -106,6 +105,8 @@ def take(item_to_take: Item, item_holder: NPC):
         item_to_take.belongs_to = None
         item_to_take.belongs_to_player = player
         item_to_take.save()
+
+        FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
 
     print("==> Take '%s'." % item_to_take)
     return []
@@ -143,7 +144,9 @@ def listen(intel: Intel, informer: NPC):
     player = Player.get()
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
 
-    print("==> Listen to '%s' to get the intel '%s'." %(informer, intel))
+    FavoursBook.construct(informer, -intel.worth_(), player)
+
+    print("==> Listen to '%s' to get the intel '%s'." % (informer, intel))
     print("==> + New intel added: '%s'" % intel)
     return []
 
@@ -154,14 +157,15 @@ def report(intel: Intel, target: NPC):
     NPCKnowledgeBook.get_or_create(npc=target, intel=intel)
 
     # update Player's favours book
+    FavoursBook.construct(target, intel.worth_())
 
     print("==> Report '%s' to '%s'." % (intel, target))
     return []
 
 
 def use(item_to_use: Item, target: NPC):
-    # TODO: depending on positive or negative impact of the item usage, target record in player's favour book should
-    # be updated
+    # depending on positive or negative impact_factor of the item usage, target record in player's favour gets updated
+    FavoursBook.construct(target, float(item_to_use.impact_factor or 0.0))
 
     print("==> Use '%s' on '%s'." % (item_to_use, target))
     return []

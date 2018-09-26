@@ -1,11 +1,8 @@
-from World.elements import BaseElement
-from World.Types import db, fn, JOIN
+from World.Types import fn, JOIN
 from World.Types.Person import NPC
 from World.Types.Intel import Intel
 from World.Types.Item import Item
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook
-
-from World import elements as element_types
 
 
 def knowledge_2(NPC_knowledge_motivated: NPC):

@@ -23,5 +23,8 @@ class Worthy(Model):
     worth = FloatField(null=True)    # general worth (price)
     default_worth = 0.1     # defined by type, used if general worth is None
 
+    def worth_(self):
+        return self.worth if self.worth else self.default_worth
+
 
 list_of_models = []

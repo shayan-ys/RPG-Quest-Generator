@@ -27,22 +27,9 @@ class Motivation(BaseElement):
         )
 
 
-class FavoursBook(BaseElement):
-    # players favours book, how many favours he owes an NPC or they owe him
-    # keeping track of who owes the player (+) and player owes to who(-).
-    npc = ForeignKeyField(NPC, backref='favours_records')
-    owe_factor = SmallIntegerField(default=0)
-
-    class Meta:
-        indexes = (
-            (('npc', 'owe_factor'), True),
-        )
-
-
 class Player(BaseElement, Person, Named):
     next_location = ForeignKeyField(Place, backref='player_next_place', null=True)
     coins = IntegerField(default=0, constraints=[Check('coins >= 0')])
-    # favours_book = ForeignKeyField(FavoursBook, backref='players')
 
 
 class Enemies(BaseElement):
@@ -85,4 +72,4 @@ class PlayerAllies(BaseElement):
         )
 
 
-list_of_models = [Clan, NPC, Motivation, FavoursBook, Player, Enemies, Allies, PlayerEnemies, PlayerAllies]
+list_of_models = [Clan, NPC, Motivation, Player, Enemies, Allies, PlayerEnemies, PlayerAllies]

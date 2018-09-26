@@ -5,8 +5,6 @@ from World.Types.Intel import Intel, IntelTypes
 from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import BelongItem, BelongItemPlayer, Need, Exchange, ReadableKnowledgeBook, NPCKnowledgeBook, PlayerKnowledgeBook
 
-from World import elements as element_types
-
 
 def sub_quest_1():
     # just go somewhere - pick a place unknown to player to go to
@@ -36,7 +34,7 @@ def sub_quest_1():
     return steps
 
 
-def goto_1(elements: list, destination: element_types.Place):
+def goto_1(destination: Place):
     """
     You are already there.
     :return:
@@ -44,14 +42,13 @@ def goto_1(elements: list, destination: element_types.Place):
     print('==> Already at your destination, %s.' % destination)
 
     # update player's location
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            player.current_location = destination.location
+    player = Player.get()
+    player.place = destination
 
     return destination, [[]]
 
 
-def goto_2(destination: element_types.Place):
+def goto_2(destination: Place):
     """
     Just wander around and look.
     :return:
@@ -101,15 +98,12 @@ def goto_3(destination: Place):
     return steps
 
 
-def learn_1(elements: list, required_intel: element_types.Intel):
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            if required_intel not in elem.intel:
-                elem.intel.append(required_intel)
+def learn_1(required_intel: Intel):
+    # update player intel
+    PlayerKnowledgeBook.get_or_create(player=Player.get(), intel=required_intel)
 
     print("==> Intel '%s' added." % required_intel)
-
-    return required_intel, [[]]
+    return [[]]
 
 
 def learn_2(required_intel: Intel):
@@ -143,7 +137,6 @@ def learn_2(required_intel: Intel):
 def learn_3(required_intel: Intel):
     """
     Go someplace, get something, and read what is written on it.
-    :param list[element_types.Intel] elements:
     :param required_intel:
     :return:
     """
@@ -206,16 +199,13 @@ def learn_4(required_intel: Intel):
     return steps
 
 
-def get_1(elements: list, item_to_fetch: element_types.Item):
+def get_1(item_to_fetch: Item):
     print("==> You already have the item.")
 
     # if not, add it to player's belongings
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            if item_to_fetch not in player.belongings:
-                player.belongings.append(item_to_fetch)
+    BelongItemPlayer.get_or_create(player=Player.get(), item=item_to_fetch)
 
-    return None, []
+    return []
 
 
 def get_2(item_to_fetch: Item):

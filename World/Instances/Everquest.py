@@ -33,7 +33,7 @@ def create():
     steve_motive = Motivation.create(npc=steve, action=NT.knowledge.value, motive=0.6)
     tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.8)
 
-    potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value)
+    potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value, impact_factor=5)
     jum = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
     comb = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='comb')[0], name='comb', place=None, belongs_to=bixies)
     bandage = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name='bandage')[0], name='bondage', place=bondage_place, belongs_to=None, usage=T.treat.value)

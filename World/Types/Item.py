@@ -25,6 +25,7 @@ class Item(BaseElement, Worthy, Named):
     belongs_to_player = ForeignKeyField(Player, backref='player_belongings', null=True)
     type = CharField(choices=[(en.value, en.name) for en in ItemTypes])
     usage = SmallIntegerField(constraints=[Check('usage >= 0')], null=True)
+    impact_factor = IntegerField(null=True)
 
     def place_(self):
         if self.place:
