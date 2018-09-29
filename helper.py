@@ -29,5 +29,9 @@ def camel_case_to_underscore(name):
 def dict_pretty_str(dictionary: dict) -> str:
     pretty_str = '{'
     for key, value in dictionary.items():
-        re += '\n\t' + str(key) + ': ' + str(value)
+        pretty_str += '\n\t' + str(key) + ': ' + str(value)
     return pretty_str + '\n}'
+
+
+def sort_by_list(keys: list, sort_by: list) -> list:
+    return [x for _, x in sorted(zip(sort_by, keys), key=lambda pair: pair[0])]

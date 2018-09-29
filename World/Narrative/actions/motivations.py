@@ -14,6 +14,8 @@ def quest_neutral(motivation: NT) -> (BaseElement, List[List[BaseElement]]):
                Motivation.motive > 0.5)\
         .order_by(Motivation.motive.desc()).get().npc
 
+    # todo: sort by distanced
+
     # steps:
     #   give useful info to this NPC
     steps = [

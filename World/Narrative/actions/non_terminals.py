@@ -3,26 +3,28 @@ from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Intel import Intel, IntelTypes
 from World.Types.Item import Item, ItemTypes, GenericItem
-from World.Types.BridgeModels import BelongItem, BelongItemPlayer, Need, Exchange, ReadableKnowledgeBook, NPCKnowledgeBook, PlayerKnowledgeBook
+from World.Types.BridgeModels import Need, Exchange, ReadableKnowledgeBook, NPCKnowledgeBook, PlayerKnowledgeBook
+
+from helper import sort_by_list
 
 
 def sub_quest_1():
     # just go somewhere - pick a place unknown to player to go to
     # the reason for unknown place is, if "learn" comes up in next level, we'll be lucky,
     # if it doesn't, intel can be added to Players knowledge right away.
-    places_to_go = Place.select()\
+    results = Place.select()\
         .join(Intel)\
         .join(PlayerKnowledgeBook, JOIN.LEFT_OUTER)\
         .group_by(Intel).having(fn.COUNT(PlayerKnowledgeBook.id) == 0)
 
-    if not places_to_go:
-        return None, []
+    locations = list(results)
+    results = sort_by_list(results, locations)
 
-    # todo: loop through places to find closest next place to go
-    # for row in places_to_go:
-    #     print(row)
+    place_to_go = results[0]
+    player = Player.get()
+    player.next_location = place_to_go
+    player.save()
 
-    place_to_go = places_to_go[0]
     # steps:
     # goto
     steps = [
@@ -44,6 +46,7 @@ def goto_1(destination: Place):
     # update player's location
     player = Player.get()
     player.place = destination
+    player.save()
 
     return destination, [[]]
 
@@ -77,7 +80,6 @@ def goto_3(destination: Place):
         .where(Intel.type == IntelTypes.place.name, Intel.place == destination).limit(1)
 
     if not results:
-        print("NONE")
         return []
 
     intel_location = results[0]
@@ -85,6 +87,7 @@ def goto_3(destination: Place):
     # update player's next location
     player = Player.select().limit(1)[0]
     player.next_location = destination
+    player.save()
 
     # steps:
     #   learn: location[1]
@@ -108,16 +111,24 @@ def learn_1(required_intel: Intel):
 
 def learn_2(required_intel: Intel):
     # find NPC who has the intel, goto the NPC and listen to get the intel
+    player = Player.get()
     results = NPC.select()\
         .join(NPCKnowledgeBook)\
         .where(NPCKnowledgeBook.intel == required_intel)
-    # todo: put ally NPC first, then enemies
 
-    if not results:
-        return []
+    results_ally = results.where(NPC.clan == player.clan)
+    if results_ally:
+        # if there is any ally, just pick them, if not then only enemies has the intel, no need to filter
+        results = results_ally
+
+    # sort by triangle distance
+    result_distances = [player.distance(row.place) for row in results]
+    results = sort_by_list(results, result_distances)
 
     knowledgeable_npc = results[0]
 
+    player.next_location = knowledgeable_npc.place
+    player.save()
     # steps:
     # do sub-quest
     # goto knowledgeable_npc place
@@ -144,8 +155,18 @@ def learn_3(required_intel: Intel):
     # intel[1] is to be learned
 
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
-    book_containing_intel = ReadableKnowledgeBook.get(intel=required_intel).readable
+    results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel)
+
+    # sort by readable place_ triangle
+    locations = [knowledge_book.readable.place_() for knowledge_book in results]
+    results = sort_by_list(results, locations)
+
+    book_containing_intel = results[0].readable
+
     book_holder_place = book_containing_intel.belongs_to.place
+    player = Player.get()
+    player.next_location = book_holder_place
+    player.save()
 
     # steps:
     # goto: place[1]
@@ -165,21 +186,22 @@ def learn_3(required_intel: Intel):
 def learn_4(required_intel: Intel):
     # find an NPC who has the required intel in exchange, get the NPC's needed item to give
 
-    informers = NPC.select(NPC, Need.item_id.alias('needed_item_id')) \
+    results = NPC.select(NPC, Need.item_id.alias('needed_item_id')) \
         .join(Need) \
         .join(Exchange) \
         .where(Exchange.intel == required_intel, Need.item_id.is_null(False)).objects()
 
-    # Todo: loop through for distance sort
-    # for row in informers:
-    #     pass
-    if informers:
-        informer = informers[0]
-        print(informer)
-        item_to_exchange = Item.get_by_id(informer.needed_item_id)
-        del informer.needed_item_id
-    else:
-        return []
+    # triangle distance sort
+    locations = [npc.place for npc in results]
+    results = sort_by_list(results, locations)
+
+    informer = results[0]
+    item_to_exchange = Item.get_by_id(informer.needed_item_id)
+    del informer.needed_item_id
+
+    player = Player.get()
+    player.next_location = informer.place
+    player.save()
 
     # steps:
     # get
@@ -203,7 +225,8 @@ def get_1(item_to_fetch: Item):
     print("==> You already have the item.")
 
     # if not, add it to player's belongings
-    BelongItemPlayer.get_or_create(player=Player.get(), item=item_to_fetch)
+    item_to_fetch.belongs_to_player = Player.get()
+    item_to_fetch.save()
 
     return []
 
@@ -219,7 +242,22 @@ def get_2(item_to_fetch: Item):
     #   has the item,
     #   preferably is an enemy
     #   not too far from Player's current location
-    item_holder = item_to_fetch.belongs_to
+
+    # check for singleton and common items, if it's common, select query should be executed, sort by distance
+    if item_to_fetch.is_singleton():
+        item_holder = item_to_fetch.belongs_to
+    else:
+        results = NPC.select().join(Item, on=(Item.belongs_to.id == NPC.id))\
+            .where(Item.generic == item_to_fetch.generic)
+        # enemies are preferred
+        results_enemy = results.where(NPC.clan != Player.get().clan)
+        if results_enemy:
+            results = results_enemy
+        # sort by triangle distance
+        locations = [npc.place for npc in results]
+        results = sort_by_list(results, locations)
+
+        item_holder = results[0]
 
     # steps:
     #   steal: steal item[1] from NPC[1]
@@ -253,25 +291,34 @@ def get_4(item_to_fetch: Item):
 
     # find an NPC who has the needed item, and has it in exchange list
     exchanges = Exchange.select().join(Item)
-    if item_to_fetch.generic.name == ItemTypes.singleton.name:
+    if item_to_fetch.is_singleton():
         exchanges = exchanges.where(Exchange.item == item_to_fetch)
     else:
         exchanges = exchanges.where(Exchange.item.generic == item_to_fetch.generic)
 
+    # todo: This is useless now, since being sorted again later, but when sort by triangle distance added to database,
+    # this ordering will be changed again.
     exchanges = exchanges.order_by(Exchange.need.item.worth.asc())
 
-    if not exchanges:
-        return []
+    locations = [exc.need.npc for exc in exchanges]
+    exchanges = sort_by_list(exchanges, locations)
 
-    # Todo: distance check with NPCs i exchange list
     exchange = exchanges[0]
     item_to_give = exchange.need.item
     item_holder = exchange.need.npc
 
     player = Player.get()
-    results = BelongItemPlayer.select().where(BelongItemPlayer.player == player, BelongItemPlayer.item == item_to_give)
-    if results:
-        # todo: add check for number of needed item
+    player.next_location = item_holder.place
+    player.save()
+
+    # check for player belonging for the exchange item
+    if item_to_fetch.is_singleton():
+        player_owns = item_to_fetch.belongs_to_player == player
+    else:
+        player_owns = Item.select().where(Item.generic == item_to_fetch.generic, Item.belongs_to_player == player) \
+                      is not None
+
+    if player_owns:
         # player has the item
         steps = [
             [],
@@ -284,18 +331,6 @@ def get_4(item_to_fetch: Item):
               (item_holder.place, item_holder, item_to_give, item_to_fetch))
         return steps
 
-    # check if player has the needed item
-    # (BelongItemPlayer.player == player)
-    # & (BelongItemPlayer.item.generic == Exchange.need.item.generic)
-    # & (BelongItemPlayer.count >= Exchange.need.item_count)
-    #
-    # | Exchange.need.item.in_(player.belongings)
-
-    # if alter_steps:
-    #     steps = alter_steps
-    #     print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%d' of '%s' with '%s'" %
-    #           (item_holder.place, item_holder, count_item_to_exchange, item_to_exchange, item_to_fetch))
-    # else:
     # steps:
     # goto
     # get
@@ -325,6 +360,10 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
     # place[1] is where NPC[1] lives
     item_holder_place = item_holder.place
 
+    player = Player.get()
+    player.next_location = item_holder_place
+    player.save()
+
     # steps:
     #   goto: place[1]
     #   T.stealth: stealth NPC[1]
@@ -340,6 +379,11 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
 
 
 def steal_2(item_to_steal: Item, item_holder: NPC):
+
+    player = Player.get()
+    player.next_location = item_holder.place
+    player.save()
+
     # steps:
     # goto holder
     # kill holder
@@ -356,6 +400,11 @@ def steal_2(item_to_steal: Item, item_holder: NPC):
 
 
 def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
+
+    player = Player.get()
+    player.next_location = spy_on.place
+    player.save()
+
     # steps:
     # goto spy_on place
     # spy on 'spy_on' get the intel_needed
@@ -375,6 +424,11 @@ def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
 
 
 def kill_1(target: NPC):
+
+    player = Player.get()
+    player.next_location = target.place
+    player.save()
+
     # steps:
     # goto target
     # kill target

@@ -4,7 +4,7 @@ from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Item import Item
 from World.Types.Intel import Intel
-from World.Types.BridgeModels import BelongItemPlayer, BelongItem, NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook
+from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook
 
 
 def null():
@@ -16,27 +16,18 @@ def null():
     return []
 
 
-# def neutral(target: Type):
-#     print("==> Do it, target: '%s'" % target)
-#     return target, []
-
-
 def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
 
-    # update Player's belongings
     player = Player.get()
-    player_belonging = BelongItemPlayer.get_or_none(player=player, item=item_to_give)
-    if player_belonging:
-        player_belonging.delete_instance()
 
-    BelongItemPlayer.get_or_create(player=player, item=item_to_take)
+    # update Player's belongings
+    item_to_take.belongs_to = None
+    item_to_take.belongs_to_player = player
+    item_to_take.save()
 
-    # update NPC belongings
-    npc_belonging = BelongItem.get_or_none(npc=item_holder, item=item_to_take)
-    if npc_belonging:
-        npc_belonging.delete_instance()
-
-    BelongItem.get_or_create(npc=item_holder, item=item_to_give)
+    item_to_give.belongs_to_player = None
+    item_to_give.belongs_to = item_holder
+    item_to_give.save()
 
     npc_owing = item_to_give.worth_() - item_to_take.worth_()
     FavoursBook.construct(item_holder, npc_owing, player)
@@ -50,6 +41,7 @@ def explore(area_location: Location):
     # update Player's location
     player = Player.get()
     player.place = area_location
+    player.save()
 
     print("==> Explore around '", area_location, "'.")
 
@@ -57,7 +49,8 @@ def explore(area_location: Location):
 def gather(item_to_gather: Item):
 
     # update Player's belongings
-    BelongItemPlayer.get_or_create(player=Player.get(), item=item_to_gather)
+    item_to_gather.belongs_to_player = Player.get()
+    item_to_gather.save()
 
     print("==> Gather '", item_to_gather, "'.")
     return []
@@ -65,17 +58,11 @@ def gather(item_to_gather: Item):
 
 def give(item: Item, receiver: NPC):
 
-    # update Player's belongings
-    player = Player.get()
-    player_belonging = BelongItemPlayer.get_or_none(player=player, item=item)
-    if player_belonging:
-        player_belonging.delete_instance()
+    item.belongs_to_player = None
+    item.belongs_to = receiver
+    item.save()
 
-    FavoursBook.construct(receiver, item.worth_(), player)
-
-    # update receiver belongings
-    BelongItem.get_or_create(npc=receiver, item=item)
-    # todo: if not created (update) -> update count
+    FavoursBook.construct(receiver, item.worth_())
 
     print("==> Give '%s' to '%s'." % (item, receiver))
     return []
@@ -99,14 +86,12 @@ def stealth(target: NPC):
 def take(item_to_take: Item, item_holder: NPC):
 
     # remove item from holder's belongings and add to player's
-    if item_to_take in item_holder.belongings:
-        # item_holder.belongings.where(Item.id == item_to_take.id).get().delete_instance()
-        player = Player.get()
-        item_to_take.belongs_to = None
-        item_to_take.belongs_to_player = player
-        item_to_take.save()
+    player = Player.get()
+    item_to_take.belongs_to = None
+    item_to_take.belongs_to_player = player
+    item_to_take.save()
 
-        FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
+    FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
 
     print("==> Take '%s'." % item_to_take)
     return []
@@ -128,6 +113,7 @@ def goto(destination: Place):
     # update Player's location
     player = Player.get()
     player.place = destination
+    player.save()
 
     print("==> Goto '%s'." % destination)
     return []

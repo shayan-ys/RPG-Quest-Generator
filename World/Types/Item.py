@@ -35,5 +35,8 @@ class Item(BaseElement, Worthy, Named):
         else:
             return None
 
+    def is_singleton(self) -> bool:
+        return GenericItem.get_by_id(self.generic.id).name == ItemTypes.singleton.name
+
 
 list_of_models = [GenericItem, Item]

@@ -1,5 +1,5 @@
 from World.Types import *
-from World.Types.Place import Place
+from World.Types.Place import Place, two_point_distance, triangle_distance
 
 
 class Clan(BaseElement, Named):
@@ -30,6 +30,15 @@ class Motivation(BaseElement):
 class Player(BaseElement, Person, Named):
     next_location = ForeignKeyField(Place, backref='player_next_place', null=True)
     coins = IntegerField(default=0, constraints=[Check('coins >= 0')])
+
+    def distance(self, candid_dest: Place) -> float:
+        current = Place.get_by_id(self.place.id)
+        if self.next_location is None:
+            return two_point_distance(current, dest=candid_dest)
+
+        # three point distance
+        later = Place.get_by_id(self.next_location.id)
+        return triangle_distance(current, dest=candid_dest, later=later)
 
 
 class Enemies(BaseElement):

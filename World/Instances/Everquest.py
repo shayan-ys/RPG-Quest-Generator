@@ -4,7 +4,7 @@ from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.Intel import Intel, IntelTypes
 from World.Types.Place import Place
 from World.Types.Person import Clan, NPC, Motivation, Player
-from World.Types.BridgeModels import Need, Exchange, BelongItemPlayer, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
+from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
 
 
 def create():
@@ -20,7 +20,7 @@ def create():
     tomas_place = Place.create(name='tomas_place', x=10, y=10)
     lempeck_place = Place.create(name='lempeck_place', x=80, y=10)
 
-    player = Player.create(name='player_1', place=rivervale)
+    player = Player.create(name='player_1', place=rivervale, clan=alliance)
 
     qeynos = NPC.create(name='qeynos', place=qeynos_place, clan=alliance)
     npc_2 = NPC.create(name='NPC2 (adon)', place=rivervale, clan=alliance)
@@ -57,6 +57,7 @@ def create():
     ReadableKnowledgeBook.create(readable=address_book, intel=intel_goblin_loc)
 
     intel_tomas_loc = Intel.create(type=IntelTypes.place.name, place=tomas.place, npc_place=tomas)
+    NPCKnowledgeBook.create(npc=bixies, intel=intel_tomas_loc)
     NPCKnowledgeBook.create(npc=lempeck, intel=intel_tomas_loc)
 
     intel_lempeck_loc = Intel.create(type=IntelTypes.place.name, place=lempeck.place, npc_place=lempeck)
@@ -81,8 +82,6 @@ def create():
     PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
     PlayerKnowledgeBook.create(player=player, intel=Intel.get_or_create(
         type=IntelTypes.place.name, place=steve_place, npc_place=steve)[0])
-
-    BelongItemPlayer.create(player=player, item=coin)
 
 # elements = []
 #

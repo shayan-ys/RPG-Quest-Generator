@@ -4,6 +4,8 @@ from World.Types.Intel import Intel
 from World.Types.Item import Item
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook
 
+# todo: use pre-filled favour book to choose between NPCs
+
 
 def knowledge_2(NPC_knowledge_motivated: NPC):
     # find someone enemy to the given NPC who has a worthy intel that the given NPC doesn't have.
@@ -16,6 +18,8 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         .join(Intel)\
         .where(NPC.clan != NPC_knowledge_motivated.clan, Intel.id.not_in(already_known_intel_list))\
         .order_by(Intel.worth.desc()).objects()
+
+    # todo: sort by distance
 
     if not results:
         return []
@@ -53,6 +57,8 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         .join(Intel)\
         .order_by(Intel.worth.desc())\
         .where(Intel.id.not_in(not_interesting_intel)).objects()
+
+    # todo: sort by distance
 
     if not results:
         return []
@@ -96,6 +102,8 @@ def protection_2(NPC_protection_motivated: NPC):
         .group_by(Need)\
         .having(fn.COUNT(Exchange.id) == 0)\
         .objects()
+
+    # todo: sort by distance
 
     if results:
         npc_in_need = results[0]
