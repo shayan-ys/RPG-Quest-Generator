@@ -1,5 +1,3 @@
-from World.properties import Location
-
 from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Item import Item
@@ -36,7 +34,7 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     return []
 
 
-def explore(area_location: Location):
+def explore(area_location: Place):
 
     # update Player's location
     player = Player.get()

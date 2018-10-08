@@ -1,12 +1,11 @@
 from Grammar.actions import NonTerminals as NT
-
-from World.elements import BaseElement, NPC
+from World.Types import BaseElement
 from World.Types.Person import Motivation
 
 from typing import List
 
 
-def quest_neutral(motivation: NT) -> (BaseElement, List[List[BaseElement]]):
+def quest_neutral(motivation: NT) -> List[List[BaseElement]]:
     # select an ally NPC with a certain motivation
 
     NPC_motivated = Motivation.select()\
