@@ -1,179 +1,157 @@
 from World.properties import Location
-from World import elements as element_types
+
+from World.Types.Person import Player, NPC
+from World.Types.Place import Place
+from World.Types.Item import Item
+from World.Types.Intel import Intel
+from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook
 
 
-def null(elements: list):
+def null():
     """
     Nothing to do
-    :param elements:
     :return:
     """
     print('==> There is nothing to do ("null" action)')
-    return None, []
+    return []
 
 
-# def neutral(elements: list, target: element_types.Type):
-#     print("==> Do it, target: '%s'" % target)
-#     return target, []
+def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
 
+    player = Player.get()
 
-def exchange(elements: list, item_holder: element_types.NPC, item_to_give: element_types.Item,
-             item_to_take: element_types.Item):
+    # update Player's belongings
+    item_to_take.belongs_to = None
+    item_to_take.belongs_to_player = player
+    item_to_take.save()
 
-    # update Player's location
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            if item_to_give in player.belongings:
-                player.belongings.remove(item_to_give)
-            player.belongings.append(item_to_take)
-            if item_holder not in player.favours_book:
-                player.favours_book[item_holder] = 0
-            player.favours_book[item_holder] += item_to_give.worth - item_to_take.worth
+    item_to_give.belongs_to_player = None
+    item_to_give.belongs_to = item_holder
+    item_to_give.save()
 
-    item_holder.belongings.append(item_to_give)
-    if item_to_take in item_holder.belongings:
-        item_holder.belongings.remove(item_to_take)
+    npc_owing = item_to_give.worth_() - item_to_take.worth_()
+    FavoursBook.construct(item_holder, npc_owing, player)
 
     print("==> Exchange '%s' for '%s', with '%s'." % (item_to_give, item_to_take, item_holder))
-    return item_to_give, []
+    return []
 
 
-def explore(elements: list, area_location: Location):
+def explore(area_location: Location):
 
     # update Player's location
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            elem.current_location = area_location
+    player = Player.get()
+    player.place = area_location
+    player.save()
 
-    print("==> Explore around '%s'." % area_location)
-    return area_location, []
-
-
-def gather(elements: list, item_to_gather: element_types.Item):
-
-    # update Player's belongings
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            elem.belongings.append(item_to_gather)
-
-    print("==> Gather '%s'." % item_to_gather)
-    return item_to_gather, []
+    print("==> Explore around '", area_location, "'.")
 
 
-def give(elements: list, item: element_types.Item, receiver: element_types.NPC):
+def gather(item_to_gather: Item):
 
     # update Player's belongings
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            if item in player.belongings:
-                player.belongings.remove(item)
-            if receiver not in player.favours_book:
-                player.favours_book[receiver] = 0.0
-            player.favours_book[receiver] += item.worth
+    item_to_gather.belongs_to_player = Player.get()
+    item_to_gather.save()
 
-    receiver.belongings.append(item)
+    print("==> Gather '", item_to_gather, "'.")
+    return []
+
+
+def give(item: Item, receiver: NPC):
+
+    item.belongs_to_player = None
+    item.belongs_to = receiver
+    item.save()
+
+    FavoursBook.construct(receiver, item.worth_())
 
     print("==> Give '%s' to '%s'." % (item, receiver))
-    return item, []
+    return []
 
 
-def spy(elements: list, spy_on: element_types.NPC, intel_target: element_types.Intel):
+def spy(spy_on: NPC, intel_target: Intel):
 
     # update Player's intel
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            if intel_target not in elem.intel:
-                elem.intel.append(intel_target)
+    player = Player.get()
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel_target)
 
     print("==> Spy on '%s' to get intel '%s'." % (spy_on, intel_target))
-    return intel_target, []
+    return []
 
 
-def stealth(elements: list, target: element_types.NPC):
-    print("==> Stealth on '%s'." % target)
-    return target, []
+def stealth(target: NPC):
+    print("==> Stealth on '", target, "'.")
+    return []
 
 
-def take(elements: list, item_to_take: element_types.Item, item_holder: element_types.NPC):
+def take(item_to_take: Item, item_holder: NPC):
 
-    # remove item from holder's belongings
-    if item_to_take in item_holder.belongings:
-        item_holder.belongings.remove(item_to_take)
+    # remove item from holder's belongings and add to player's
+    player = Player.get()
+    item_to_take.belongs_to = None
+    item_to_take.belongs_to_player = player
+    item_to_take.save()
 
-    # add the item to Player's belongings
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            player.belongings.append(item_to_take)
-            if item_holder not in player.favours_book:
-                player.favours_book[item_holder] = 0
-            player.favours_book[item_holder] -= item_to_take.worth
+    FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
 
     print("==> Take '%s'." % item_to_take)
-    return item_to_take, []
+    return []
 
 
-def read(elements: list, intel: element_types.Intel, readable: element_types.Readable):
+def read(intel: Intel, readable: Item):
 
     # update Player's intel
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            elem.intel.append(intel)
+    player = Player.get()
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
 
     print("==> Read '%s' from '%s'." % (intel, readable))
-    print("==> + New intel added: '%s'" % intel.data)
-    return readable, []
+    print("==> + New intel added: '%s'" % intel)
+    return []
 
 
-def goto(elements: list, destination: element_types.Location):
+def goto(destination: Place):
 
     # update Player's location
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            elem.current_location = destination
+    player = Player.get()
+    player.place = destination
+    player.save()
 
     print("==> Goto '%s'." % destination)
-    return destination, []
+    return []
 
 
-def kill(elements: list, target: element_types.NPC):
+def kill(target: NPC):
     print("==> Kill '%s'." % target)
-    return target, []
+    return []
 
 
-def listen(elements: list, intel: element_types.Intel, informer: element_types.NPC):
+def listen(intel: Intel, informer: NPC):
 
     # update Player's intel
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            player.intel.append(intel)
-            if informer not in player.favours_book:
-                player.favours_book[informer] = 0
-            player.favours_book[informer] -= intel.worth
+    player = Player.get()
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
 
-    print("==> Listen to '%s' to get the intel '%s'." %(informer, intel))
-    print("==> + New intel added: '%s'" % intel.data)
-    return informer, []
+    FavoursBook.construct(informer, -intel.worth_(), player)
+
+    print("==> Listen to '%s' to get the intel '%s'." % (informer, intel))
+    print("==> + New intel added: '%s'" % intel)
+    return []
 
 
-def report(elements: list, intel: element_types.Intel, target: element_types.NPC):
+def report(intel: Intel, target: NPC):
 
     # update target's intel list
-    target.intel.append(intel)
+    NPCKnowledgeBook.get_or_create(npc=target, intel=intel)
 
     # update Player's favours book
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            if target not in player.favours_book:
-                player.favours_book[target] = 0
-            player.favours_book[target] += intel.worth
+    FavoursBook.construct(target, intel.worth_())
 
-    print("==> Report '%s' (%s) to '%s'." % (intel, intel.data, target))
-    return target, []
+    print("==> Report '%s' to '%s'." % (intel, target))
+    return []
 
 
-def use(elements: list, item_to_use: element_types.Item, target: element_types.NPC):
-    # TODO: depending on positive or negative impact of the item usage, target record in player's favour book should
-    # be updated
+def use(item_to_use: Item, target: NPC):
+    # depending on positive or negative impact_factor of the item usage, target record in player's favour gets updated
+    FavoursBook.construct(target, float(item_to_use.impact_factor or 0.0))
 
     print("==> Use '%s' on '%s'." % (item_to_use, target))
-    return item_to_use, []
+    return []

@@ -1,26 +1,30 @@
-from World import elements as element_types
+from World.Types import fn, JOIN
+from World.Types.Person import Player, NPC
+from World.Types.Place import Place
+from World.Types.Intel import Intel, IntelTypes
+from World.Types.Item import Item, ItemTypes, GenericItem
+from World.Types.BridgeModels import Need, Exchange, ReadableKnowledgeBook, NPCKnowledgeBook, PlayerKnowledgeBook
+
+from helper import sort_by_list
 
 
-def sub_quest_1(elements: list):
+def sub_quest_1():
     # just go somewhere - pick a place unknown to player to go to
     # the reason for unknown place is, if "learn" comes up in next level, we'll be lucky,
     # if it doesn't, intel can be added to Players knowledge right away.
-    places_to_go = []
-    place = None
-    for elem in elements:
-        if isinstance(elem, element_types.Place):
-            place = elem
-            for player in elements:
-                if isinstance(player, element_types.Player):
-                    for intel in player.intel:
-                        if isinstance(intel, element_types.IntelLocation):
-                            if intel.data != place:
-                                places_to_go.append(place)
+    results = Place.select()\
+        .join(Intel)\
+        .join(PlayerKnowledgeBook, JOIN.LEFT_OUTER)\
+        .group_by(Intel).having(fn.COUNT(PlayerKnowledgeBook.id) == 0)
 
-    if not places_to_go:
-        return None, []
+    locations = list(results)
+    results = sort_by_list(results, locations)
 
-    place_to_go = places_to_go[0]
+    place_to_go = results[0]
+    player = Player.get()
+    player.next_location = place_to_go
+    player.save()
+
     # steps:
     # goto
     steps = [
@@ -29,10 +33,10 @@ def sub_quest_1(elements: list):
 
     print("==> Goto '%s'." % place_to_go)
 
-    return place_to_go, steps
+    return steps
 
 
-def goto_1(elements: list, destination: element_types.Place):
+def goto_1(destination: Place):
     """
     You are already there.
     :return:
@@ -40,93 +44,91 @@ def goto_1(elements: list, destination: element_types.Place):
     print('==> Already at your destination, %s.' % destination)
 
     # update player's location
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            player.current_location = destination.location
+    player = Player.get()
+    player.place = destination
+    player.save()
 
     return destination, [[]]
 
 
-def goto_2(elements: list, destination: element_types.Place):
+def goto_2(destination: Place):
     """
     Just wander around and look.
     :return:
     """
     # place[1] is destination
     # area around location[1] is given to player to explore and find location[1]
-    area_destination = destination.location
 
     # steps:
     # T.explore
     steps = [
-        [area_destination]
+        [destination]
     ]
-    print("==> Explore around '%s' to find '%s'." % (area_destination, destination.location))
+    print("==> Explore around '", destination, "'.")
 
-    return destination, steps
+    return steps
 
 
-def goto_3(elements: list, destination: element_types.Place):
+def goto_3(destination: Place):
     """
     Find out where to go and go there.
     :return:
     """
     # place[1] is destination
     # location[1] is place[1] exact location
+    results = Intel.select(Intel)\
+        .where(Intel.type == IntelTypes.place.name, Intel.place == destination).limit(1)
 
-    # for player in elements:
-    #     if isinstance(player, element_types.Player):
-    #         if player.current_location == destination.location:
-    #             return None, []
+    if not results:
+        return []
 
-    intel_location = None
-    for elem in elements:
-        if isinstance(elem, element_types.IntelLocation):
-            if elem.data == destination:
-                intel_location = elem
-
-    if not intel_location:
-        return None, [[]]
+    intel_location = results[0]
 
     # update player's next location
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            player.next_location = destination.location
+    player = Player.select().limit(1)[0]
+    player.next_location = destination
+    player.save()
 
     # steps:
     #   learn: location[1]
     #   T.goto: location[1]
     steps = [
         [intel_location],
-        [destination.location]
+        [destination]
     ]
-    print("==> Find out how to get to '%s', then goto it" % destination)
+    print("==> Find out how to get to '", destination, "', then goto it.")
 
-    return destination, steps
+    return steps
 
 
-def learn_1(elements: list, required_intel: element_types.Intel):
-    for elem in elements:
-        if isinstance(elem, element_types.Player):
-            if required_intel not in elem.intel:
-                elem.intel.append(required_intel)
+def learn_1(required_intel: Intel):
+    # update player intel
+    PlayerKnowledgeBook.get_or_create(player=Player.get(), intel=required_intel)
 
     print("==> Intel '%s' added." % required_intel)
+    return [[]]
 
-    return required_intel, [[]]
 
-
-def learn_2(elements: list, required_intel: element_types.Intel):
+def learn_2(required_intel: Intel):
     # find NPC who has the intel, goto the NPC and listen to get the intel
-    knowledgeable_npc = None  # type: element_types.NPC
-    for elem in elements:
-        if isinstance(elem, element_types.NPC):
-            if required_intel in elem.intel:
-                knowledgeable_npc = elem
+    player = Player.get()
+    results = NPC.select()\
+        .join(NPCKnowledgeBook)\
+        .where(NPCKnowledgeBook.intel == required_intel)
 
-    if not knowledgeable_npc:
-        return None, []
+    results_ally = results.where(NPC.clan == player.clan)
+    if results_ally:
+        # if there is any ally, just pick them, if not then only enemies has the intel, no need to filter
+        results = results_ally
 
+    # sort by triangle distance
+    result_distances = [player.distance(row.place) for row in results]
+    results = sort_by_list(results, result_distances)
+
+    knowledgeable_npc = results[0]
+
+    player.next_location = knowledgeable_npc.place
+    player.save()
     # steps:
     # do sub-quest
     # goto knowledgeable_npc place
@@ -140,56 +142,31 @@ def learn_2(elements: list, required_intel: element_types.Intel):
     print("==> Do a sub-quest, goto '%s', listen intel '%s' from '%s'." %
           (knowledgeable_npc.place, required_intel, knowledgeable_npc))
 
-    return required_intel, steps
+    return steps
 
 
-def learn_3(elements: list, required_intel: element_types.Intel):
+def learn_3(required_intel: Intel):
     """
     Go someplace, get something, and read what is written on it.
-    :param list[element_types.Intel] elements:
     :param required_intel:
     :return:
     """
-    
+
     # intel[1] is to be learned
-    intel_elem = None
-    for elem in elements:
-        if isinstance(elem, element_types.Intel):
-            if required_intel == elem:
-                intel_elem = elem
-                break
-    if not intel_elem:
-        return None, []
 
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
-    books = []
-    for elem in elements:
-        if isinstance(elem, element_types.Readable):
-            if intel_elem in elem.intel:
-                books.append(elem)
-    if books:
-        book_containing_intel = books[0]
-    else:
-        return None, []
+    results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel)
 
-    book_holder_place = None
-    if hasattr(book_containing_intel, 'place'):
-        book_holder_place = book_containing_intel.place
-    else:
-        # NPC[1] has the book[1]
-        holders = []
-        for elem in elements:
-            if hasattr(elem, 'belongings') and book_containing_intel in elem.belongings:
-                holders.append(elem)
+    # sort by readable place_ triangle
+    locations = [knowledge_book.readable.place_() for knowledge_book in results]
+    results = sort_by_list(results, locations)
 
-        if holders:
-            book_holder = holders[0]    # type: element_types.NPC
-            if hasattr(book_holder, 'place'):
-                book_holder_place = book_holder.place
+    book_containing_intel = results[0].readable
 
-    # place[1] is where the NPC[1] is
-    if not book_holder_place:
-        return None, []
+    book_holder_place = book_containing_intel.belongs_to.place
+    player = Player.get()
+    player.next_location = book_holder_place
+    player.save()
 
     # steps:
     # goto: place[1]
@@ -198,25 +175,33 @@ def learn_3(elements: list, required_intel: element_types.Intel):
     steps = [
         [book_holder_place],
         [book_containing_intel],
-        [intel_elem, book_containing_intel]
+        [required_intel, book_containing_intel]
     ]
-    print("==> Goto '%s', get '%s', and read the '%s' from it." % (book_holder_place, book_containing_intel, intel_elem))
+    print("==> Goto '", book_holder_place, "', get '", book_containing_intel, "', and read the intel '", required_intel,
+          "' from it.")
 
-    return book_containing_intel, steps
+    return steps
 
 
-def learn_4(elements: list, required_intel: element_types.Intel):
+def learn_4(required_intel: Intel):
     # find an NPC who has the required intel in exchange, get the NPC's needed item to give
-    item_to_exchange = None
-    informer = None
-    for elem in elements:
-        if isinstance(elem, element_types.NPC):
-            if required_intel in elem.exchange_motives.keys():
-                item_to_exchange = elem.exchange_motives[required_intel]
-                informer = elem
 
-    if not item_to_exchange or not informer:
-        return None, []
+    results = NPC.select(NPC, Need.item_id.alias('needed_item_id')) \
+        .join(Need) \
+        .join(Exchange) \
+        .where(Exchange.intel == required_intel, Need.item_id.is_null(False)).objects()
+
+    # triangle distance sort
+    locations = [npc.place for npc in results]
+    results = sort_by_list(results, locations)
+
+    informer = results[0]
+    item_to_exchange = Item.get_by_id(informer.needed_item_id)
+    del informer.needed_item_id
+
+    player = Player.get()
+    player.next_location = informer.place
+    player.save()
 
     # steps:
     # get
@@ -230,26 +215,23 @@ def learn_4(elements: list, required_intel: element_types.Intel):
         [required_intel, informer]
     ]
 
-    print("==> Get '%s', perform sub-quest, give the acquired item to '%s' in return get an intel on '%s'" %
-          (item_to_exchange, informer, required_intel))
+    print("==> Get '", item_to_exchange, "', perform sub-quest, give the acquired item to '", informer,
+          "' in return get an intel on '", required_intel, "'")
 
-    return required_intel, steps
+    return steps
 
 
-def get_1(elements: list, item_to_fetch: element_types.Item):
-
+def get_1(item_to_fetch: Item):
     print("==> You already have the item.")
 
     # if not, add it to player's belongings
-    for player in elements:
-        if isinstance(player, element_types.Player):
-            if item_to_fetch not in player.belongings:
-                player.belongings.append(item_to_fetch)
+    item_to_fetch.belongs_to_player = Player.get()
+    item_to_fetch.save()
 
-    return None, []
+    return []
 
 
-def get_2(elements: list, item_to_fetch: element_types.Item):
+def get_2(item_to_fetch: Item):
     """
     Steal it from somebody.
     :return:
@@ -260,94 +242,115 @@ def get_2(elements: list, item_to_fetch: element_types.Item):
     #   has the item,
     #   preferably is an enemy
     #   not too far from Player's current location
-    holders = []
-    for elem in elements:
-        if isinstance(elem, element_types.NPC):
-            if item_to_fetch in elem.belongings:
-                holders.append(elem)
 
-    if len(holders) > 1:
-        holders_reachable = []
-        player = None
-        for elem in elements:
-            if isinstance(elem, element_types.Player):
-                player = elem
-        for holder in holders:
-            if not holder.place.distance_from(player).unreachable:
-                holders_reachable.append(holder)
-
-    if holders:
-        item_holder = holders[0]
+    # check for singleton and common items, if it's common, select query should be executed, sort by distance
+    if item_to_fetch.is_singleton():
+        item_holder = item_to_fetch.belongs_to
     else:
-        return None, []
+        results = NPC.select().join(Item, on=(Item.belongs_to.id == NPC.id))\
+            .where(Item.generic == item_to_fetch.generic)
+        # enemies are preferred
+        results_enemy = results.where(NPC.clan != Player.get().clan)
+        if results_enemy:
+            results = results_enemy
+        # sort by triangle distance
+        locations = [npc.place for npc in results]
+        results = sort_by_list(results, locations)
+
+        item_holder = results[0]
 
     # steps:
     #   steal: steal item[1] from NPC[1]
     steps = [
         [item_to_fetch, item_holder]
     ]
-    print("==> Steal '%s' from '%s'." % (item_to_fetch, item_holder))
+    print("==> Steal '", item_to_fetch, "' from '", item_holder, "'.")
 
-    return item_holder, steps
+    return steps
 
 
-def get_3(elements: list, item_to_fetch: element_types.Item):
+def get_3(item_to_fetch: Item):
     # steps:
     # goto
     # gather
     steps = [
-        [item_to_fetch.place],
+        [item_to_fetch.place_()],
         [item_to_fetch]
     ]
-    print("==> Goto '%s' and gather '%s'." % (item_to_fetch.place, item_to_fetch))
+    print("==> Goto '%s' and gather '%s'." % (item_to_fetch.place_(), item_to_fetch))
 
-    return item_to_fetch, steps
+    return steps
 
 
-def get_4(elements: list, item_to_fetch: element_types.Item):
+def get_4(item_to_fetch: Item):
     """
     an NPC have the item, but you need to give the NPC something for an exchange
-    :param elements:
     :param item_to_fetch:
     :return:
     """
-    # find an NPC who has the needed item, and has it in exchange list
-    item_to_exchange = None  # type: element_types.Item
-    item_holder = None       # type: element_types.NPC
-    count_item_to_exchange = 0
-    alter_steps = []
-    for elem in elements:
-        if isinstance(elem, element_types.NPC):
-            if item_to_fetch in elem.belongings:
-                if item_to_fetch in elem.exchange_motives.keys():
-                    item_holder = elem
-                    item_to_exchange = elem.exchange_motives[item_to_fetch]
 
-    if alter_steps:
-        steps = alter_steps
-        print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%d' of '%s' with '%s'" %
-              (item_holder.place, item_holder, count_item_to_exchange, item_to_exchange, item_to_fetch))
+    # find an NPC who has the needed item, and has it in exchange list
+    exchanges = Exchange.select().join(Item)
+    if item_to_fetch.is_singleton():
+        exchanges = exchanges.where(Exchange.item == item_to_fetch)
     else:
-        # steps:
-        # goto
-        # get
-        # sub-quest
-        # goto
-        # exchange
+        exchanges = exchanges.where(Exchange.item.generic == item_to_fetch.generic)
+
+    # todo: This is useless now, since being sorted again later, but when sort by triangle distance added to database,
+    # this ordering will be changed again.
+    exchanges = exchanges.order_by(Exchange.need.item.worth.asc())
+
+    locations = [exc.need.npc for exc in exchanges]
+    exchanges = sort_by_list(exchanges, locations)
+
+    exchange = exchanges[0]
+    item_to_give = exchange.need.item
+    item_holder = exchange.need.npc
+
+    player = Player.get()
+    player.next_location = item_holder.place
+    player.save()
+
+    # check for player belonging for the exchange item
+    if item_to_fetch.is_singleton():
+        player_owns = item_to_fetch.belongs_to_player == player
+    else:
+        player_owns = Item.select().where(Item.generic == item_to_fetch.generic, Item.belongs_to_player == player) \
+                      is not None
+
+    if player_owns:
+        # player has the item
         steps = [
-            [item_to_exchange.place],
-            [item_to_exchange],
+            [],
+            [],
             [],
             [item_holder.place],
-            [item_holder, item_to_exchange, item_to_fetch]
+            [item_holder, item_to_give, item_to_fetch]
         ]
-        print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
-              (item_to_exchange.place, item_to_exchange, item_holder.place, item_holder, item_to_exchange, item_to_fetch))
+        print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+              (item_holder.place, item_holder, item_to_give, item_to_fetch))
+        return steps
 
-    return item_to_fetch, steps
+    # steps:
+    # goto
+    # get
+    # sub-quest
+    # goto
+    # exchange
+    steps = [
+        [item_to_give.place_()],
+        [item_to_give],
+        [],
+        [item_holder.place],
+        [item_holder, item_to_give, item_to_fetch]
+    ]
+    print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+          (item_to_give.place_(), item_to_give, item_holder.place, item_holder, item_to_give, item_to_fetch))
+
+    return steps
 
 
-def steal_1(elements: list, item_to_steal: element_types.Item, item_holder: element_types.NPC):
+def steal_1(item_to_steal: Item, item_holder: NPC):
     """
     Go someplace, sneak up on somebody, and take something.
     :return:
@@ -356,6 +359,10 @@ def steal_1(elements: list, item_to_steal: element_types.Item, item_holder: elem
 
     # place[1] is where NPC[1] lives
     item_holder_place = item_holder.place
+
+    player = Player.get()
+    player.next_location = item_holder_place
+    player.save()
 
     # steps:
     #   goto: place[1]
@@ -366,12 +373,38 @@ def steal_1(elements: list, item_to_steal: element_types.Item, item_holder: elem
         [item_holder],
         [item_to_steal, item_holder]
     ]
-    print("==> Goto '%s', sneak up on '%s', and take '%s'." % (item_holder_place, item_holder, item_to_steal))
+    print("==> Goto '", item_holder_place, "', sneak up on '", item_holder, "', and take '", item_to_steal, "'.")
 
-    return item_holder, steps
+    return steps
 
 
-def spy_1(elements: list, spy_on: element_types.NPC, intel_needed: element_types.Intel, receiver: element_types.NPC):
+def steal_2(item_to_steal: Item, item_holder: NPC):
+
+    player = Player.get()
+    player.next_location = item_holder.place
+    player.save()
+
+    # steps:
+    # goto holder
+    # kill holder
+    # T.take item from holder
+    steps = [
+        [item_holder.place],
+        [item_holder],
+        [item_to_steal, item_holder]
+    ]
+
+    print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
+
+    return steps
+
+
+def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
+
+    player = Player.get()
+    player.next_location = spy_on.place
+    player.save()
+
     # steps:
     # goto spy_on place
     # spy on 'spy_on' get the intel_needed
@@ -387,26 +420,15 @@ def spy_1(elements: list, spy_on: element_types.NPC, intel_needed: element_types
     print("==> Goto '%s', spy on '%s' to get intel '%s', goto '%s', report the intel to '%s'." %
           (spy_on.place, spy_on, intel_needed, receiver.place, receiver))
 
-    return spy_on, steps
+    return steps
 
 
-def steal_2(elements: list, item_to_steal: element_types.Item, item_holder: element_types.NPC):
-    # steps:
-    # goto holder
-    # kill holder
-    # T.take item from holder
-    steps = [
-        [item_holder.place],
-        [item_holder],
-        [item_to_steal, item_holder]
-    ]
+def kill_1(target: NPC):
 
-    print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
+    player = Player.get()
+    player.next_location = target.place
+    player.save()
 
-    return item_to_steal, steps
-
-
-def kill_1(elements: list, target: element_types.NPC):
     # steps:
     # goto target
     # kill target
@@ -417,4 +439,4 @@ def kill_1(elements: list, target: element_types.NPC):
 
     print("==> Goto '%s' and kill '%s'." % (target.place, target))
 
-    return target, steps
+    return steps

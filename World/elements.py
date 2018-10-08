@@ -73,7 +73,7 @@ def triangle_dist_meter(src: Location, dest: Location, later: Location) -> float
     :param dest: player's next location (the one that is being measured)
     :param later: player's next designated distance, where has to go after reaching the destination
     :return: float of a custom distance, if the three points create a perfect triangle,
-    return value is just sum of distance from src to dest + from dest to later.
+    return value is sum of distance from src to dest + from dest to later + possible penalties.
     """
     src_dest = distance(src, dest)
     src_later = distance(src, later)

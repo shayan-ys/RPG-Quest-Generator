@@ -2,3 +2,5 @@
 __pycache__
 output.json
 Logger/logs
+Databases/*
+!Databases/__init__.py
