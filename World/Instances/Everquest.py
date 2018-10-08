@@ -1,7 +1,7 @@
 from Grammar.actions import NonTerminals as NT, Terminals as T
 
 from World.Types.Item import Item, ItemTypes, GenericItem
-from World.Types.Intel import Intel, IntelTypes
+from World.Types.Intel import Intel, IntelTypes, Spell
 from World.Types.Place import Place
 from World.Types.Person import Clan, NPC, Motivation, Player
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
@@ -14,8 +14,8 @@ def create():
     rivervale = Place.create(name='Rivervale', x=10, y=80)
     qeynos_place = Place.create(name='qeynos_place', x=50, y=50)
     bixies_place = Place.create(name='bixies_place', x=70, y=90)
-    bondage_place = Place.create(name='bondage_place', x=10, y=60)
-    steve_place = Place.create(name='steve', x=60, y=20)
+    bandage_place = Place.create(name='bandage_place', x=10, y=60)
+    steve_place = Place.create(name='steve_place', x=60, y=20)
     goblin_place = Place.create(name='goblin_place', x=80, y=85)
     tomas_place = Place.create(name='tomas_place', x=10, y=10)
     lempeck_place = Place.create(name='lempeck_place', x=80, y=10)
@@ -36,21 +36,23 @@ def create():
     potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value, impact_factor=5)
     jum = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
     comb = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='comb')[0], name='comb', place=None, belongs_to=bixies)
-    bandage = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name='bandage')[0], name='bondage', place=bondage_place, belongs_to=None, usage=T.treat.value)
+    bandage = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name='bandage')[0], name='bandage', place=bandage_place, belongs_to=None, usage=T.treat.value)
     address_book = Item.create(type=ItemTypes.readable.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='address-book (goblin loc)', belongs_to=tomas)
     coin = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='coin')[0], name='coin', belongs_to_player=player)
 
     Need.create(npc=lempeck, item=potion)
 
-    spell = Intel.create(type=IntelTypes.spell.name,
-                         spell='Earth, grass, trees and seeds reveal the path to suit my needs')
-    spell_2 = Intel.create(type=IntelTypes.spell.name, spell='Earth is flat! LoL')
-    spell_3 = Intel.create(type=IntelTypes.spell.name, spell='Gravity is a myth')
+    spell = Intel.create(type=IntelTypes.spell.name, spell=Spell.create(
+        name="needs_path",
+        text="'Earth, grass, trees and seeds reveal the path to suit my needs'"))
+    spell_2 = Intel.create(type=IntelTypes.spell.name, spell=Spell.create(name="flat_earth",
+                                                                          text="Earth is flat! LoL"))
+    spell_3 = Intel.create(type=IntelTypes.spell.name, spell=Spell.create(name="gravity", text="Gravity is a myth"))
     NPCKnowledgeBook.create(npc=goblin, intel=spell)
     NPCKnowledgeBook.create(npc=bixies, intel=spell_2)
     NPCKnowledgeBook.create(npc=steve, intel=spell_2)
 
-    intel_bondage_loc = Intel.create(type=IntelTypes.place.name, place=bondage_place)
+    intel_bandage_loc = Intel.create(type=IntelTypes.place.name, place=bandage_place)
     intel_rivervale_loc = Intel.create(type=IntelTypes.place.name, place=npc_2.place, npc_place=npc_2, worth=0.6)
 
     intel_goblin_loc = Intel.create(type=IntelTypes.place.name, place=goblin.place, npc_place=goblin, worth=0.8)
@@ -82,13 +84,14 @@ def create():
     PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
     PlayerKnowledgeBook.create(player=player, intel=Intel.get_or_create(
         type=IntelTypes.place.name, place=steve_place, npc_place=steve)[0])
+    PlayerKnowledgeBook.create(player=player, intel=intel_bandage_loc)
 
 # elements = []
 #
 # # potion = Tool(name='potion', usage=T.treat)
 # # jum = UnknownItem(name='jum')
 # # comb = UnknownItem(name='comb')
-# # bondage = Tool(name='bondage', usage=T.treat)
+# # bandage = Tool(name='bandage', usage=T.treat)
 # #
 # # rivervale = Place('Rivervale', location=Location(10, 80))
 # # bandage_place = Place('bandage_place', Location(10, 60), items=[bandage])

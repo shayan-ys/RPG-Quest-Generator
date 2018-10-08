@@ -11,12 +11,19 @@ def null():
     :return:
     """
     print('==> There is nothing to do ("null" action)')
-    return []
+    return True
 
 
 def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
 
     player = Player.get()
+
+    # check if player has the item_to_give and holder has the item_to_take
+    if item_to_give.belongs_to_player != player or item_to_take.belongs_to != item_holder:
+        print("DEBUG:")
+        print("item_to_give:", item_to_give, ",belongs_to_player:", item_to_give.belongs_to_player, ",player:", player)
+        print("item_to_take:", item_to_take, ",belongs_to:", item_to_take.belongs_to, ",item_holder:", item_holder)
+        return False
 
     # update Player's belongings
     item_to_take.belongs_to = None
@@ -31,30 +38,59 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     FavoursBook.construct(item_holder, npc_owing, player)
 
     print("==> Exchange '%s' for '%s', with '%s'." % (item_to_give, item_to_take, item_holder))
-    return []
+    return True
 
 
 def explore(area_location: Place):
 
-    # update Player's location
+    # Todo: implement exploration around the location
+
     player = Player.get()
+
+    # check if player knows the location
+    results = PlayerKnowledgeBook.select().join(Intel)\
+        .where(PlayerKnowledgeBook.player == player, Intel.place == area_location).limit(1)
+    if not results:
+        print("Location unknown (Intel not found in player's knowledge book)")
+        return False
+
+    # update Player's location
     player.place = area_location
     player.save()
 
     print("==> Explore around '", area_location, "'.")
+    return True
 
 
 def gather(item_to_gather: Item):
 
+    player = Player.get()
+
+    # check if player is at item location
+    if item_to_gather.place != player.place:
+        print("Player is not at the item's location to gather it")
+        return False
+
     # update Player's belongings
-    item_to_gather.belongs_to_player = Player.get()
+    item_to_gather.belongs_to_player = player
     item_to_gather.save()
 
     print("==> Gather '", item_to_gather, "'.")
-    return []
+    return True
 
 
 def give(item: Item, receiver: NPC):
+
+    # check if player has the item
+    player = Player.get()
+    if item.belongs_to_player != player:
+        print("Player doesn't have the item")
+        return False
+
+    # check if player is at receiver's location
+    if player.place != receiver.place:
+        print("Player is not at the receiver NPC's location")
+        return False
 
     item.belongs_to_player = None
     item.belongs_to = receiver
@@ -63,22 +99,28 @@ def give(item: Item, receiver: NPC):
     FavoursBook.construct(receiver, item.worth_())
 
     print("==> Give '%s' to '%s'." % (item, receiver))
-    return []
+    return True
 
 
 def spy(spy_on: NPC, intel_target: Intel):
 
-    # update Player's intel
     player = Player.get()
+
+    # check if player is at target's location
+    if player.place != spy_on.place:
+        print("Player is not at the target NPC's location")
+        return False
+
+    # update Player's intel
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel_target)
 
     print("==> Spy on '%s' to get intel '%s'." % (spy_on, intel_target))
-    return []
+    return True
 
 
 def stealth(target: NPC):
     print("==> Stealth on '", target, "'.")
-    return []
+    return True
 
 
 def take(item_to_take: Item, item_holder: NPC):
@@ -108,13 +150,21 @@ def read(intel: Intel, readable: Item):
 
 def goto(destination: Place):
 
-    # update Player's location
     player = Player.get()
+
+    # check if player knows the location
+    results = PlayerKnowledgeBook.select().join(Intel)\
+        .where(PlayerKnowledgeBook.player == player, Intel.place == destination).limit(1)
+    if not results:
+        print("Location unknown (Intel not found in player's knowledge book)")
+        return False
+
+    # update Player's location
     player.place = destination
     player.save()
 
     print("==> Goto '%s'." % destination)
-    return []
+    return True
 
 
 def kill(target: NPC):

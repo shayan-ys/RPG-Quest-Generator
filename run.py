@@ -9,6 +9,7 @@ from World.Types import Intel
 from World.Types import BridgeModels
 
 from World.Instances import Everquest, Custom
+from Playground.play import Play
 
 # from GA.ga import *
 #
@@ -27,7 +28,9 @@ db.drop_tables(list_of_models)
 db.create_tables(list_of_models)
 Everquest.create()
 
-world = World()
-world.parse_quest(quest=quests.spy)
+# world = World()
+# world.parse_quest(quest=quests.spy)
+
+Play().cmdloop()
 
 db.close()

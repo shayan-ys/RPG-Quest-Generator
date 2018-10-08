@@ -6,6 +6,15 @@ from World.Types.Place import Place
 from enum import Enum, auto
 
 
+class Spell(BaseElement):
+    name = CharField()
+    text = CharField()
+
+    def __str__(self):
+        # return self.name + " (\"" + self.text + "\")"
+        return self.name
+
+
 class IntelTypes(Enum):
     spell = auto()
     place = auto()
@@ -14,7 +23,7 @@ class IntelTypes(Enum):
 
 class Intel(BaseElement, Worthy):
     type = CharField()
-    spell = CharField(null=True)
+    spell = ForeignKeyField(Spell, backref='intel_spell', null=True)
     place = ForeignKeyField(Place, backref='intel_place', null=True)
     npc_place = ForeignKeyField(NPC, backref='intel_npc_place', null=True)
     holding_item = ForeignKeyField(Item, backref='intel_on_holder', null=True)
@@ -24,9 +33,20 @@ class Intel(BaseElement, Worthy):
         if self.type == str(IntelTypes.spell.name):
             return self.spell
         elif self.type == str(IntelTypes.place.name):
-            return self.npc_place
+            return self.place
         elif self.type == str(IntelTypes.holding.name):
-            return self.holding_item, self.holding_holder
+            return str(self.holding_item), str(self.holding_holder)
+
+    @staticmethod
+    def find_by_name(intel_type: str, *args):
+        if intel_type == IntelTypes.spell.name:
+            return Intel.select().join(Spell).where(Intel.type == intel_type, Spell.name == args[0]).get()
+        elif intel_type == IntelTypes.place.name:
+            return Intel.select().join(Place).where(Intel.type == intel_type, Place.name == args[0]).get()
+        elif intel_type == IntelTypes.holding.name:
+            return Intel.select()\
+                .join(Item, on=(Intel.holding_item == Item.id))\
+                .where(Intel.type == intel_type, Item.name == args[0]).get()
 
     def __str__(self):
         if not self.type:
@@ -34,4 +54,4 @@ class Intel(BaseElement, Worthy):
         return str(self.type) + ': ' + str(self.data())
 
 
-list_of_models = [Intel]
+list_of_models = [Intel, Spell]
