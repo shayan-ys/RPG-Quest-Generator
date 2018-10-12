@@ -1,8 +1,7 @@
-from Playground.info import print_indented, print_player_intel, print_player_belongings, print_player_places, \
+from Playground.info import print_player_intel, print_player_belongings, print_player_places, \
     print_npc_intel, print_npc_belongings, print_npc_place
 
 from World.Narrative.actions import terminals
-from World.Types.BridgeModels import PlayerKnowledgeBook
 from World.Types.Intel import Intel
 from World.Types.Item import Item
 from World.Types.Person import NPC, Player
@@ -54,18 +53,6 @@ class Play(cmd.Cmd):
         print("Item added to belongings.")
         print_player_belongings()
 
-    def do_goto(self, args):
-        """Move player to a named position. GOTO Rivervale"""
-        args = parse(args)
-        if not self.check_length(args, 1):
-            return
-
-        found = terminals.goto(destination=Place.get(Place.name == args[0]))
-        if not found:
-            print("failed!")
-            return
-        print("moved to:", Player.get().place)
-
     def do_give(self, args):
         """Give an NPC something. GIVE Goblin bandage"""
         args = parse(args)
@@ -106,6 +93,101 @@ class Play(cmd.Cmd):
             print("failed!")
             return
         print("stealth done!")
+
+    def do_take(self, args):
+        """Take something from an NPC. TAKE Goblin bandage"""
+        args = parse(args)
+        if not self.check_length(args, 2):
+            return
+
+        npc = NPC.get(NPC.name == args[0])
+        found = terminals.take(item_to_take=Item.get(Item.name == args[1]), item_holder=npc)
+        if not found:
+            print("failed!")
+            return
+        print("player's belongings updated.")
+        print_player_belongings()
+        print("NPC belongings updated.")
+        print_npc_belongings(npc)
+
+    def do_read(self, args):
+        """Read a piece of intel from a book (intel: type intel_value). READ place goblin_place address_book"""
+        args = parse(args)
+        if not self.check_length(args, 3):
+            return
+
+        found = terminals.read(intel=Intel.find_by_name(args[0], [args[1]]), readable=Item.get(Item.name == args[2]))
+        if not found:
+            print("failed!")
+            return
+        print("Player intel updated.")
+        print_player_intel()
+
+    def do_goto(self, args):
+        """Move player to a named position. GOTO Rivervale"""
+        args = parse(args)
+        if not self.check_length(args, 1):
+            return
+
+        found = terminals.goto(destination=Place.get(Place.name == args[0]))
+        if not found:
+            print("failed!")
+            return
+        print("moved to:", Player.get().place)
+
+    def do_kill(self, args):
+        """Kill an NPC. KILL Goblin"""
+        args = parse(args)
+        if not self.check_length(args, 1):
+            return
+
+        npc = NPC.get(NPC.name == args[0])
+        found = terminals.kill(target=npc)
+        if not found:
+            print("failed!")
+            return
+        print("target killed (health_meter set to " + str(npc.health_meter) + ")")
+
+    def do_listen(self, args):
+        """Listen a piece of intel from an NPC (intel: type intel_value). LISTEN spell needs_path Goblin"""
+        args = parse(args)
+        if not self.check_length(args, 3):
+            return
+
+        found = terminals.listen(intel=Intel.find_by_name(args[0], [args[1]]), informer=NPC.get(NPC.name == args[2]))
+        if not found:
+            print("failed!")
+            return
+        print("Player intel updated.")
+        print_player_intel()
+
+    def do_report(self, args):
+        """Report a piece of intel to an NPC (intel: type intel_value). REPORT spell needs_path Steve"""
+        args = parse(args)
+        if not self.check_length(args, 3):
+            return
+
+        npc = NPC.get(NPC.name == args[2])
+        found = terminals.report(intel=Intel.find_by_name(args[0], [args[1]]), target=npc)
+        if not found:
+            print("failed!")
+            return
+        print("NPC intel updated.")
+        print_npc_intel(npc)
+
+    def do_use(self, args):
+        """Use an item (tool) on an NPC. USE potion Lempeck"""
+        args = parse(args)
+        if not self.check_length(args, 2):
+            return
+
+        item = Item.get(Item.name == args[0])
+        npc = NPC.get(NPC.name == args[1])
+        found = terminals.use(item_to_use=item, target=npc)
+        if not found:
+            print("failed!")
+            return
+        print("Item effect on the NPC,", item.impact_factor, "NPC health meter:", npc.health_meter)
 
     def do_player(self, args):
         """Print player's info (type player <category>). PLAYER intel"""

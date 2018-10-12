@@ -22,18 +22,18 @@ def create():
 
     player = Player.create(name='player_1', place=rivervale, clan=alliance)
 
-    qeynos = NPC.create(name='qeynos', place=qeynos_place, clan=alliance)
-    npc_2 = NPC.create(name='NPC2 (adon)', place=rivervale, clan=alliance)
+    qeynos = NPC.create(name='Qeynos', place=qeynos_place, clan=alliance)
+    npc_2 = NPC.create(name='NPC2', place=rivervale, clan=alliance)  # = adon
     steve = NPC.create(name='Steve', place=steve_place, clan=alliance)
     tomas = NPC.create(name='Tomas', place=tomas_place, clan=alliance)
-    lempeck = NPC.create(name='lempeck (Denros)', place=lempeck_place, clan=alliance)
-    bixies = NPC.create(name='bixies', place=bixies_place, clan=horde)
+    lempeck = NPC.create(name='Lempeck', place=lempeck_place, clan=alliance, health_meter=0.7)  # = Denros
+    bixies = NPC.create(name='Bixies', place=bixies_place, clan=horde)
     goblin = NPC.create(name='Goblin', place=goblin_place, clan=horde)
 
     steve_motive = Motivation.create(npc=steve, action=NT.knowledge.value, motive=0.6)
     tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.8)
 
-    potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value, impact_factor=5)
+    potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value, impact_factor=0.5)
     jum = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
     comb = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='comb')[0], name='comb', place=None, belongs_to=bixies)
     bandage = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name='bandage')[0], name='bandage', place=bandage_place, belongs_to=None, usage=T.treat.value)
@@ -80,11 +80,13 @@ def create():
     Exchange.create(npc=npc_2, item=jum, need=Need.get_or_create(npc=npc_2, item=comb)[0])
     Exchange.create(npc=tomas, item=address_book, need=Need.get_or_create(npc=tomas, item=coin)[0])
 
-    PlayerKnowledgeBook.create(player=player, intel=intel_goblin_loc)
+    PlayerKnowledgeBook.create(player=player, intel=intel_qeynos_loc)
     PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
     PlayerKnowledgeBook.create(player=player, intel=Intel.get_or_create(
         type=IntelTypes.place.name, place=steve_place, npc_place=steve)[0])
     PlayerKnowledgeBook.create(player=player, intel=intel_bandage_loc)
+    PlayerKnowledgeBook.create(player=player, intel=intel_lempeck_loc)
+
 
 # elements = []
 #

@@ -1,3 +1,5 @@
+from Grammar.actions import Terminals as T
+
 from World.Types import *
 from World.Types.Person import NPC, Player
 from World.Types.Place import Place
@@ -25,7 +27,7 @@ class Item(BaseElement, Worthy, Named):
     belongs_to_player = ForeignKeyField(Player, backref='player_belongings', null=True)
     type = CharField(choices=[(en.value, en.name) for en in ItemTypes])
     usage = SmallIntegerField(constraints=[Check('usage >= 0')], null=True)
-    impact_factor = IntegerField(null=True)
+    impact_factor = FloatField(null=True, constraints=[Check('impact_factor > 0'), Check('impact_factor <= 1')])
 
     def place_(self):
         if self.place:
@@ -37,6 +39,12 @@ class Item(BaseElement, Worthy, Named):
 
     def is_singleton(self) -> bool:
         return GenericItem.get_by_id(self.generic.id).name == ItemTypes.singleton.name
+
+    def use(self, npc: NPC):
+        if self.usage == T.treat.value:
+            npc.health_meter += self.impact_factor
+            npc.health_meter = max(0, min(1, npc.health_meter))
+            npc.save()
 
 
 list_of_models = [GenericItem, Item]

@@ -1,8 +1,8 @@
 from World.Types.Person import Player, NPC
 from World.Types.Place import Place
-from World.Types.Item import Item
+from World.Types.Item import Item, ItemTypes
 from World.Types.Intel import Intel
-from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook
+from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook, ReadableKnowledgeBook, Need
 
 
 def null():
@@ -24,6 +24,14 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
         print("item_to_give:", item_to_give, ",belongs_to_player:", item_to_give.belongs_to_player, ",player:", player)
         print("item_to_take:", item_to_take, ",belongs_to:", item_to_take.belongs_to, ",item_holder:", item_holder)
         return False
+
+    # check if player is at item_holder's place
+    if item_holder.place != player.place:
+        print("Player is not at the item_holder's place,", item_holder.place)
+        return False
+
+    # todo: check if owing factor of NPC is more than different of items worth
+    # todo: one item might worth more for an NPC than to other
 
     # update Player's belongings
     item_to_take.belongs_to = None
@@ -96,7 +104,8 @@ def give(item: Item, receiver: NPC):
     item.belongs_to = receiver
     item.save()
 
-    FavoursBook.construct(receiver, item.worth_())
+    # update favours book
+    FavoursBook.construct(npc=receiver, owe_factor=item.worth_(), player=player)
 
     print("==> Give '%s' to '%s'." % (item, receiver))
     return True
@@ -111,6 +120,11 @@ def spy(spy_on: NPC, intel_target: Intel):
         print("Player is not at the target NPC's location")
         return False
 
+    # check if the target has the piece of intel
+    if not NPCKnowledgeBook.get_or_none(npc=spy_on, intel=intel_target):
+        print("Target hasn't the intel")
+        return False
+
     # update Player's intel
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel_target)
 
@@ -119,14 +133,37 @@ def spy(spy_on: NPC, intel_target: Intel):
 
 
 def stealth(target: NPC):
+
+    player = Player.get()
+
+    # check if player at target's place
+    if player.place == target.place:
+        print("Player is not at the target's place")
+        return False
+
     print("==> Stealth on '", target, "'.")
     return True
 
 
 def take(item_to_take: Item, item_holder: NPC):
 
-    # remove item from holder's belongings and add to player's
     player = Player.get()
+
+    # check if NPC has the item
+    if item_to_take.belongs_to != item_holder:
+        print("NPC", item_holder, "doesn't have the item", item_to_take, "to take")
+        return False
+
+    # check if player is at item_holder's place
+    if item_holder.place != player.place:
+        print("Player is not at the item_holder's place,", item_holder.place)
+        return False
+
+    # todo: check if NPC has an owing favour or is less powerful, or killed
+    if item_holder.health_meter == 0:
+        pass
+
+    # remove item from holder's belongings and add to player's
     item_to_take.belongs_to = None
     item_to_take.belongs_to_player = player
     item_to_take.save()
@@ -134,18 +171,32 @@ def take(item_to_take: Item, item_holder: NPC):
     FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
 
     print("==> Take '%s'." % item_to_take)
-    return []
+    return True
 
 
 def read(intel: Intel, readable: Item):
 
-    # update Player's intel
+    # check if the readable has the intel
+    if not ReadableKnowledgeBook.get_or_none(
+            ReadableKnowledgeBook.intel == intel,
+            ReadableKnowledgeBook.readable == readable):
+        print("ReadableKnowledgeBook not found")
+        return False
+
     player = Player.get()
+    # check if player is at the readable item's place
+    if readable.place_() != player.place and readable.belongs_to_player != player:
+        print("Player neither own the item, nor at the readable item's place,", readable.place_())
+        return False
+
+    # todo: an NPC might have it that doesn't want you to read it! So you have to deal with the NPC first!
+
+    # update Player's intel
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
 
     print("==> Read '%s' from '%s'." % (intel, readable))
     print("==> + New intel added: '%s'" % intel)
-    return []
+    return True
 
 
 def goto(destination: Place):
@@ -168,38 +219,110 @@ def goto(destination: Place):
 
 
 def kill(target: NPC):
+
+    player = Player.get()
+
+    # check if player is at target place
+    if player.place != target.place:
+        print("Player is not at target's location,", target.place)
+        return False
+
+    # todo: check if player has more power than the NPC, take not of their health. (Attack and defense power
+    # + current health)
+
+    target.health_meter = 0
+    target.save()
+
     print("==> Kill '%s'." % target)
-    return []
+    return True
 
 
 def listen(intel: Intel, informer: NPC):
 
-    # update Player's intel
+    # check if informer has the intel
+    if not NPCKnowledgeBook.get_or_none(intel=intel, npc=informer):
+        print("Informer hasn't the intel player wants")
+        return False
+
     player = Player.get()
+
+    # check if player is in the informer place
+    if informer.place != player.place:
+        print("Player is not at the informer's place,", informer.place)
+        return False
+
+    # check if informer is an ally to player
+    if informer.clan != player.clan:
+        print("Player and the informer are from different clans")
+        return False
+
+    # todo: maybe even an enemy with huge amount of owing factor could work too
+
+    # check if player has enough favours book's score for this
+    fb, created = FavoursBook.get_or_create(npc=informer, player=player)
+    if fb.owe_factor <= 0:
+        print("Player doesn't have enough favour factor,", fb.owe_factor)
+        return False
+
+    # update Player's intel
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
 
     FavoursBook.construct(informer, -intel.worth_(), player)
 
     print("==> Listen to '%s' to get the intel '%s'." % (informer, intel))
     print("==> + New intel added: '%s'" % intel)
-    return []
+    return True
 
 
 def report(intel: Intel, target: NPC):
 
-    # update target's intel list
-    NPCKnowledgeBook.get_or_create(npc=target, intel=intel)
+    player = Player.get()
 
-    # update Player's favours book
-    FavoursBook.construct(target, intel.worth_())
+    # check if player has the intel
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+        print("Player doesn't have the intel")
+        return False
+
+    # check if player is in the target place
+    if target.place != player.place:
+        print("Player is not at the target's place,", target.place)
+        return False
+
+    # update Player's favours book if target hasn't have it already
+    if not NPCKnowledgeBook.get_or_none(npc=target, intel=intel):
+        # todo: check if NPC wanted this piece of intel (?)
+        FavoursBook.construct(target, intel.worth_())
+        # update target's intel list
+        NPCKnowledgeBook.create(npc=target, intel=intel)
 
     print("==> Report '%s' to '%s'." % (intel, target))
-    return []
+    return True
 
 
 def use(item_to_use: Item, target: NPC):
+
+    player = Player.get()
+    # check if player has the item
+    if item_to_use.belongs_to_player != player:
+        print("Player doesn't have the item,", item_to_use)
+        return False
+
+    # check if player at target's place
+    if target.place != player.place:
+        print("Player is not at the target's place,", target.place)
+        return False
+
+    # check if item is a tool
+    if item_to_use.type != ItemTypes.tool.name:
+        print("Item is not usable, it's not a tool, it is a,", item_to_use.type)
+        return False
+
+    # todo: if item has an negative impact, check if player has more power than the target and alliance
+
+    item_to_use.use(npc=target)
+
     # depending on positive or negative impact_factor of the item usage, target record in player's favour gets updated
     FavoursBook.construct(target, float(item_to_use.impact_factor or 0.0))
 
     print("==> Use '%s' on '%s'." % (item_to_use, target))
-    return []
+    return True
