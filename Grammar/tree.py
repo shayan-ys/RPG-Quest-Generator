@@ -68,7 +68,7 @@ class Tree(object):
         return result
 
     def __str__(self):
-        return self.dumps()
+        return self.pretty_string()
 
     def __repr__(self):
         return self.pretty_string()

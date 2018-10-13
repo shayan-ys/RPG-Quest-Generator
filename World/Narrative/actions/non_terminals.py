@@ -17,11 +17,12 @@ def sub_quest_1():
         .join(PlayerKnowledgeBook, JOIN.LEFT_OUTER)\
         .group_by(Intel).having(fn.COUNT(PlayerKnowledgeBook.id) == 0)
 
-    locations = list(results)
-    results = sort_by_list(results, locations)
+    player = Player.get()
+
+    locations_scores = [player.distance(place) for place in results]
+    results = sort_by_list(results, locations_scores)
 
     place_to_go = results[0]
-    player = Player.get()
     player.next_location = place_to_go
     player.save()
 
@@ -122,8 +123,8 @@ def learn_2(required_intel: Intel):
         results = results_ally
 
     # sort by triangle distance
-    result_distances = [player.distance(row.place) for row in results]
-    results = sort_by_list(results, result_distances)
+    locations_scores = [player.distance(row.place) for row in results]
+    results = sort_by_list(results, locations_scores)
 
     knowledgeable_npc = results[0]
 
@@ -157,14 +158,15 @@ def learn_3(required_intel: Intel):
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
     results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel)
 
+    player = Player.get()
+
     # sort by readable place_ triangle
-    locations = [knowledge_book.readable.place_() for knowledge_book in results]
-    results = sort_by_list(results, locations)
+    locations_scores = [player.distance(knowledge_book.readable.place_()) for knowledge_book in results]
+    results = sort_by_list(results, locations_scores)
 
     book_containing_intel = results[0].readable
 
     book_holder_place = book_containing_intel.belongs_to.place
-    player = Player.get()
     player.next_location = book_holder_place
     player.save()
 
@@ -191,15 +193,16 @@ def learn_4(required_intel: Intel):
         .join(Exchange) \
         .where(Exchange.intel == required_intel, Need.item_id.is_null(False)).objects()
 
+    player = Player.get()
+
     # triangle distance sort
-    locations = [npc.place for npc in results]
-    results = sort_by_list(results, locations)
+    locations_scores = [player.distance(npc.place) for npc in results]
+    results = sort_by_list(results, locations_scores)
 
     informer = results[0]
     item_to_exchange = Item.get_by_id(informer.needed_item_id)
     del informer.needed_item_id
 
-    player = Player.get()
     player.next_location = informer.place
     player.save()
 
@@ -254,8 +257,9 @@ def get_2(item_to_fetch: Item):
         if results_enemy:
             results = results_enemy
         # sort by triangle distance
-        locations = [npc.place for npc in results]
-        results = sort_by_list(results, locations)
+        player = Player.get()
+        locations_scores = [player.distance(npc.place) for npc in results]
+        results = sort_by_list(results, locations_scores)
 
         item_holder = results[0]
 
@@ -300,23 +304,24 @@ def get_4(item_to_fetch: Item):
     # this ordering will be changed again.
     exchanges = exchanges.order_by(Exchange.need.item.worth.asc())
 
-    locations = [exc.need.npc for exc in exchanges]
-    exchanges = sort_by_list(exchanges, locations)
+    player = Player.get()
+
+    locations_scores = [player.distance(exc.need.npc.place) for exc in exchanges]
+    exchanges = sort_by_list(exchanges, locations_scores)
 
     exchange = exchanges[0]
     item_to_give = exchange.need.item
     item_holder = exchange.need.npc
 
-    player = Player.get()
     player.next_location = item_holder.place
     player.save()
 
     # check for player belonging for the exchange item
-    if item_to_fetch.is_singleton():
-        player_owns = item_to_fetch.belongs_to_player == player
+    if item_to_give.is_singleton():
+        player_owns = (item_to_give.belongs_to_player == player)
     else:
-        player_owns = Item.select().where(Item.generic == item_to_fetch.generic, Item.belongs_to_player == player) \
-                      is not None
+        player_owns = Item.select().where(Item.generic == item_to_give.generic,
+                                          Item.belongs_to_player == player) is True
 
     if player_owns:
         # player has the item
