@@ -4,6 +4,8 @@ from Grammar.tree import Node
 from World import Narrative
 from World.Types.Person import Player
 
+from copy import deepcopy
+
 
 class World:
     from World.Instances import Custom as WorldElements
@@ -17,7 +19,7 @@ class World:
         """
 
         def recursion(root: Node, pre_semantics: list, index: int, depth: int):
-            # if index > 38:
+            # if index > 1:
             #     return index
             # elif index == 23:
             #     nothing = 0
@@ -26,13 +28,13 @@ class World:
             if root.action == Terminals.null:
                 return index
 
-            print('-------  depth= %d, index is: %d ------------------------------------------------' % (depth, index))
+            print('-------  depth= %d, index is: %d ------------------------------------------------' % (depth, root.index))
             if hasattr(root, 'rule') and root.rule:
                 print(root.action.name + '[%d]' % root.rule)
             else:
                 print(root.action.name)
 
-            children_pre_semantics = Narrative.find(root, depth)(*pre_semantics)
+            children_pre_semantics = Narrative.find(root)(*pre_semantics)
             # print(node_semantic)
 
             traversed = index
@@ -43,7 +45,9 @@ class World:
 
             return traversed
 
-        recursion(quest.clean_nulls(), [], 0, 0)
+        local_quest = deepcopy(quest)
+        local_quest.clean_nulls()
+        recursion(local_quest, [], 0, 0)
 
         # for elem in self.elements:
         #     if isinstance(elem, Player):

@@ -156,6 +156,16 @@ arbitrary_quest3 = Node(NT.quest, 9,
                                   Leaf(T.stealth),
                                   Leaf(T.take))))
 
+arbitrary_quest4 = Node(NT.quest, 1,
+                        Node(NT.knowledge, 2,
+                             Node(NT.spy, 1,
+                                  Node(NT.goto, 1,
+                                       Leaf(T.null)),
+                                  Leaf(T.spy),
+                                  Node(NT.goto, 1,
+                                       Leaf(T.null)),
+                                  Leaf(T.report))))
+
 tiny_goto = Node(NT.goto, 1,
                  Leaf(T.null))
 

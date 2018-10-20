@@ -23,14 +23,19 @@ list_of_models = Place.list_of_models + Person.list_of_models + Item.list_of_mod
 # + Item.list_of_models + Intel.list_of_models
 print(list_of_models)
 
+db.close()
 db.connect()
 db.drop_tables(list_of_models)
 db.create_tables(list_of_models)
 Everquest.create()
 
 # world = World()
-# world.parse_quest(quest=quests.spy)
+# world.parse_quest(quest=quests.cure)
 
+# prg = Progress(quest=quests.cure)
+# prg.get_narratives(prg.quest, [])
+# prg.get_narratives(prg.quest.branches[0], prg.semantics_indices[1])
+# prg.mission(0)
 Play().cmdloop()
 
 db.close()

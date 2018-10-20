@@ -1,5 +1,9 @@
 from Playground.info import print_player_intel, print_player_belongings, print_player_places, \
     print_npc_intel, print_npc_belongings, print_npc_place
+from Playground.progress import Progress
+
+from Data import quests
+from Grammar.actions import Terminals as T
 
 from World.Narrative.actions import terminals
 from World.Types.Intel import Intel
@@ -14,6 +18,14 @@ class Play(cmd.Cmd):
     intro = 'Welcome to the game. Type help or ? to list commands.\n'
     prompt = '(Player) '
     error_invalid = '*** Invalid command:'
+    progress: Progress = None
+    last_action = T.null
+    last_args = []
+
+    def __init__(self):
+        super(Play, self).__init__()
+        # very beginning
+        self.progress = Progress(quest=quests.arbitrary_quest4)
 
     # ----- basic player commands -----
     def do_exchange(self, args):
@@ -75,12 +87,17 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 3):
             return
 
-        found = terminals.spy(spy_on=NPC.get(NPC.name == args[0]), intel_target=Intel.find_by_name(args[1], [args[2]]))
+        target = NPC.get(NPC.name == args[0])
+        intel = Intel.find_by_name(args[1], [args[2]])
+        found = terminals.spy(spy_on=target, intel_target=intel)
         if not found:
             print("failed!")
             return
         print("Player intel updated.")
         print_player_intel()
+
+        self.last_action = T.spy
+        self.last_args = [target, intel]
 
     def do_stealth(self, args):
         """Stealth on an NPC. STEALTH Goblin"""
@@ -167,13 +184,17 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 3):
             return
 
+        intel = Intel.find_by_name(args[0], [args[1]])
         npc = NPC.get(NPC.name == args[2])
-        found = terminals.report(intel=Intel.find_by_name(args[0], [args[1]]), target=npc)
+        found = terminals.report(intel=intel, target=npc)
         if not found:
             print("failed!")
             return
         print("NPC intel updated.")
         print_npc_intel(npc)
+
+        self.last_action = T.report
+        self.last_args = [intel, npc]
 
     def do_use(self, args):
         """Use an item (tool) on an NPC. USE potion Lempeck"""
@@ -245,6 +266,14 @@ class Play(cmd.Cmd):
             print(self.error_invalid, "Number of arguments should be exactly", desired, ", not", len(args))
             return False
         return True
+
+    def postcmd(self, stop, line):
+        # after loop
+        level_completed = self.progress.is_terminal_matches(self.last_action, self.last_args)
+        # self.progress.find_next_active_level()
+        self.progress.print_progress()
+        if 0 in self.progress.completed_indices:
+            print("WOW quest completed!!!!")
 
 
 def parse(arg):

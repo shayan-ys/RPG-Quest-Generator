@@ -2,10 +2,10 @@ from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Item import Item, ItemTypes
 from World.Types.Intel import Intel
-from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook, ReadableKnowledgeBook, Need
+from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook, ReadableKnowledgeBook
 
 
-def null():
+def null(*args):
     """
     Nothing to do
     :return:

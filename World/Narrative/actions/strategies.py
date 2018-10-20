@@ -28,6 +28,8 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     spy_intel = Intel.get_by_id(spy_target.intel_id)
     del spy_target.intel_id
 
+    # steps:
+    # spy: on target, to get intel, then report it to knowledge_motivated NPC
     steps = [
         [spy_target, spy_intel, NPC_knowledge_motivated]
     ]

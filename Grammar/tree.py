@@ -83,9 +83,10 @@ class Node(Tree):
     def __init__(self, action: NT, rule: int=None, *branches):
         self.action = action
         self.rule = rule
-        self.branches = None
+        self.branches = []
         self.flatten = []
         self.depth = 0
+        self.index = 0
         if rule:
             if action in rules:
                 if rule in rules[action]:
@@ -117,23 +118,32 @@ class Node(Tree):
                 raise Exception("action '" + str(action) + "' is not in rules. It should be one of "
                                 + str(rules.keys()))
 
-    def clean_nulls(self) -> 'Node':
+    def clean_nulls(self, index: int=0) -> (int, 'Node'):
 
+        self.index = index
         all_branches_null = True
         if self.branches:
             cleaned_branches = []
             for branch in self.branches:
-                cleaned = branch.clean_nulls()
+                index, cleaned = branch.clean_nulls(index+1)
                 if cleaned.action != T.null:
                     all_branches_null = False
                 cleaned_branches.append(cleaned)
-            self.branches = cleaned_branches
 
             if all_branches_null:
                 self.action = T.null
                 self.branches = []
                 self.rule = None
-        return self
+
+            # elif len(cleaned_branches) == 1 and self.action != NT.quest:
+            #     self.action = cleaned_branches[0].action
+            #     self.branches = cleaned_branches[0].branches
+            #     self.rule = cleaned_branches[0].rule
+
+            else:
+                self.branches = cleaned_branches
+
+        return index, self
 
     def flat(self) -> list:
 

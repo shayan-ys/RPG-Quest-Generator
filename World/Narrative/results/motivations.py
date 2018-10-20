@@ -1,0 +1,2 @@
+def quest():
+    return False
