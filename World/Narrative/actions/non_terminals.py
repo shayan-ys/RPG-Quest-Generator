@@ -118,9 +118,11 @@ def learn_2(required_intel: Intel):
         .where(NPCKnowledgeBook.intel == required_intel)
 
     results_ally = results.where(NPC.clan == player.clan)
-    if results_ally:
-        # if there is any ally, just pick them, if not then only enemies has the intel, no need to filter
-        results = results_ally
+    # todo: consider changing back to sort by ally
+    # if results_ally:
+    #     # if there is any ally, just pick them, if not then only enemies has the intel, no need to filter
+    #     results = results_ally
+    results = results_ally
 
     # sort by triangle distance
     locations_scores = [player.distance(row.place) for row in results]
@@ -155,6 +157,8 @@ def learn_3(required_intel: Intel):
 
     # intel[1] is to be learned
 
+    # todo: what if player already has the book, that would mess up everything in belongs_to, item_holder
+
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
     results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel)
 
@@ -166,7 +170,7 @@ def learn_3(required_intel: Intel):
 
     book_containing_intel = results[0].readable
 
-    book_holder_place = book_containing_intel.belongs_to.place
+    book_holder_place = book_containing_intel.place_()
     player.next_location = book_holder_place
     player.save()
 

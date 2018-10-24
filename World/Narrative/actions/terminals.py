@@ -137,8 +137,8 @@ def stealth(target: NPC):
     player = Player.get()
 
     # check if player at target's place
-    if player.place == target.place:
-        print("Player is not at the target's place")
+    if player.place != target.place:
+        print("Player is not at the target's place", target.place)
         return False
 
     print("==> Stealth on '", target, "'.")
@@ -252,17 +252,19 @@ def listen(intel: Intel, informer: NPC):
         return False
 
     # check if informer is an ally to player
-    if informer.clan != player.clan:
-        print("Player and the informer are from different clans")
-        return False
+    # todo: temporary
+    # if informer.clan != player.clan:
+    #     print("Player and the informer are from different clans")
+    #     return False
 
     # todo: maybe even an enemy with huge amount of owing factor could work too
 
     # check if player has enough favours book's score for this
-    fb, created = FavoursBook.get_or_create(npc=informer, player=player)
-    if fb.owe_factor <= 0:
-        print("Player doesn't have enough favour factor,", fb.owe_factor)
-        return False
+    # todo: temporary
+    # fb, created = FavoursBook.get_or_create(npc=informer, player=player)
+    # if fb.owe_factor <= 0:
+    #     print("Player doesn't have enough favour factor,", fb.owe_factor)
+    #     return False
 
     # update Player's intel
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel)

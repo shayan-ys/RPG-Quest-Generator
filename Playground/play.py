@@ -25,7 +25,10 @@ class Play(cmd.Cmd):
     def __init__(self):
         super(Play, self).__init__()
         # very beginning
-        self.progress = Progress(quest=quests.arbitrary_quest4)
+        self.progress = Progress(quest=quests.arbitrary_quest1)
+
+        self.progress.is_terminal_matches(self.last_action, self.last_args)
+        self.progress.print_progress()
 
     # ----- basic player commands -----
     def do_exchange(self, args):
@@ -35,10 +38,17 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 3):
             return
 
+        item_holder = NPC.get(NPC.name == args[0])
+        item_to_give = Item.get(Item.name == args[1])
+        item_to_take = Item.get(Item.name == args[2])
+
         terminals.exchange(
-            item_holder=NPC.get(NPC.name == args[0]),
-            item_to_give=Item.get(Item.name == args[1]),
-            item_to_take=Item.get(Item.name == args[2]))
+            item_holder=item_holder,
+            item_to_give=item_to_give,
+            item_to_take=item_to_take)
+
+        self.last_action = T.exchange
+        self.last_args = [item_holder, item_to_give, item_to_take]
 
     def do_explore(self, args):
         """Move player to a named position. EXPLORE Rivervale"""
@@ -46,11 +56,16 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 1):
             return
 
-        found = terminals.explore(area_location=Place.get(Place.name == args[0]))
+        dest = Place.get(Place.name == args[0])
+
+        found = terminals.explore(area_location=dest)
         if not found:
             print("failed!")
             return
         print("moved to:", Player.get().place)
+
+        self.last_action = T.explore
+        self.last_args = [dest]
 
     def do_gather(self, args):
         """Gather an item. GATHER bandage"""
@@ -58,12 +73,17 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 1):
             return
 
-        found = terminals.gather(item_to_gather=Item.get(Item.name == args[0]))
+        item = Item.get(Item.name == args[0])
+
+        found = terminals.gather(item_to_gather=item)
         if not found:
             print("failed!")
             return
         print("Item added to belongings.")
         print_player_belongings()
+
+        self.last_action = T.gather
+        self.last_args = [item]
 
     def do_give(self, args):
         """Give an NPC something. GIVE Goblin bandage"""
@@ -71,8 +91,10 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 2):
             return
 
+        item = Item.get(Item.name == args[1])
         npc = NPC.get(NPC.name == args[0])
-        found = terminals.give(item=Item.get(Item.name == args[1]), receiver=npc)
+
+        found = terminals.give(item=item, receiver=npc)
         if not found:
             print("failed!")
             return
@@ -80,6 +102,9 @@ class Play(cmd.Cmd):
         print_player_belongings()
         print("NPC belongings updated.")
         print_npc_belongings(npc)
+
+        self.last_action = T.give
+        self.last_args = [item, npc]
 
     def do_spy(self, args):
         """Spy on an NPC to gather some information (intel: type intel_value). SPY Goblin place lempeck_place"""
@@ -105,11 +130,16 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 1):
             return
 
-        found = terminals.stealth(target=NPC.get(NPC.name == args[0]))
+        target = NPC.get(NPC.name == args[0])
+
+        found = terminals.stealth(target=target)
         if not found:
             print("failed!")
             return
         print("stealth done!")
+
+        self.last_action = T.stealth
+        self.last_args = [target]
 
     def do_take(self, args):
         """Take something from an NPC. TAKE Goblin bandage"""
@@ -117,8 +147,10 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 2):
             return
 
+        item = Item.get(Item.name == args[1])
         npc = NPC.get(NPC.name == args[0])
-        found = terminals.take(item_to_take=Item.get(Item.name == args[1]), item_holder=npc)
+
+        found = terminals.take(item_to_take=item, item_holder=npc)
         if not found:
             print("failed!")
             return
@@ -127,18 +159,27 @@ class Play(cmd.Cmd):
         print("NPC belongings updated.")
         print_npc_belongings(npc)
 
+        self.last_action = T.take
+        self.last_args = [item, npc]
+
     def do_read(self, args):
         """Read a piece of intel from a book (intel: type intel_value). READ place goblin_place address_book"""
         args = parse(args)
         if not self.check_length(args, 3):
             return
 
-        found = terminals.read(intel=Intel.find_by_name(args[0], [args[1]]), readable=Item.get(Item.name == args[2]))
+        intel = Intel.find_by_name(args[0], [args[1]])
+        readable = Item.get(Item.name == args[2])
+
+        found = terminals.read(intel=intel, readable=readable)
         if not found:
             print("failed!")
             return
         print("Player intel updated.")
         print_player_intel()
+
+        self.last_action = T.read
+        self.last_args = [intel, readable]
 
     def do_goto(self, args):
         """Move player to a named position. GOTO Rivervale"""
@@ -146,11 +187,16 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 1):
             return
 
-        found = terminals.goto(destination=Place.get(Place.name == args[0]))
+        dest = Place.get(Place.name == args[0])
+
+        found = terminals.goto(destination=dest)
         if not found:
             print("failed!")
             return
         print("moved to:", Player.get().place)
+
+        self.last_action = T.goto
+        self.last_args = [dest]
 
     def do_kill(self, args):
         """Kill an NPC. KILL Goblin"""
@@ -159,11 +205,15 @@ class Play(cmd.Cmd):
             return
 
         npc = NPC.get(NPC.name == args[0])
+
         found = terminals.kill(target=npc)
         if not found:
             print("failed!")
             return
         print("target killed (health_meter set to " + str(npc.health_meter) + ")")
+
+        self.last_action = T.kill
+        self.last_args = [npc]
 
     def do_listen(self, args):
         """Listen a piece of intel from an NPC (intel: type intel_value). LISTEN spell needs_path Goblin"""
@@ -171,12 +221,18 @@ class Play(cmd.Cmd):
         if not self.check_length(args, 3):
             return
 
-        found = terminals.listen(intel=Intel.find_by_name(args[0], [args[1]]), informer=NPC.get(NPC.name == args[2]))
+        intel = Intel.find_by_name(args[0], [args[1]])
+        npc = NPC.get(NPC.name == args[2])
+
+        found = terminals.listen(intel=intel, informer=npc)
         if not found:
             print("failed!")
             return
         print("Player intel updated.")
         print_player_intel()
+
+        self.last_action = T.listen
+        self.last_args = [intel, npc]
 
     def do_report(self, args):
         """Report a piece of intel to an NPC (intel: type intel_value). REPORT spell needs_path Steve"""
@@ -186,6 +242,7 @@ class Play(cmd.Cmd):
 
         intel = Intel.find_by_name(args[0], [args[1]])
         npc = NPC.get(NPC.name == args[2])
+
         found = terminals.report(intel=intel, target=npc)
         if not found:
             print("failed!")
@@ -204,11 +261,15 @@ class Play(cmd.Cmd):
 
         item = Item.get(Item.name == args[0])
         npc = NPC.get(NPC.name == args[1])
+
         found = terminals.use(item_to_use=item, target=npc)
         if not found:
             print("failed!")
             return
         print("Item effect on the NPC,", item.impact_factor, "NPC health meter:", npc.health_meter)
+
+        self.last_action = T.use
+        self.last_args = [item, npc]
 
     def do_player(self, args):
         """Print player's info (type player <category>). PLAYER intel"""

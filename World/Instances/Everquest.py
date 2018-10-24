@@ -37,7 +37,7 @@ def create():
     jum = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
     comb = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='comb')[0], name='comb', place=None, belongs_to=bixies)
     bandage = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name='bandage')[0], name='bandage', place=bandage_place, belongs_to=None, usage=T.treat.value)
-    address_book = Item.create(type=ItemTypes.readable.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='address-book (goblin loc)', belongs_to=tomas)
+    address_book = Item.create(type=ItemTypes.readable.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='address_book', belongs_to=tomas)  # address-book (goblin loc)
     coin = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='coin')[0], name='coin', belongs_to_player=player)
 
     Need.create(npc=lempeck, item=potion)

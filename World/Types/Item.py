@@ -34,6 +34,8 @@ class Item(BaseElement, Worthy, Named):
             return self.place
         elif self.belongs_to:
             return self.belongs_to.place
+        elif self.belongs_to_player:
+            return Player.get().place
         else:
             return None
 

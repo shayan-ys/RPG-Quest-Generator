@@ -12,6 +12,7 @@ class Progress:
 
     quest: Node = None
     semantics_indices = {}
+    semantics_parsed_for_branches = []
     current_node: Node = None
     completed_indices = []
 
@@ -46,14 +47,21 @@ class Progress:
         return traverse_quest(root=self.quest)
 
     def get_narratives(self, root: Node, pre_semantics: list):
+        if root.index in self.semantics_parsed_for_branches:
+            return
+
         children_pre_semantics = Narrative.find(root)(*pre_semantics)
         for i, branch in enumerate(root.branches):
             self.semantics_indices[branch.index] = children_pre_semantics[i]
 
+        self.semantics_parsed_for_branches.append(root.index)
+
     def print_progress(self):
-        print("level:", self.current_node.index, ", current-node:", self.current_node.action, self.current_node.rule,
-              ", branches:", [(branch.action, branch.rule) for branch in self.current_node.branches])
-        print("semantics:", self.semantics_indices)
+        # print("level:", self.current_node.index, ", current-node:", self.current_node.action, self.current_node.rule,
+        #       ", branches:", [(branch.action, branch.rule) for branch in self.current_node.branches])
+        # print("semantics:", self.semantics_indices)
+        print("level:", self.current_node.index, ", current-node:", self.current_node.action)
+        print("semantics:", self.semantics_indices[self.current_node.index])
 
     def find_next_active_level(self, node: Node=None):
 
