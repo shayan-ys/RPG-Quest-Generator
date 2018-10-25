@@ -25,7 +25,7 @@ class Play(cmd.Cmd):
     def __init__(self):
         super(Play, self).__init__()
         # very beginning
-        self.progress = Progress(quest=quests.arbitrary_quest1)
+        self.progress = Progress(quest=quests.cure)
 
         self.progress.is_terminal_matches(self.last_action, self.last_args)
         self.progress.print_progress()
@@ -321,6 +321,14 @@ class Play(cmd.Cmd):
             print_npc_intel(npc)
             print_npc_belongings(npc)
             print_npc_place(npc)
+
+    def do_progress(self, args):
+        """Print Progress status, PROGRESS"""
+        args = parse(args)
+        if not self.check_length(args, 0):
+            return
+
+        self.progress.print_progress(full=True)
 
     def check_length(self, args: tuple, desired: int) -> bool:
         if len(args) != desired:

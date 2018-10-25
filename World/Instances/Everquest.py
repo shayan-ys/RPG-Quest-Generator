@@ -88,7 +88,7 @@ def create():
     PlayerKnowledgeBook.create(player=player, intel=intel_lempeck_loc)
 
     # todo: remove followings
-    PlayerKnowledgeBook.create(player=player, intel=intel_goblin_loc)
+    PlayerKnowledgeBook.create(player=player, intel=intel_rivervale_loc)
 
 
 # elements = []
