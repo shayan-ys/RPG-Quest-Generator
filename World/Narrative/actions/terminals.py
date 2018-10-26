@@ -4,6 +4,8 @@ from World.Types.Item import Item, ItemTypes
 from World.Types.Intel import Intel
 from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook, ReadableKnowledgeBook
 
+""" return True if action is do-able """
+
 
 def null(*args):
     """

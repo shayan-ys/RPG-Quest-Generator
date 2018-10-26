@@ -161,6 +161,7 @@ def learn_3(required_intel: Intel):
 
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
     results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel)
+    test = list(results)
 
     player = Player.get()
 

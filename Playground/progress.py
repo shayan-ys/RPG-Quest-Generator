@@ -1,9 +1,7 @@
-from Data import quests
 from World import Narrative
-from World.Types.Person import Player, NPC
+
 from Grammar.tree import Node
 from Grammar.actions import NonTerminals as NT, Terminals as T
-from World.Narrative import results
 
 from copy import copy
 
@@ -56,6 +54,11 @@ class Progress:
 
         self.semantics_parsed_for_branches.append(root.index)
 
+    def get_current_semantics(self):
+        if self.current_node and self.current_node.index in self.semantics_indices:
+            return self.semantics_indices[self.current_node.index]
+        return []
+
     def print_progress(self, full: bool=False):
         # print("level:", self.current_node.index, ", current-node:", self.current_node.action, self.current_node.rule,
         #       ", branches:", [(branch.action, branch.rule) for branch in self.current_node.branches])
@@ -64,7 +67,7 @@ class Progress:
         if full:
             print("semantics:", self.semantics_indices)
         else:
-            print("semantics:", self.semantics_indices[self.current_node.index])
+            print("semantics:", self.get_current_semantics())
 
     def find_next_active_level(self, node: Node=None):
 
@@ -74,6 +77,7 @@ class Progress:
         # is_action_done_method = results.find(node)
         # if not is_action_done_method(*self.semantics_indices[node.index]):
         if node.index not in self.completed_indices and node.action != T.null:
+
             if node.action != NT.sub_quest:
                 # todo: sub_quest is being skipped which is wrong!!! problem is addressed on Oct 24 should think about
 
@@ -94,13 +98,13 @@ class Progress:
 
     def update_active_level(self, new_node: Node):
         # using previous node
-        self.get_narratives(self.current_node, pre_semantics=self.semantics_indices[self.current_node.index])
+        self.get_narratives(self.current_node, pre_semantics=self.get_current_semantics())
 
         # update active level
         self.current_node = new_node
 
-    def is_terminal_matches(self, action: T, args: list) -> bool:
-        if action == self.current_node.action and args == self.semantics_indices[self.current_node.index]:
+    def check_action_proceed(self, action: T, args: list) -> bool:
+        if action == self.current_node.action and args == self.get_current_semantics():
             self.completed_indices.append(self.current_node.index)
             self.find_next_active_level(self.quest)
             return True

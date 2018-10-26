@@ -47,3 +47,7 @@ class XP:
         if not XP.terminal_xp_mapping:
             XP.create_map()
         return XP.terminal_xp_mapping[terminal]
+
+
+class Playground:
+    max_level_skip_loop = 100

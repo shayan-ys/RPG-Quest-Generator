@@ -1,8 +1,10 @@
 from World.Types import fn, JOIN
-from World.Types.Person import NPC
+from World.Types.Person import NPC, Player
 from World.Types.Intel import Intel
 from World.Types.Item import Item
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook
+
+from helper import sort_by_list
 
 # todo: use pre-filled favour book to choose between NPCs
 
@@ -20,6 +22,10 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         .order_by(Intel.worth.desc()).objects()
 
     # todo: sort by distance
+    # player = Player.get()
+    #
+    # locations_scores = [player.distance(res.place) for res in results]
+    # results = sort_by_list(results, locations_scores)
 
     if not results:
         return []
@@ -61,6 +67,10 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         .where(Intel.id.not_in(not_interesting_intel)).objects()
 
     # todo: sort by distance
+    # player = Player.get()
+    #
+    # locations_scores = [player.distance(res.place) for res in results]
+    # results = sort_by_list(results, locations_scores)
 
     if not results:
         return []
@@ -105,7 +115,11 @@ def protection_2(NPC_protection_motivated: NPC):
         .having(fn.COUNT(Exchange.id) == 0)\
         .objects()
 
-    # todo: sort by distance
+    # sort by distance
+    player = Player.get()
+
+    locations_scores = [player.distance(res.place) for res in results]
+    results = sort_by_list(results, locations_scores)
 
     if results:
         npc_in_need = results[0]

@@ -3,9 +3,11 @@ from Playground.info import print_player_intel, print_player_belongings, print_p
 from Playground.progress import Progress
 
 from Data import quests
+from Data.statics import Playground
 from Grammar.actions import Terminals as T
 
 from World.Narrative.actions import terminals
+from World.Narrative.effects import is_done_method
 from World.Types.Intel import Intel
 from World.Types.Item import Item
 from World.Types.Person import NPC, Player
@@ -21,13 +23,15 @@ class Play(cmd.Cmd):
     progress: Progress = None
     last_action = T.null
     last_args = []
+    quest_done = False
 
     def __init__(self):
         super(Play, self).__init__()
         # very beginning
-        self.progress = Progress(quest=quests.cure)
+        self.quest_done = False
+        self.progress = Progress(quest=quests.spy)
 
-        self.progress.is_terminal_matches(self.last_action, self.last_args)
+        self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
 
     # ----- basic player commands -----
@@ -309,6 +313,7 @@ class Play(cmd.Cmd):
             # more than 2 args
             self.check_length(args, 2)
             return
+
         npc = NPC.get(NPC.name == npc_name)
 
         if cat == "intel":
@@ -338,11 +343,31 @@ class Play(cmd.Cmd):
 
     def postcmd(self, stop, line):
         # after loop
-        level_completed = self.progress.is_terminal_matches(self.last_action, self.last_args)
-        # self.progress.find_next_active_level()
+
+        if not self.quest_done:
+
+            level_completed = False
+
+            for i in range(Playground.max_level_skip_loop):
+                level_completed = self.progress.check_action_proceed(self.last_action, self.last_args)
+                # next step updated
+
+                if level_completed:
+                    # check if next step is already done before (check world's effects)
+                    level_already_done = is_done_method(self.progress.current_node)(*self.progress.get_current_semantics())
+                    if level_already_done:
+                        print("Already done, skip")
+                        self.last_action = self.progress.current_node.action
+                        self.last_args = self.progress.get_current_semantics()
+                    else:
+                        break
+
+            # check if quest is completed
+            if level_completed and 0 in self.progress.completed_indices:
+                print("WOW quest completed!!!!")
+                self.progress.current_node = self.progress.quest
+                self.quest_done = True
         self.progress.print_progress()
-        if 0 in self.progress.completed_indices:
-            print("WOW quest completed!!!!")
 
 
 def parse(arg):
