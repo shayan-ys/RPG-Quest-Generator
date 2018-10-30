@@ -48,9 +48,10 @@ class Progress:
         if root.index in self.semantics_parsed_for_branches:
             return
 
-        children_pre_semantics = Narrative.find(root)(*pre_semantics)
-        for i, branch in enumerate(root.branches):
-            self.semantics_indices[branch.index] = children_pre_semantics[i]
+        if root.branches:
+            children_pre_semantics = Narrative.find(root)(*pre_semantics)
+            for i, branch in enumerate(root.branches):
+                self.semantics_indices[branch.index] = children_pre_semantics[i]
 
         self.semantics_parsed_for_branches.append(root.index)
 
@@ -83,7 +84,6 @@ class Progress:
 
                 if node.branches:
                     # go down the tree, player should first complete parent's branches
-                    print("active level going down the tree")
                     for branch in node.branches:
                         if branch.index not in self.completed_indices:
                             self.update_active_level(branch)

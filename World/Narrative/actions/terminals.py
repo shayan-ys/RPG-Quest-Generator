@@ -197,7 +197,7 @@ def read(intel: Intel, readable: Item):
     PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
 
     print("==> Read '%s' from '%s'." % (intel, readable))
-    print("==> + New intel added: '%s'" % intel)
+    # print("==> + New intel added: '%s'" % intel)
     return True
 
 
@@ -274,7 +274,7 @@ def listen(intel: Intel, informer: NPC):
     FavoursBook.construct(informer, -intel.worth_(), player)
 
     print("==> Listen to '%s' to get the intel '%s'." % (informer, intel))
-    print("==> + New intel added: '%s'" % intel)
+    # print("==> + New intel added: '%s'" % intel)
     return True
 
 

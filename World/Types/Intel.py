@@ -38,7 +38,7 @@ class Intel(BaseElement, Worthy):
             return str(self.holding_item), str(self.holding_holder)
 
     @staticmethod
-    def find_by_name(intel_type: str, *args):
+    def find_by_name(intel_type: str, *args) -> 'Intel' or None:
         if intel_type == IntelTypes.spell.name:
             return Intel.select().join(Spell).where(Intel.type == intel_type, Spell.name == args[0]).get()
         elif intel_type == IntelTypes.place.name:
@@ -47,6 +47,7 @@ class Intel(BaseElement, Worthy):
             return Intel.select()\
                 .join(Item, on=(Intel.holding_item == Item.id))\
                 .where(Intel.type == intel_type, Item.name == args[0]).get()
+        return None
 
     def __str__(self):
         if not self.type:
