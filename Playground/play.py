@@ -74,7 +74,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("moved to:", Player.get().place)
+        print("moved to:", Player.current().place)
 
     def do_gather(self, args):
         """Gather an item. GATHER bandage"""
@@ -206,7 +206,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("moved to:", Player.get().place)
+        print("moved to:", Player.current().place)
 
     def do_kill(self, args):
         """Kill an NPC. KILL Goblin"""
@@ -284,7 +284,7 @@ class Play(cmd.Cmd):
     def do_player(self, args):
         """Print player's info (type player <category>). PLAYER intel"""
         args = parse(args)
-        player = Player.get()
+        player = Player.current()
 
         if args:
             cat = args[0].lower()

@@ -62,7 +62,7 @@ class FavoursBook(BaseElement):
     @staticmethod
     def construct(npc: NPC, owe_factor: float, player: Player=None):
         if not player:
-            player = Player.get()
+            player = Player.current()
 
         fav, created = FavoursBook.get_or_create(player=player, npc=npc, defaults={'owe_factor': owe_factor})
         if not created:

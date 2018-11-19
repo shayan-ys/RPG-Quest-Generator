@@ -18,7 +18,7 @@ def null(*args):
 
 def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player has the item_to_give and holder has the item_to_take
     if item_to_give.belongs_to_player != player or item_to_take.belongs_to != item_holder:
@@ -55,7 +55,7 @@ def explore(area_location: Place):
 
     # Todo: implement exploration around the location
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player knows the location
     results = PlayerKnowledgeBook.select().join(Intel)\
@@ -74,7 +74,7 @@ def explore(area_location: Place):
 
 def gather(item_to_gather: Item):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player is at item location
     if item_to_gather.place != player.place:
@@ -92,7 +92,7 @@ def gather(item_to_gather: Item):
 def give(item: Item, receiver: NPC):
 
     # check if player has the item
-    player = Player.get()
+    player = Player.current()
     if item.belongs_to_player != player:
         print("Player doesn't have the item")
         return False
@@ -115,7 +115,7 @@ def give(item: Item, receiver: NPC):
 
 def spy(spy_on: NPC, intel_target: Intel):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player is at target's location
     if player.place != spy_on.place:
@@ -136,7 +136,7 @@ def spy(spy_on: NPC, intel_target: Intel):
 
 def stealth(target: NPC):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player at target's place
     if player.place != target.place:
@@ -149,7 +149,7 @@ def stealth(target: NPC):
 
 def take(item_to_take: Item, item_holder: NPC):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if NPC has the item
     if item_to_take.belongs_to != item_holder:
@@ -185,7 +185,7 @@ def read(intel: Intel, readable: Item):
         print("ReadableKnowledgeBook not found")
         return False
 
-    player = Player.get()
+    player = Player.current()
     # check if player is at the readable item's place
     if readable.place_() != player.place and readable.belongs_to_player != player:
         print("Player neither own the item, nor at the readable item's place,", readable.place_())
@@ -203,7 +203,7 @@ def read(intel: Intel, readable: Item):
 
 def goto(destination: Place):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player knows the location
     results = PlayerKnowledgeBook.select().join(Intel)\
@@ -222,7 +222,7 @@ def goto(destination: Place):
 
 def kill(target: NPC):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player is at target place
     if player.place != target.place:
@@ -246,7 +246,7 @@ def listen(intel: Intel, informer: NPC):
         print("Informer hasn't the intel player wants")
         return False
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player is in the informer place
     if informer.place != player.place:
@@ -280,7 +280,7 @@ def listen(intel: Intel, informer: NPC):
 
 def report(intel: Intel, target: NPC):
 
-    player = Player.get()
+    player = Player.current()
 
     # check if player has the intel
     if not PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
@@ -305,7 +305,7 @@ def report(intel: Intel, target: NPC):
 
 def use(item_to_use: Item, target: NPC):
 
-    player = Player.get()
+    player = Player.current()
     # check if player has the item
     if item_to_use.belongs_to_player != player:
         print("Player doesn't have the item,", item_to_use)

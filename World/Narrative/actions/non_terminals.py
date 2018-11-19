@@ -17,7 +17,7 @@ def sub_quest_1():
         .join(PlayerKnowledgeBook, JOIN.LEFT_OUTER)\
         .group_by(Intel).having(fn.COUNT(PlayerKnowledgeBook.id) == 0)
 
-    player = Player.get()
+    player = Player.current()
 
     locations_scores = [player.distance(place) for place in results]
     results = sort_by_list(results, locations_scores)
@@ -45,7 +45,7 @@ def goto_1(destination: Place):
     print('==> Already at your destination, %s.' % destination)
 
     # update player's location
-    player = Player.get()
+    player = Player.current()
     player.place = destination
     player.save()
 
@@ -104,7 +104,7 @@ def goto_3(destination: Place):
 
 def learn_1(required_intel: Intel):
     # update player intel
-    PlayerKnowledgeBook.get_or_create(player=Player.get(), intel=required_intel)
+    PlayerKnowledgeBook.get_or_create(player=Player.current(), intel=required_intel)
 
     print("==> Intel '%s' added." % required_intel)
     return [[]]
@@ -112,7 +112,7 @@ def learn_1(required_intel: Intel):
 
 def learn_2(required_intel: Intel):
     # find NPC who has the intel, goto the NPC and listen to get the intel
-    player = Player.get()
+    player = Player.current()
     results = NPC.select()\
         .join(NPCKnowledgeBook)\
         .where(NPCKnowledgeBook.intel == required_intel)
@@ -163,7 +163,7 @@ def learn_3(required_intel: Intel):
     results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel)
     test = list(results)
 
-    player = Player.get()
+    player = Player.current()
 
     # sort by readable place_ triangle
     locations_scores = [player.distance(knowledge_book.readable.place_()) for knowledge_book in results]
@@ -198,7 +198,7 @@ def learn_4(required_intel: Intel):
         .join(Exchange) \
         .where(Exchange.intel == required_intel, Need.item_id.is_null(False)).objects()
 
-    player = Player.get()
+    player = Player.current()
 
     # triangle distance sort
     locations_scores = [player.distance(npc.place) for npc in results]
@@ -233,7 +233,7 @@ def get_1(item_to_fetch: Item):
     print("==> You already have the item.")
 
     # if not, add it to player's belongings
-    item_to_fetch.belongs_to_player = Player.get()
+    item_to_fetch.belongs_to_player = Player.current()
     item_to_fetch.save()
 
     return []
@@ -258,11 +258,11 @@ def get_2(item_to_fetch: Item):
         results = NPC.select().join(Item, on=(Item.belongs_to.id == NPC.id))\
             .where(Item.generic == item_to_fetch.generic)
         # enemies are preferred
-        results_enemy = results.where(NPC.clan != Player.get().clan)
+        results_enemy = results.where(NPC.clan != Player.current().clan)
         if results_enemy:
             results = results_enemy
         # sort by triangle distance
-        player = Player.get()
+        player = Player.current()
         locations_scores = [player.distance(npc.place) for npc in results]
         results = sort_by_list(results, locations_scores)
 
@@ -309,7 +309,7 @@ def get_4(item_to_fetch: Item):
     # this ordering will be changed again.
     exchanges = exchanges.order_by(Exchange.need.item.worth.asc())
 
-    player = Player.get()
+    player = Player.current()
 
     locations_scores = [player.distance(exc.need.npc.place) for exc in exchanges]
     exchanges = sort_by_list(exchanges, locations_scores)
@@ -370,7 +370,7 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
     # place[1] is where NPC[1] lives
     item_holder_place = item_holder.place
 
-    player = Player.get()
+    player = Player.current()
     player.next_location = item_holder_place
     player.save()
 
@@ -390,7 +390,7 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
 
 def steal_2(item_to_steal: Item, item_holder: NPC):
 
-    player = Player.get()
+    player = Player.current()
     player.next_location = item_holder.place
     player.save()
 
@@ -411,7 +411,7 @@ def steal_2(item_to_steal: Item, item_holder: NPC):
 
 def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
 
-    player = Player.get()
+    player = Player.current()
     player.next_location = spy_on.place
     player.save()
 
@@ -435,7 +435,7 @@ def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
 
 def kill_1(target: NPC):
 
-    player = Player.get()
+    player = Player.current()
     player.next_location = target.place
     player.save()
 

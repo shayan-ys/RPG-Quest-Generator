@@ -12,7 +12,7 @@ def print_indented(data: list):
 
 def print_player_intel(player: Player=None):
     if not player:
-        player = Player.get()
+        player = Player.current()
 
     results = Intel.select().join(PlayerKnowledgeBook).where(PlayerKnowledgeBook.player == player)
     print("intel:")
@@ -21,7 +21,7 @@ def print_player_intel(player: Player=None):
 
 def print_player_belongings(player: Player=None):
     if not player:
-        player = Player.get()
+        player = Player.current()
 
     results = Item.select().where(Item.belongs_to_player == player)
     print("items:")
@@ -30,7 +30,7 @@ def print_player_belongings(player: Player=None):
 
 def print_player_places(player: Player=None):
     if not player:
-        player = Player.get()
+        player = Player.current()
 
     results = ["current: " + str(player.place), "next: " + str(player.next_location)]
     print("places:")

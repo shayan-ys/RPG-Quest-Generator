@@ -41,6 +41,10 @@ class Player(BaseElement, Person, Named):
         later = Place.get_by_id(self.next_location.id)
         return triangle_distance(current, dest=candid_dest, later=later)
 
+    @staticmethod
+    def current() -> 'Player':
+        return Player.get()
+
 
 class Enemies(BaseElement):
     npc_one = ForeignKeyField(NPC)

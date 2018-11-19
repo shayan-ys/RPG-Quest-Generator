@@ -22,7 +22,7 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         .order_by(Intel.worth.desc()).objects()
 
     # todo: sort by distance
-    # player = Player.get()
+    # player = Player.current()
     #
     # locations_scores = [player.distance(res.place) for res in results]
     # results = sort_by_list(results, locations_scores)
@@ -67,7 +67,7 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         .where(Intel.id.not_in(not_interesting_intel)).objects()
 
     # todo: sort by distance
-    # player = Player.get()
+    # player = Player.current()
     #
     # locations_scores = [player.distance(res.place) for res in results]
     # results = sort_by_list(results, locations_scores)
@@ -116,7 +116,7 @@ def protection_2(NPC_protection_motivated: NPC):
         .objects()
 
     # sort by distance
-    player = Player.get()
+    player = Player.current()
 
     locations_scores = [player.distance(res.place) for res in results]
     results = sort_by_list(results, locations_scores)
