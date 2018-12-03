@@ -51,3 +51,8 @@ class XP:
 
 class Playground:
     max_level_skip_loop = 100
+
+
+class World:
+    reachable_distance = 70
+    minimum_distance = 10

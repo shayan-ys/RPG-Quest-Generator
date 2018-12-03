@@ -46,7 +46,8 @@ class World:
             return traversed
 
         local_quest = deepcopy(quest)
-        local_quest.clean_nulls()
+        # local_quest.clean_nulls()
+        local_quest.set_indices()
         recursion(local_quest, [], 0, 0)
 
         # for elem in self.elements:

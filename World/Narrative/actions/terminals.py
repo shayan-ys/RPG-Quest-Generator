@@ -4,6 +4,8 @@ from World.Types.Item import Item, ItemTypes
 from World.Types.Intel import Intel
 from World.Types.BridgeModels import NPCKnowledgeBook, PlayerKnowledgeBook, FavoursBook, ReadableKnowledgeBook
 
+from World.Narrative import helper as NarrativeHelper
+
 """ return True if action is do-able """
 
 
@@ -27,9 +29,9 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
         print("item_to_take:", item_to_take, ",belongs_to:", item_to_take.belongs_to, ",item_holder:", item_holder)
         return False
 
-    # check if player is at item_holder's place
+    # check if player is at item_holder's place_location
     if item_holder.place != player.place:
-        print("Player is not at the item_holder's place,", item_holder.place)
+        print("Player is not at the item_holder's place_location,", item_holder.place)
         return False
 
     # todo: check if owing factor of NPC is more than different of items worth
@@ -59,7 +61,7 @@ def explore(area_location: Place):
 
     # check if player knows the location
     results = PlayerKnowledgeBook.select().join(Intel)\
-        .where(PlayerKnowledgeBook.player == player, Intel.place == area_location).limit(1)
+        .where(PlayerKnowledgeBook.player == player, Intel.place_location == area_location).limit(1)
     if not results:
         print("Location unknown (Intel not found in player's knowledge book)")
         return False
@@ -99,7 +101,7 @@ def give(item: Item, receiver: NPC):
 
     # check if player is at receiver's location
     if player.place != receiver.place:
-        print("Player is not at the receiver NPC's location")
+        print("Player is not at the receiver NPC's location,", receiver.place)
         return False
 
     item.belongs_to_player = None
@@ -128,7 +130,7 @@ def spy(spy_on: NPC, intel_target: Intel):
         return False
 
     # update Player's intel
-    PlayerKnowledgeBook.get_or_create(player=player, intel=intel_target)
+    NarrativeHelper.add_intel(intel_target)
 
     print("==> Spy on '%s' to get intel '%s'." % (spy_on, intel_target))
     return True
@@ -138,9 +140,9 @@ def stealth(target: NPC):
 
     player = Player.current()
 
-    # check if player at target's place
+    # check if player at target's place_location
     if player.place != target.place:
-        print("Player is not at the target's place", target.place)
+        print("Player is not at the target's place_location", target.place)
         return False
 
     print("==> Stealth on '", target, "'.")
@@ -156,9 +158,9 @@ def take(item_to_take: Item, item_holder: NPC):
         print("NPC", item_holder, "doesn't have the item", item_to_take, "to take")
         return False
 
-    # check if player is at item_holder's place
+    # check if player is at item_holder's place_location
     if item_holder.place != player.place:
-        print("Player is not at the item_holder's place,", item_holder.place)
+        print("Player is not at the item_holder's place_location,", item_holder.place)
         return False
 
     # todo: check if NPC has an owing favour or is less powerful, or killed
@@ -186,15 +188,15 @@ def read(intel: Intel, readable: Item):
         return False
 
     player = Player.current()
-    # check if player is at the readable item's place
+    # check if player is at the readable item's place_location
     if readable.place_() != player.place and readable.belongs_to_player != player:
-        print("Player neither own the item, nor at the readable item's place,", readable.place_())
+        print("Player neither own the item, nor at the readable item's place_location,", readable.place_())
         return False
 
     # todo: an NPC might have it that doesn't want you to read it! So you have to deal with the NPC first!
 
     # update Player's intel
-    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    NarrativeHelper.add_intel(intel)
 
     print("==> Read '%s' from '%s'." % (intel, readable))
     # print("==> + New intel added: '%s'" % intel)
@@ -207,9 +209,9 @@ def goto(destination: Place):
 
     # check if player knows the location
     results = PlayerKnowledgeBook.select().join(Intel)\
-        .where(PlayerKnowledgeBook.player == player, Intel.place == destination).limit(1)
+        .where(PlayerKnowledgeBook.player == player, Intel.place_location == destination).limit(1)
     if not results:
-        print("Location unknown (Intel not found in player's knowledge book)")
+        print("Location '", destination, "' unknown (Intel not found in player's knowledge book)")
         return False
 
     # update Player's location
@@ -224,7 +226,7 @@ def kill(target: NPC):
 
     player = Player.current()
 
-    # check if player is at target place
+    # check if player is at target place_location
     if player.place != target.place:
         print("Player is not at target's location,", target.place)
         return False
@@ -248,9 +250,9 @@ def listen(intel: Intel, informer: NPC):
 
     player = Player.current()
 
-    # check if player is in the informer place
+    # check if player is in the informer place_location
     if informer.place != player.place:
-        print("Player is not at the informer's place,", informer.place)
+        print("Player is not at the informer's place_location,", informer.place)
         return False
 
     # check if informer is an ally to player
@@ -269,8 +271,7 @@ def listen(intel: Intel, informer: NPC):
     #     return False
 
     # update Player's intel
-    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
-
+    NarrativeHelper.add_intel(intel)
     FavoursBook.construct(informer, -intel.worth_(), player)
 
     print("==> Listen to '%s' to get the intel '%s'." % (informer, intel))
@@ -287,9 +288,9 @@ def report(intel: Intel, target: NPC):
         print("Player doesn't have the intel")
         return False
 
-    # check if player is in the target place
+    # check if player is in the target place_location
     if target.place != player.place:
-        print("Player is not at the target's place,", target.place)
+        print("Player is not at the target's place_location,", target.place)
         return False
 
     # update Player's favours book if target hasn't have it already
@@ -311,9 +312,9 @@ def use(item_to_use: Item, target: NPC):
         print("Player doesn't have the item,", item_to_use)
         return False
 
-    # check if player at target's place
+    # check if player at target's place_location
     if target.place != player.place:
-        print("Player is not at the target's place,", target.place)
+        print("Player is not at the target's place_location,", target.place)
         return False
 
     # check if item is a tool

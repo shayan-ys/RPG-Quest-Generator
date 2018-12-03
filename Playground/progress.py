@@ -16,7 +16,8 @@ class Progress:
 
     def __init__(self, quest: Node):
         local_quest = copy(quest)
-        local_quest.clean_nulls()
+        # local_quest.clean_nulls()
+        local_quest.set_indices()
         self.quest = local_quest
         self.current_node = local_quest
 

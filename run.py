@@ -36,6 +36,10 @@ Everquest.create()
 # prg.get_narratives(prg.quest, [])
 # prg.get_narratives(prg.quest.branches[0], prg.semantics_indices[1])
 # prg.mission(0)
-Play().cmdloop()
+Play(quests.cure).cmdloop()
 
+# intel = Intel.Intel.select().join(Place.Place, on=(Intel.Intel.npc_place == Person.NPC.id))\
+#     .where(Intel.Intel.type == 'npc_place', Person.NPC.name == 'bixies').get()
+
+print(intel)
 db.close()

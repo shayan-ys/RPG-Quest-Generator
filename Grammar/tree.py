@@ -145,6 +145,15 @@ class Node(Tree):
 
         return index, self
 
+    def set_indices(self, index: int=0) -> (int, 'Node'):
+
+        self.index = index
+        if self.branches:
+            for branch in self.branches:
+                index = branch.set_indices(index + 1)
+
+        return index
+
     def flat(self) -> list:
 
         flatten_branches = []

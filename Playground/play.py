@@ -23,13 +23,17 @@ class Play(cmd.Cmd):
     progress: Progress = None
     last_action = T.null
     last_args = []
+    last_action_doable = False
     quest_done = False
 
-    def __init__(self):
+    def __init__(self, quest=None):
         super(Play, self).__init__()
         # very beginning
         self.quest_done = False
-        self.progress = Progress(quest=quests.spy)
+
+        if not quest:
+            quest = quests.cure
+        self.progress = Progress(quest=quest)
 
         self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
@@ -58,6 +62,7 @@ class Play(cmd.Cmd):
             return
         print("gave", item_to_give, ", took", item_to_take)
         print_player_belongings()
+        self.last_action_doable = True
 
     def do_explore(self, args):
         """Move player to a named position. EXPLORE Rivervale"""
@@ -75,6 +80,7 @@ class Play(cmd.Cmd):
             print("failed!")
             return
         print("moved to:", Player.current().place)
+        self.last_action_doable = True
 
     def do_gather(self, args):
         """Gather an item. GATHER bandage"""
@@ -93,6 +99,7 @@ class Play(cmd.Cmd):
             return
         print("Item added to belongings.")
         print_player_belongings()
+        self.last_action_doable = True
 
     def do_give(self, args):
         """Give an NPC something. GIVE Goblin bandage"""
@@ -114,9 +121,10 @@ class Play(cmd.Cmd):
         print_player_belongings()
         print("NPC belongings updated.")
         print_npc_belongings(npc)
+        self.last_action_doable = True
 
     def do_spy(self, args):
-        """Spy on an NPC to gather some information (intel: type intel_value). SPY Goblin place lempeck_place"""
+        """Spy on an NPC to gather some information (intel: type intel_value). SPY Goblin place_location tomas_place"""
         args = parse(args)
         if not self.check_length(args, 3):
             return
@@ -133,6 +141,7 @@ class Play(cmd.Cmd):
             return
         print("Player intel updated.")
         print_player_intel()
+        self.last_action_doable = True
 
     def do_stealth(self, args):
         """Stealth on an NPC. STEALTH Goblin"""
@@ -150,6 +159,7 @@ class Play(cmd.Cmd):
             print("failed!")
             return
         print("stealth done!")
+        self.last_action_doable = True
 
     def do_take(self, args):
         """Take something from an NPC. TAKE Goblin bandage"""
@@ -171,9 +181,10 @@ class Play(cmd.Cmd):
         print_player_belongings()
         print("NPC belongings updated.")
         print_npc_belongings(npc)
+        self.last_action_doable = True
 
     def do_read(self, args):
-        """Read a piece of intel from a book (intel: type intel_value). READ place goblin_place address_book"""
+        """Read a piece of intel from a book (intel: type intel_value). READ place_location goblin_place address_book"""
         args = parse(args)
         if not self.check_length(args, 3):
             return
@@ -190,6 +201,7 @@ class Play(cmd.Cmd):
             return
         print("Player intel updated.")
         print_player_intel()
+        self.last_action_doable = True
 
     def do_goto(self, args):
         """Move player to a named position. GOTO Rivervale"""
@@ -207,6 +219,7 @@ class Play(cmd.Cmd):
             print("failed!")
             return
         print("moved to:", Player.current().place)
+        self.last_action_doable = True
 
     def do_kill(self, args):
         """Kill an NPC. KILL Goblin"""
@@ -224,6 +237,7 @@ class Play(cmd.Cmd):
             print("failed!")
             return
         print("target killed (health_meter set to " + str(npc.health_meter) + ")")
+        self.last_action_doable = True
 
     def do_listen(self, args):
         """Listen a piece of intel from an NPC (intel: type intel_value). LISTEN spell needs_path Goblin"""
@@ -243,6 +257,7 @@ class Play(cmd.Cmd):
             return
         print("Player intel updated.")
         print_player_intel()
+        self.last_action_doable = True
 
     def do_report(self, args):
         """Report a piece of intel to an NPC (intel: type intel_value). REPORT spell needs_path Steve"""
@@ -262,6 +277,7 @@ class Play(cmd.Cmd):
             return
         print("NPC intel updated.")
         print_npc_intel(npc)
+        self.last_action_doable = True
 
     def do_use(self, args):
         """Use an item (tool) on an NPC. USE potion Lempeck"""
@@ -280,6 +296,7 @@ class Play(cmd.Cmd):
             print("failed!")
             return
         print("Item effect on the NPC,", item.impact_factor, "NPC health meter:", npc.health_meter)
+        self.last_action_doable = True
 
     def do_player(self, args):
         """Print player's info (type player <category>). PLAYER intel"""
@@ -295,7 +312,7 @@ class Play(cmd.Cmd):
             print_player_intel(player)
         elif cat == "items" or cat == "item" or cat == "belongings" or cat == "belonging":
             print_player_belongings(player)
-        elif cat == "places" or cat == "place" or cat == "locations" or cat == "location":
+        elif cat == "places" or cat == "place_location" or cat == "locations" or cat == "location":
             print_player_places(player)
         else:
             print_player_intel(player)
@@ -329,7 +346,7 @@ class Play(cmd.Cmd):
             print_npc_intel(npc)
         elif cat == "items" or cat == "item" or cat == "belongings" or cat == "belonging":
             print_npc_belongings(npc)
-        elif cat == "places" or cat == "place" or cat == "locations" or cat == "location":
+        elif cat == "places" or cat == "place_location" or cat == "locations" or cat == "location":
             print_npc_place(npc)
         else:
             print_npc_intel(npc)
@@ -362,7 +379,8 @@ class Play(cmd.Cmd):
     def postcmd(self, stop, line):
         # after loop
 
-        if not self.quest_done:
+        if not self.quest_done and self.last_action_doable:
+            self.last_action_doable = False
 
             level_completed = False
 

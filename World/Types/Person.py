@@ -7,7 +7,7 @@ class Clan(BaseElement, Named):
 
 
 class Person(Model):
-    place = ForeignKeyField(Place, backref='persons')   # the place where Person currently is
+    place = ForeignKeyField(Place, backref='persons')   # the place_location where Person currently is
     clan = ForeignKeyField(Clan, backref='members', null=True)
     health_meter = FloatField(default=1.0, constraints=[Check('health_meter >= 0.0'), Check('health_meter <= 1.0')])
 

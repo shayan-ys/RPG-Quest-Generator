@@ -24,7 +24,7 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     # todo: sort by distance
     # player = Player.current()
     #
-    # locations_scores = [player.distance(res.place) for res in results]
+    # locations_scores = [player.distance(res.place_location) for res in results]
     # results = sort_by_list(results, locations_scores)
 
     if not results:
@@ -69,7 +69,7 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
     # todo: sort by distance
     # player = Player.current()
     #
-    # locations_scores = [player.distance(res.place) for res in results]
+    # locations_scores = [player.distance(res.place_location) for res in results]
     # results = sort_by_list(results, locations_scores)
 
     if not results:
@@ -83,13 +83,13 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
 
     # intel[1] is the intel NPC[1] has that NPC[0] doesn't
 
-    # place[0] is where the NPC[0] is living
-    # place[1] is where the NPC[1] is living
+    # place_location[0] is where the NPC[0] is living
+    # place_location[1] is where the NPC[1] is living
 
     # steps:
-    #   goto[1]: from place[0] | destination place[1]
+    #   goto[1]: from place_location[0] | destination place_location[1]
     #   listen: get intel[1] from NPC[1]
-    #   goto[2]: from place[1] | destination place[0]
+    #   goto[2]: from place_location[1] | destination place_location[0]
     #   report: give intel[1] to NPC[0]
     steps = [
         [NPC_knowledgeable.place],

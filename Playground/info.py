@@ -51,5 +51,5 @@ def print_npc_belongings(npc: NPC):
 
 def print_npc_place(npc: NPC):
     results = [npc.place]
-    print("place:")
+    print("place_location:")
     print_indented(results)
