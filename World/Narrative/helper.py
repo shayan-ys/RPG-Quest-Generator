@@ -1,7 +1,11 @@
 from World.Types.Item import Item
 from World.Types.Person import Player
 from World.Types.Intel import Intel
+from World.Types.Place import Place
 from World.Types.BridgeModels import PlayerKnowledgeBook
+
+from Data.statics import World as WorldParams
+from random import random, randint
 
 
 def add_item_place_intel(item: Item):
@@ -33,3 +37,19 @@ def add_intel(intel: Intel):
 
     elif intel.item_place:
         add_item_place_intel(intel.item_place)
+
+
+def create_place(known_to_player: bool=False):
+    player = Player.current()
+    player_place = player.place  # type: Place
+    new_x = abs(player_place.x
+                + randint(WorldParams.minimum_distance, WorldParams.reachable_distance)
+                * (1 if random() < 0.5 else -1))
+    new_y = abs(player_place.y
+                + randint(WorldParams.minimum_distance, WorldParams.reachable_distance)
+                * (1 if random() < 0.5 else -1))
+    place_to_go = Place.create(name='arbitrary_' + str(randint(100, 999)), x=new_x, y=new_y)
+    if known_to_player:
+        PlayerKnowledgeBook.create(player=player, intel=Intel.construct(place_location=place_to_go))
+
+    return place_to_go

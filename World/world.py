@@ -2,14 +2,11 @@ from Grammar.actions import Terminals
 from Grammar.tree import Node
 
 from World import Narrative
-from World.Types.Person import Player
 
 from copy import deepcopy
 
 
 class World:
-    from World.Instances import Custom as WorldElements
-
     player = None
 
     def parse_quest(self, quest: Node) -> None:

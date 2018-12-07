@@ -5,6 +5,7 @@ from Playground.progress import Progress
 from Data import quests
 from Data.statics import Playground
 from Grammar.actions import Terminals as T
+from Grammar.plot import export_semantics_plot
 
 from World.Narrative.actions import terminals
 from World.Narrative.effects import is_done_method
@@ -37,6 +38,8 @@ class Play(cmd.Cmd):
 
         self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
+        export_semantics_plot(quest, semantics_indices=self.progress.semantics_indices,
+                              current_level_index=self.progress.current_node.index)
 
     # ----- basic player commands -----
     def do_exchange(self, args):
@@ -403,7 +406,10 @@ class Play(cmd.Cmd):
                 print("WOW quest completed!!!!")
                 self.progress.current_node = self.progress.quest
                 self.quest_done = True
+
         self.progress.print_progress()
+        export_semantics_plot(self.progress.quest, semantics_indices=self.progress.semantics_indices,
+                              current_level_index=self.progress.current_node.index)
 
 
 def parse(arg):

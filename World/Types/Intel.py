@@ -46,7 +46,7 @@ class Intel(BaseElement, Worthy):
         elif self.type == str(IntelTypes.item_place.name):
             return self.item_place
         elif self.type == str(IntelTypes.holding.name):
-            return str(self.holding_item), str(self.holding_holder)
+            return self.holding_item,  self.holding_holder
 
     @staticmethod
     def construct(spell: Spell=None, place_location: Place=None, npc_place: NPC=None, item_place: Item=None,
@@ -99,7 +99,15 @@ class Intel(BaseElement, Worthy):
     def __str__(self):
         if not self.type:
             return str(self.type)
-        return str(self.data())
+
+        if self.type == str(IntelTypes.spell.name):
+            return str(self.spell) + " spell"
+        elif self.type == str(IntelTypes.location.name):
+            return str(self.place_location) + " location"
+        elif self.type == str(IntelTypes.npc_place.name) or self.type == str(IntelTypes.item_place.name):
+            return str(self.npc_place if self.npc_place else self.item_place) + "'s place"
+        elif self.type == str(IntelTypes.holding.name):
+            return str(self.holding_holder) + " holding item " + str(self.holding_item)
 
 
 list_of_models = [Intel, Spell]

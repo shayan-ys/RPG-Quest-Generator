@@ -36,10 +36,15 @@ Everquest.create()
 # prg.get_narratives(prg.quest, [])
 # prg.get_narratives(prg.quest.branches[0], prg.semantics_indices[1])
 # prg.mission(0)
-Play(quests.cure).cmdloop()
+Play(quests.spy).cmdloop()
 
-# intel = Intel.Intel.select().join(Place.Place, on=(Intel.Intel.npc_place == Person.NPC.id))\
-#     .where(Intel.Intel.type == 'npc_place', Person.NPC.name == 'bixies').get()
+# known_place = Place.Place.select() \
+#     .join(Intel.Intel, on=(Intel.Intel.place_location == Place.Place.id)) \
+#     .join(BridgeModels.PlayerKnowledgeBook, on=(BridgeModels.PlayerKnowledgeBook.intel == Intel.Intel.id)) \
+#     .where(BridgeModels.PlayerKnowledgeBook.player == Person.Player.current())
+#
+# for place in known_place:
+#     print(place)
 
-print(intel)
+
 db.close()

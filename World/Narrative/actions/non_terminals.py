@@ -2,8 +2,9 @@ from World.Types import fn, JOIN
 from World.Types.Person import Player, NPC
 from World.Types.Place import Place
 from World.Types.Intel import Intel, IntelTypes
-from World.Types.Item import Item
+from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import Need, Exchange, ReadableKnowledgeBook, NPCKnowledgeBook, PlayerKnowledgeBook
+from World.Narrative import helper as NarrativeHelper
 
 from Data.statics import World as WorldParams
 from helper import sort_by_list
@@ -54,7 +55,11 @@ def goto_1(destination: Place, npc: NPC=None, item: Item=None):
     You are already there.
     :return:
     """
-    print('==> Already at your destination, %s.' % destination)
+    if npc or item:
+        destination_str = str(npc if npc else item) + ' (' + str(destination) + ')'
+    else:
+        destination_str = str(destination)
+    print('==> Already at your destination,', destination_str)
 
     # todo: if npc then move npc to player's current location
     # todo: if item then move item to player's current location (or if its not unique, create another one at place)
@@ -82,7 +87,12 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
     steps = [
         [destination, npc, item]
     ]
-    print("==> Explore around '", destination, "'.")
+
+    if npc or item:
+        destination_str = str(npc if npc else item) + ' (' + str(destination) + ')'
+    else:
+        destination_str = str(destination)
+    print("==> Explore around", destination_str)
 
     return steps
 
@@ -134,7 +144,12 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
         [intel_location],
         [destination]
     ]
-    print("==> Find out how to get to '", destination, "', then goto it.")
+
+    if npc or item:
+        destination_str = str(npc if npc else item) + ' (' + str(destination) + ')'
+    else:
+        destination_str = str(destination)
+    print("==> Find out how to get to '", destination_str, "', then goto it.")
 
     return steps
 
@@ -160,25 +175,40 @@ def learn_1(required_intel: Intel):
 
 
 def learn_2(required_intel: Intel):
+
     player = Player.current()
 
     # find NPC who has the intel, goto the NPC and listen to get the intel
     results = NPC.select()\
         .join(NPCKnowledgeBook)\
-        .where(NPCKnowledgeBook.intel == required_intel)
-
-    results_ally = results.where(NPC.clan == player.clan)
-    # todo: consider changing back to sort by ally
-    # if results_ally:
-    #     # if there is any ally, just pick them, if not then only enemies has the intel, no need to filter
-    #     results = results_ally
-    results = results_ally
+        .where(NPCKnowledgeBook.intel == required_intel, NPC.health_meter > 0, NPC.clan == player.clan)
 
     # sort by triangle distance
     locations_scores = [player.distance(row.place) for row in results]
     results = sort_by_list(results, locations_scores)
 
-    knowledgeable_npc = results[0]
+    if results:
+        knowledgeable_npc = results[0]
+    else:
+        # NPC pool to add required intel to one of them
+        results = NPC.select().where(NPC.health_meter > 0, NPC.clan == player.clan)
+        if not results:
+            # No NPC in clan found search among all NPCs
+            results = NPC.select().where(NPC.health_meter > 0)
+
+        if required_intel.npc_place:
+            # exclude the same NPC looking for
+            results = results.where(NPC.id != required_intel.npc_place)
+
+        if not results:
+            # No NPC left in the world
+            return []
+
+        locations_scores = [player.distance(row.place) for row in results]
+        results = sort_by_list(results, locations_scores)
+
+        knowledgeable_npc = results[0]
+        NPCKnowledgeBook.create(npc=knowledgeable_npc, intel=required_intel)
 
     player.next_location = knowledgeable_npc.place
     player.save()
@@ -193,8 +223,8 @@ def learn_2(required_intel: Intel):
         [required_intel, knowledgeable_npc]
     ]
 
-    print("==> Do a sub-quest, goto '%s', listen intel '%s' from '%s'." %
-          (knowledgeable_npc.place, required_intel, knowledgeable_npc))
+    print("==> Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
+          (knowledgeable_npc, knowledgeable_npc.place, required_intel, knowledgeable_npc))
 
     return steps
 
@@ -210,20 +240,34 @@ def learn_3(required_intel: Intel):
     # intel[1] is to be learned
 
     # find a book[1] (readable, it could be a sign) that has intel[1] on it
-    results = ReadableKnowledgeBook.select().where(ReadableKnowledgeBook.intel == required_intel,
-                                                   ReadableKnowledgeBook.readable.belongs_to_player != player)
+    results = ReadableKnowledgeBook.select()\
+        .join(Item, on=(ReadableKnowledgeBook.readable == Item.id))\
+        .where(ReadableKnowledgeBook.intel == required_intel,
+               Item.belongs_to_player != player)
 
     # sort by readable place_ triangle
     locations_scores = [player.distance(knowledge_book.readable.place_()) for knowledge_book in results]
     results = sort_by_list(results, locations_scores)
 
-    # todo: if not such a book, create one!
+    if results:
+        book_containing_intel = results[0].readable  # type: Item
+    else:
+        known_places = Place.select()\
+            .join(Intel, on=(Intel.place_location == Place.id))\
+            .join(PlayerKnowledgeBook, on=(PlayerKnowledgeBook.intel == Intel.id))\
+            .where(PlayerKnowledgeBook.player == player)
+        if known_places:
+            known_place = known_places.order_by(fn.Random()).get()
+        else:
+            known_place = NarrativeHelper.create_place(known_to_player=True)
 
-    book_containing_intel = results[0].readable  # type: Item
+        book_containing_intel = Item.create(type=ItemTypes.readable.name,
+                                            generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
+                                            name='address_book_' + str(randint(100, 999)), place=known_place)
+        ReadableKnowledgeBook.create(readable=book_containing_intel, intel=required_intel)
+        PlayerKnowledgeBook.create(player=player, intel=Intel.construct(item_place=book_containing_intel))
 
-    book_holder = book_containing_intel.belongs_to  # type: NPC
-    book_holder_place = book_holder.place  # type: Place
-    player.next_location = book_holder_place
+    player.next_location = book_containing_intel.place_()
     player.save()
 
     # steps:
@@ -231,12 +275,12 @@ def learn_3(required_intel: Intel):
     # get: book[1]
     # T.read: intel[1] from book[1]
     steps = [
-        [book_holder_place, book_holder],
+        [book_containing_intel.place_(), None, book_containing_intel],
         [book_containing_intel],
         [required_intel, book_containing_intel]
     ]
-    print("==> Goto '", book_holder_place, "', get '", book_containing_intel, "', and read the intel '", required_intel,
-          "' from it.")
+    print("==> Goto", book_containing_intel, "(", book_containing_intel.place_(), "), get '", book_containing_intel, "', and read the intel '",
+          required_intel, "' from it.")
 
     return steps
 
@@ -370,6 +414,7 @@ def get_4(item_to_fetch: Item):
     :param item_to_fetch:
     :return:
     """
+    player = Player.current()
 
     # find an NPC who has the needed item, and has it in exchange list
     exchanges = Exchange.select().join(Item)
@@ -378,18 +423,41 @@ def get_4(item_to_fetch: Item):
     else:
         exchanges = exchanges.where(Exchange.item.generic == item_to_fetch.generic)
 
-    # todo: This is useless now, since being sorted again later, but when sort by triangle distance added to database,
-    # this ordering will be changed again.
-    exchanges = exchanges.order_by(Exchange.need.item.worth.asc())
+    if exchanges:
+        # todo: This is useless now, since being sorted again later,
+        #  but when sort by triangle distance added to database, this ordering will be changed again.
+        exchanges = exchanges.order_by(Exchange.need.item.worth.asc())
 
-    player = Player.current()
+        locations_scores = [player.distance(exc.need.npc.place) for exc in exchanges]
+        exchanges = sort_by_list(exchanges, locations_scores)
 
-    locations_scores = [player.distance(exc.need.npc.place) for exc in exchanges]
-    exchanges = sort_by_list(exchanges, locations_scores)
+        exchange = exchanges[0]
+        item_to_give = exchange.need.item
+        item_holder = exchange.need.npc
+    else:
+        # no one wants to offer the "item_to_fetch" in exchange for something else
+        # you can even trade with your enemies so alliance doesn't really matters here
+        # first try find someone who needs this item
+        needs = Need.select().where(Need.item == item_to_fetch).group_by(Need.npc)
+        if needs.count():
+            need = needs.get()
+            item_holder = need.npc
+        else:
+            # no one need anything create a need for coin for an NPC
+            results = NPC.select()
+            locations_scores = [player.distance(npc.place) for npc in results]
+            results = sort_by_list(results, locations_scores)
+            item_holder = results[0]
+            need = Need.create(npc=item_holder, item=Item.get(generic=GenericItem.get(name='coin')))
 
-    exchange = exchanges[0]
-    item_to_give = exchange.need.item
-    item_holder = exchange.need.npc
+        Exchange.create(need=need, item=item_to_fetch)
+
+        if item_to_fetch.belongs_to != item_holder:
+            # ensure NPC has the item
+            item_to_fetch.belongs_to = item_holder
+            item_to_fetch.save()
+
+        item_to_give = need.item
 
     player.next_location = item_holder.place
     player.save()
@@ -502,8 +570,8 @@ def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
         [intel_needed, receiver]
     ]
 
-    print("==> Goto '%s', spy on '%s' to get intel '%s', goto '%s', report the intel to '%s'." %
-          (spy_on.place, spy_on, intel_needed, receiver.place, receiver))
+    print("==> Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
+          (spy_on, spy_on.place, spy_on, intel_needed, receiver, receiver.place, receiver))
 
     return steps
 

@@ -2,6 +2,7 @@ from World import Narrative
 
 from Grammar.tree import Node
 from Grammar.actions import NonTerminals as NT, Terminals as T
+from Grammar.plot import export_grammar_plot
 
 from copy import copy
 
@@ -20,6 +21,8 @@ class Progress:
         local_quest.set_indices()
         self.quest = local_quest
         self.current_node = local_quest
+
+        export_grammar_plot(local_quest)
 
         self.semantics_indices[0] = []
         self.get_narratives(root=local_quest, pre_semantics=[])
@@ -52,6 +55,8 @@ class Progress:
         if root.branches:
             children_pre_semantics = Narrative.find(root)(*pre_semantics)
             for i, branch in enumerate(root.branches):
+                if branch.action == T.null:
+                    continue
                 self.semantics_indices[branch.index] = children_pre_semantics[i]
 
         self.semantics_parsed_for_branches.append(root.index)

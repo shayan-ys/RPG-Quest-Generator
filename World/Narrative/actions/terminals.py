@@ -23,9 +23,12 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     player = Player.current()
 
     # check if player has the item_to_give and holder has the item_to_take
-    if item_to_give.belongs_to_player != player or item_to_take.belongs_to != item_holder:
+    if item_to_give.belongs_to_player != player:
         print("DEBUG:")
         print("item_to_give:", item_to_give, ",belongs_to_player:", item_to_give.belongs_to_player, ",player:", player)
+        return False
+    if item_to_take.belongs_to != item_holder:
+        print("DEBUG:")
         print("item_to_take:", item_to_take, ",belongs_to:", item_to_take.belongs_to, ",item_holder:", item_holder)
         return False
 

@@ -47,7 +47,7 @@ def create():
     Need.create(npc=lempeck, item=potion)
 
     spell = Intel.construct(spell=Spell.create(name="needs_path",
-                                            text="'Earth, grass, trees and seeds reveal the path to suit my needs'"))
+                                               text="'Earth, grass, trees and seeds reveal the path to suit my needs'"))
     spell_2 = Intel.construct(spell=Spell.create(name="flat_earth", text="Earth is flat! LoL"))
     spell_3 = Intel.construct(spell=Spell.create(name="gravity", text="Gravity is a myth"))
     NPCKnowledgeBook.create(npc=goblin, intel=spell)
