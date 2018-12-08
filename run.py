@@ -29,6 +29,17 @@ db.drop_tables(list_of_models)
 db.create_tables(list_of_models)
 Everquest.create()
 
+# print("--- start ---")
+# from Playground.info import print_player_intel
+# print_player_intel()
+# npc = Person.NPC.get(name='goblin')
+# npc.place = Place.Place.get(name='beach')
+# npc.save()
+# print(npc.place)
+#
+# print_player_intel()
+
+
 # world = World()
 # world.parse_quest(quest=quests.cure)
 
@@ -36,6 +47,7 @@ Everquest.create()
 # prg.get_narratives(prg.quest, [])
 # prg.get_narratives(prg.quest.branches[0], prg.semantics_indices[1])
 # prg.mission(0)
+
 Play(quests.spy).cmdloop()
 
 # known_place = Place.Place.select() \

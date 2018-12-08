@@ -91,3 +91,4 @@ def create():
 
     # todo: remove followings
     # PlayerKnowledgeBook.create(player=player, intel=intel_npc2_loc)
+    # PlayerKnowledgeBook.create(player=player, intel=intel_goblin_loc)

@@ -14,7 +14,23 @@ class Person(Model):
 
 class NPC(BaseElement, Person, Named):
     # Non Player Character
-    pass
+    def save(self, force_insert=False, only=None):
+        for dirty in self.dirty_fields:
+            if isinstance(dirty, ForeignKeyField) \
+                    and dirty.rel_model == Place:
+                try:
+                    old_place = NPC.get_by_id(self.id).place
+                except:
+                    old_place = None
+                if old_place != self.place:
+                    print("place changed! from", old_place, "to", self.place)
+                    # remove npc_place knowledge from every player's knowledge book
+                    from World.Types.Intel import Intel
+                    from World.Types.BridgeModels import PlayerKnowledgeBook
+                    results = PlayerKnowledgeBook.select().join(Intel).where(Intel.npc_place == self.id)
+                    for res in results:
+                        res.delete_instance()
+        super(NPC, self).save()
 
 
 class Motivation(BaseElement):
