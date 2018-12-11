@@ -23,7 +23,6 @@ class NPC(BaseElement, Person, Named):
                 except:
                     old_place = None
                 if old_place != self.place:
-                    print("place changed! from", old_place, "to", self.place)
                     # remove npc_place knowledge from every player's knowledge book
                     from World.Types.Intel import Intel
                     from World.Types.BridgeModels import PlayerKnowledgeBook
