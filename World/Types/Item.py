@@ -48,5 +48,22 @@ class Item(BaseElement, Worthy, Named):
             npc.health_meter = max(0, min(1, npc.health_meter))
             npc.save()
 
+    def save(self, force_insert=False, only=None):
+        for dirty in self.dirty_fields:
+            if isinstance(dirty, ForeignKeyField) \
+                    and dirty.rel_model == Place:
+                try:
+                    old_place = Item.get_by_id(self.id).place
+                except:
+                    old_place = None
+                if old_place != self.place:
+                    # remove npc_place knowledge from every player's knowledge book
+                    from World.Types.Intel import Intel
+                    from World.Types.BridgeModels import PlayerKnowledgeBook
+                    results = PlayerKnowledgeBook.select().join(Intel).where(Intel.item_place == self.id)
+                    for res in results:
+                        res.delete_instance()
+        super(Item, self).save()
+
 
 list_of_models = [GenericItem, Item]

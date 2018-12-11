@@ -104,36 +104,56 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
     """
     # place_location[1] is destination
     # location[1] is place_location[1] exact location
+    player = Player.current()
 
     # find correct type of Intel from npc_place, item_place and place_location
-    results = Intel.select(Intel)
     if npc:
-        results = results.where(Intel.type == IntelTypes.npc_place.name, Intel.npc_place == npc)
+        intel = Intel.get_or_none(type=IntelTypes.npc_place.name, npc_place=npc)
+        if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+            # player already knows, move the npc
+            destination = Place.select().order_by(fn.Random()).get()
+            npc.place = destination
+            npc.save()
+            # by moving NPC place, npc_place intel removes from player knowledge book automatically
+            # todo: add game event: the NPC moved somewhere else
     elif item:
         if item.belongs_to:
-            results = results.where(Intel.type == IntelTypes.npc_place.name, Intel.npc_place == item.belongs_to)
+            intel = Intel.get_or_none(type=IntelTypes.npc_place.name, npc_place=item.belongs_to)
+            if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+                # player already knows where the item holder is, move the npc
+                holder = item.belongs_to
+                destination = Place.select().order_by(fn.Random()).get()
+                holder.place = destination
+                holder.save()
+                # todo: add game event: item holder moved somewhere else
         else:
-            results = results.where(Intel.type == IntelTypes.item_place.name, Intel.item_place == item)
+            intel = Intel.get_or_none(type=IntelTypes.item_place.name, item_place=item)
+            if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+                # player already knows where the item is located at, move the item
+                destination = Place.select().order_by(fn.Random()).get()
+                item.place = destination
+                item.save()
+                # todo: add game event: somebody took this item to somewhere else
     else:
-        results = results.where(Intel.type == IntelTypes.location.name, Intel.place_location == destination)
+        intel = Intel.get_or_none(type=IntelTypes.location.name, place_location=destination)
+        if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+            # player already knows where the place is exactly,
+            # so create a new place at the same location with a different name, now player doesn't know!
+            destination = Place.create(name='arbitrary_' + str(randint(100, 999)), x=destination.x, y=destination.y)
+            intel = Intel.construct(place_location=destination)
 
-    if not results:
+    if not intel:
         # create the correct type of intel based on what is being asked
         if npc:
-            intel_location = Intel.construct(npc_place=npc)
+            intel = Intel.construct(npc_place=npc)
         elif item and item.belongs_to:
-            intel_location = Intel.construct(npc_place=item.belongs_to)
+            intel = Intel.construct(npc_place=item.belongs_to)
         elif item:
-            intel_location = Intel.construct(item_place=item)
+            intel = Intel.construct(item_place=item)
         else:
-            intel_location = Intel.construct(place_location=destination)
-    else:
-        # results query is not None
-        results = results.limit(1)
-        intel_location = results[0]
+            intel = Intel.construct(place_location=destination)
 
     # update player's next location
-    player = Player.current()
     player.next_location = destination
     player.save()
 
@@ -141,7 +161,7 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
     #   learn: location[1]
     #   T.goto: location[1]
     steps = [
-        [intel_location],
+        [intel],
         [destination]
     ]
 
