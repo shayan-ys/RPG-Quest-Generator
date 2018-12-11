@@ -111,7 +111,11 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
         intel = Intel.get_or_none(type=IntelTypes.npc_place.name, npc_place=npc)
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
             # player already knows, move the npc
-            destination = Place.select().order_by(fn.Random()).get()
+            destination = Place.select().where(Place.id != npc.place).order_by(fn.Random())
+            if destination:
+                destination = destination.get()
+            else:
+                destination = narrative_helper.create_place()
             npc.place = destination
             npc.save()
             # by moving NPC place, npc_place intel removes from player knowledge book automatically
@@ -122,7 +126,11 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
             if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
                 # player already knows where the item holder is, move the npc
                 holder = item.belongs_to
-                destination = Place.select().order_by(fn.Random()).get()
+                destination = Place.select().where(Place.id != holder.place).order_by(fn.Random())
+                if destination:
+                    destination = destination.get()
+                else:
+                    destination = narrative_helper.create_place()
                 holder.place = destination
                 holder.save()
                 # todo: add game event: item holder moved somewhere else
@@ -130,7 +138,11 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
             intel = Intel.get_or_none(type=IntelTypes.item_place.name, item_place=item)
             if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
                 # player already knows where the item is located at, move the item
-                destination = Place.select().order_by(fn.Random()).get()
+                destination = Place.select().where(Place.id != item.place).order_by(fn.Random())
+                if destination:
+                    destination = destination.get()
+                else:
+                    destination = narrative_helper.create_place()
                 item.place = destination
                 item.save()
                 # todo: add game event: somebody took this item to somewhere else
