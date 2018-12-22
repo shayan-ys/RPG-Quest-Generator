@@ -13,6 +13,8 @@ from World.Instances import Everquest, Custom
 from Playground.play import Play
 from Playground.info import print_player_intel
 
+import random
+
 list_of_models = Place.list_of_models + Person.list_of_models + Item.list_of_models + Intel.list_of_models \
                  + BridgeModels.list_of_models
 print(list_of_models)
@@ -26,6 +28,7 @@ Everquest.create()
 # for i in range(1, 10):
 #     print('running:', i)
 #     non_terminals.capture_1(Item.Item.get_by_id(i))
+random.seed(3)
 
 Play().cmdloop()
 

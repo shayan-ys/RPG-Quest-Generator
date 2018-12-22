@@ -45,6 +45,14 @@ class Play(cmd.Cmd):
         self.progress.current_node = self.progress.quest
         self.quest_in_progress = False
         self.quest_done = True
+        query = Item.delete().where(Item.name.contains('arbitrary'))
+        query.execute()
+        query = Place.delete().where(Place.name.contains('arbitrary'))
+        query.execute()
+        query = NPC.delete().where(NPC.name.contains('arbitrary'))
+        query.execute()
+        query = Intel.delete().where(NPC.name.contains('arbitrary'))
+        query.execute()
 
     # ----- basic player commands -----
     def do_talk(self, args):
@@ -62,7 +70,7 @@ class Play(cmd.Cmd):
         if self.quest_in_progress:
             print("talk and talk and talk ..!")
         else:
-            nt = npc.top_motive()
+            motive, nt = npc.top_motive()
 
             # find quest rule number based on motive type
             quest_rule_number = None
@@ -72,7 +80,12 @@ class Play(cmd.Cmd):
                     break
 
             quest = quest_generator(root_type=NT.quest, root_rule_number=quest_rule_number)
-            self.start_quest(quest)
+            if quest:
+                motive.delete_instance()
+                self.start_quest(quest)
+            else:
+                print('quest not found!')
+                print('failed!')
 
     def do_exchange(self, args):
         """Exchange an Item with another with an NPC. EXCHANGE goblin potion bandage

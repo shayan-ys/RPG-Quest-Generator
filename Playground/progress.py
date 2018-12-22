@@ -54,6 +54,10 @@ class Progress:
 
         if root.branches:
             children_pre_semantics = Narrative.find(root)(*pre_semantics)
+            # if not children_pre_semantics:
+            #     print(Narrative.find(root).__name__)
+            #     print(pre_semantics)
+
             for i, branch in enumerate(root.branches):
                 if branch.action == T.null:
                     continue

@@ -1,5 +1,6 @@
 from World.Types import fn, JOIN
-from World.Types.Person import NPC, Player
+from World.Types.Person import NPC, Player, Clan
+from World.Types.Place import Place
 from World.Types.Intel import Intel, Spell
 from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook
@@ -9,6 +10,47 @@ from helper import sort_by_list
 from random import randint
 
 # todo: use pre-filled favour book to choose between NPCs
+
+
+def knowledge_1(NPC_target: NPC):
+    """
+    Deliver item for study
+    :param NPC_target:
+    :return:
+    """
+    player = Player.current()
+    results = Item.select().where(Item.belongs_to != NPC_target, Item.belongs_to_player != player)
+    if results:
+        locations_scores = [player.distance(res.place_()) for res in results]
+        results = sort_by_list(results, locations_scores)
+        item = results[0]
+    else:
+        results = NPC.select().where(NPC.id != NPC_target)
+        if results:
+            locations_scores = [player.distance(res.place) for res in results]
+            results = sort_by_list(results, locations_scores)
+            new_item_holder = results[0]
+        else:
+            # No NPC left in the world except the target
+            new_item_holder = NPC.create(place=Place.select().order_by(fn.Random()).get(),
+                                         clan=Clan.select().order_by(fn.Random()).get(),
+                                         name='arbitrary_npc_' + str(randint(100, 999)))
+        item = Item.create(
+            type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
+            name='arbitrary_item_unknown_' + str(randint(100, 999)),
+            place=None, belongs_to=new_item_holder)
+
+    # steps:
+    #   get item
+    #   goto target place
+    #   give item to target
+    steps = [
+        [item],
+        [NPC_target.place, NPC_target],
+        [item, NPC_target]
+    ]
+    print("==> Deliver item", item, "to", NPC_target, "for study")
+    return steps
 
 
 def knowledge_2(NPC_knowledge_motivated: NPC):
@@ -67,15 +109,6 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
 
     return steps
-
-
-def knowledge_1(NPC_target: NPC):
-    """
-    Deliver item for study
-    :param NPC_target:
-    :return:
-    """
-
 
 
 def knowledge_3(NPC_knowledge_motivated: NPC):

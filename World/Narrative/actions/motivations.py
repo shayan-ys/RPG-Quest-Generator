@@ -1,26 +1,39 @@
-from Grammar.actions import NonTerminals as NT
+from World.Types import fn, JOIN
 from World.Types import BaseElement
-from World.Types.Person import Motivation
+from World.Types.Person import Clan, NPC, Motivation
+from World.Types.Place import Place
 
+from Grammar.actions import NonTerminals as NT
+
+from random import randint
 from typing import List
 
 
 def quest_neutral(motivation: NT) -> List[List[BaseElement]]:
     # select an ally NPC with a certain motivation
 
-    NPC_motivated = Motivation.select()\
+    results = Motivation.select()\
         .where(Motivation.action == motivation.value,
                Motivation.motive > 0.5)\
-        .order_by(Motivation.motive.desc()).get().npc
+        .order_by(Motivation.motive.desc()).limit(1)
+
+    if results:
+        motivated = results.get().npc
+    else:
+        # No motivated NPC found, create one
+        motivated = NPC.create(place=Place.select().order_by(fn.Random()).get(),
+                               clan=Clan.select().order_by(fn.Random()).get(),
+                               name='arbitrary_npc_' + str(randint(100, 999)))
+        Motivation.create(npc=motivated, action=motivation.value, motive=0.65)
 
     # todo: sort by distanced
 
     # steps:
     #   give useful info to this NPC
     steps = [
-        [NPC_motivated]
+        [motivated]
     ]
-    print("==> '%s' has '%s' motivation!" % (NPC_motivated.name, motivation.name))
+    print("==> '%s' has '%s' motivation!" % (motivated.name, motivation.name))
 
     return steps
 

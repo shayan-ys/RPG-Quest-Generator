@@ -33,14 +33,14 @@ class NPC(BaseElement, Person, Named):
                         res.delete_instance()
         super(NPC, self).save()
 
-    def top_motive(self) -> NT:
+    def top_motive(self) -> ('Motivation', NT):
         results = Motivation.select().where(Motivation.npc == self.id).order_by(Motivation.motive.desc()).limit(1)
 
         if results:
             motive = results[0]  # type: Motivation
-            return NT(motive.action)
+            return motive, NT(motive.action)
 
-        return NT.null
+        return 0, NT.null
 
 
 class Motivation(BaseElement):
