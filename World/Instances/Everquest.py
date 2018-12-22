@@ -82,9 +82,12 @@ def create():
     Exchange.create(npc=npc_2, item=jum, need=Need.get_or_create(npc=npc_2, item=comb)[0])
     Exchange.create(npc=tomas, item=address_book, need=Need.get_or_create(npc=tomas, item=coin)[0])
 
-    # PlayerKnowledgeBook.create(player=player, intel=Intel.construct(npc_place=beach))
+    for place in Place.select():
+        PlayerKnowledgeBook.create(player=player, intel=Intel.construct(place_location=place))
+
+    PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
+    PlayerKnowledgeBook.create(player=player, intel=Intel.construct(npc_place=steve))
     # PlayerKnowledgeBook.create(player=player, intel=intel_qeynos_loc)
-    # PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
     # PlayerKnowledgeBook.create(player=player, intel=Intel.construct(npc_place=steve))
     # PlayerKnowledgeBook.create(player=player, intel=intel_bandage_loc)
     # PlayerKnowledgeBook.create(player=player, intel=intel_lempeck_loc)

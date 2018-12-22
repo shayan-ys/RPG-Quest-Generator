@@ -11,18 +11,6 @@ class Need(BaseElement):
     item_count = IntegerField(default=1)
 
 
-# class BelongItem(BaseElement):
-#     npc = ForeignKeyField(NPC, backref='belongings')
-#     item = ForeignKeyField(Item, backref='owners')
-#     count = IntegerField(default=1)
-
-
-# class BelongItemPlayer(BaseElement):
-#     player = ForeignKeyField(Player, backref='belongings')
-#     item = ForeignKeyField(Item, backref='owner_players')
-#     count = IntegerField(default=1)
-
-
 class Exchange(BaseElement):
     item = ForeignKeyField(Item, null=True)
     intel = ForeignKeyField(Intel, null=True)

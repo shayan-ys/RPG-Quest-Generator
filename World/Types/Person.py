@@ -1,6 +1,8 @@
 from World.Types import *
 from World.Types.Place import Place, two_point_distance, triangle_distance
 
+from Grammar.actions import NonTerminals as NT
+
 
 class Clan(BaseElement, Named):
     pass
@@ -30,6 +32,15 @@ class NPC(BaseElement, Person, Named):
                     for res in results:
                         res.delete_instance()
         super(NPC, self).save()
+
+    def top_motive(self) -> NT:
+        results = Motivation.select().where(Motivation.npc == self.id).order_by(Motivation.motive.desc()).limit(1)
+
+        if results:
+            motive = results[0]  # type: Motivation
+            return NT(motive.action)
+
+        return NT.null
 
 
 class Motivation(BaseElement):

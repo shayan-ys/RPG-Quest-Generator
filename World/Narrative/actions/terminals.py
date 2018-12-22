@@ -18,6 +18,16 @@ def null(*args):
     return True
 
 
+def talk(npc: NPC):
+    player = Player.current()
+    if player.place != npc.place:
+        print("Player is not at the npc's place_location,", npc.place)
+        return False
+
+    print("==> Talking to", npc)
+    return True
+
+
 def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
 
     player = Player.current()

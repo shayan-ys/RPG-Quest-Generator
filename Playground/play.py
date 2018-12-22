@@ -4,8 +4,10 @@ from Playground.progress import Progress
 
 from Data import quests
 from Data.statics import Playground
-from Grammar.actions import Terminals as T
+from Grammar.actions import Terminals as T, NonTerminals as NT
 from Grammar.plot import export_semantics_plot
+from Grammar.rules import rules
+from GA.operators import quest_generator
 
 from World.Narrative.actions import terminals
 from World.Narrative.effects import is_done_method
@@ -25,23 +27,53 @@ class Play(cmd.Cmd):
     last_action = T.null
     last_args = []
     last_action_doable = False
+    quest_in_progress = False
     quest_done = False
 
-    def __init__(self, quest=None):
-        super(Play, self).__init__()
-        # very beginning
+    def start_quest(self, quest):
+        print("Starting a quest from:", quest.action)
+        self.quest_in_progress = True
         self.quest_done = False
-
-        if not quest:
-            quest = quests.cure
         self.progress = Progress(quest=quest)
-
         self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
         export_semantics_plot(quest, semantics_indices=self.progress.semantics_indices,
                               current_level_index=self.progress.current_node.index)
 
+    def finish_quest(self):
+        print("WOW quest completed!!!!")
+        self.progress.current_node = self.progress.quest
+        self.quest_in_progress = False
+        self.quest_done = True
+
     # ----- basic player commands -----
+    def do_talk(self, args):
+        """Talk to an NPC. TALK goblin (starts a quest if possible)"""
+        args = parse(args)
+        if not self.check_length(args, 1):
+            return
+        npc = NPC.get_or_none(NPC.name == args[0])
+
+        found = terminals.talk(npc=npc)
+        if not found:
+            print("failed!")
+            return
+
+        if self.quest_in_progress:
+            print("talk and talk and talk ..!")
+        else:
+            nt = npc.top_motive()
+
+            # find quest rule number based on motive type
+            quest_rule_number = None
+            for rule_number, set_of_actions in rules[NT.quest].items():
+                if len(set_of_actions) and set_of_actions[0] == nt:
+                    quest_rule_number = rule_number
+                    break
+
+            quest = quest_generator(root_type=NT.quest, root_rule_number=quest_rule_number)
+            self.start_quest(quest)
+
     def do_exchange(self, args):
         """Exchange an Item with another with an NPC. EXCHANGE goblin potion bandage
         <means give potion to goblin and take bandage from him>"""
@@ -382,34 +414,34 @@ class Play(cmd.Cmd):
     def postcmd(self, stop, line):
         # after loop
 
-        if not self.quest_done and self.last_action_doable:
-            self.last_action_doable = False
+        if self.quest_in_progress:
 
-            level_completed = False
+            if self.last_action_doable:
+                self.last_action_doable = False
 
-            for i in range(Playground.max_level_skip_loop):
-                level_completed = self.progress.check_action_proceed(self.last_action, self.last_args)
-                # next step updated
+                level_completed = False
 
-                if level_completed:
-                    # check if next step is already done before (check world's effects)
-                    level_already_done = is_done_method(self.progress.current_node)(*self.progress.get_current_semantics())
-                    if level_already_done:
-                        print("Already done, skip")
-                        self.last_action = self.progress.current_node.action
-                        self.last_args = self.progress.get_current_semantics()
-                    else:
-                        break
+                for i in range(Playground.max_level_skip_loop):
+                    level_completed = self.progress.check_action_proceed(self.last_action, self.last_args)
+                    # next step updated
 
-            # check if quest is completed
-            if level_completed and 0 in self.progress.completed_indices:
-                print("WOW quest completed!!!!")
-                self.progress.current_node = self.progress.quest
-                self.quest_done = True
+                    if level_completed:
+                        # check if next step is already done before (check world's effects)
+                        level_already_done = is_done_method(self.progress.current_node)(*self.progress.get_current_semantics())
+                        if level_already_done:
+                            print("Already done, skip")
+                            self.last_action = self.progress.current_node.action
+                            self.last_args = self.progress.get_current_semantics()
+                        else:
+                            break
 
-        self.progress.print_progress()
-        export_semantics_plot(self.progress.quest, semantics_indices=self.progress.semantics_indices,
-                              current_level_index=self.progress.current_node.index)
+                # check if quest is completed
+                if level_completed and 0 in self.progress.completed_indices:
+                    self.finish_quest()
+
+            self.progress.print_progress()
+            export_semantics_plot(self.progress.quest, semantics_indices=self.progress.semantics_indices,
+                                  current_level_index=self.progress.current_node.index)
 
 
 def parse(arg):

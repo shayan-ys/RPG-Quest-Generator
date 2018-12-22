@@ -69,6 +69,15 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     return steps
 
 
+def knowledge_1(NPC_target: NPC):
+    """
+    Deliver item for study
+    :param NPC_target:
+    :return:
+    """
+
+
+
 def knowledge_3(NPC_knowledge_motivated: NPC):
     """
     Interview an NPC

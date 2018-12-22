@@ -27,6 +27,6 @@ Everquest.create()
 #     print('running:', i)
 #     non_terminals.capture_1(Item.Item.get_by_id(i))
 
-Play(quests.spy).cmdloop()
+Play().cmdloop()
 
 db.close()

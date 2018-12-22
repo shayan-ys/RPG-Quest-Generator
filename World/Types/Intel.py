@@ -105,7 +105,10 @@ class Intel(BaseElement, Worthy):
         elif self.type == str(IntelTypes.location.name):
             return str(self.place_location) + " location"
         elif self.type == str(IntelTypes.npc_place.name) or self.type == str(IntelTypes.item_place.name):
-            return str(self.npc_place if self.npc_place else self.item_place) + "'s place"
+            if self.npc_place:
+                return "%s's place (%s)" % (self.npc_place, self.npc_place.place)
+            else:
+                return "%s's place (%s)" % (self.item_place, self.item_place.place)
         elif self.type == str(IntelTypes.holding.name):
             return str(self.holding_holder) + " holding item " + str(self.holding_item)
 
