@@ -1,5 +1,7 @@
 from Data import quests
 
+from GA import ga
+
 from World.world import World
 from World.Types import *
 from World.Types import Place
@@ -25,9 +27,6 @@ db.drop_tables(list_of_models)
 db.create_tables(list_of_models)
 Everquest.create()
 
-# for i in range(1, 10):
-#     print('running:', i)
-#     non_terminals.capture_1(Item.Item.get_by_id(i))
 random.seed(3)
 
 Play().cmdloop()

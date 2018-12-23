@@ -7,6 +7,7 @@ from Data.statics import GAParams
 from helper import grouped
 
 import numpy as np
+from datetime import datetime, timedelta
 
 
 class Individual:
@@ -50,16 +51,17 @@ class Individual:
         return self.__str__()
 
 
-def init(pop_size: int=50) -> list:
+def init(pop_size: int=50, quest_rule_number: int=None) -> list:
     """
     Initial population of individual quests generated automatically (randomly)
     :param pop_size: desired population size
+    :param quest_rule_number: rule number for quest, limiting options
     :return: list of individuals, the population
     """
     pop = []
     for i in range(pop_size):
         for depth_tries in range(100):
-            tree = quest_generator(NT.quest)
+            tree = quest_generator(NT.quest, quest_rule_number)
             ind = Individual(tree)
             if ind.score > 0.0:
                 pop.append(Individual(tree))
@@ -114,18 +116,30 @@ def generation(population: list) -> list:
     return sorted_pop
 
 
-def run(generations_count: int=100, pop_size: int=50) -> list:
+def run(generations_count: int=100, pop_size: int=50, quest_rule_number: int=None) -> list:
     """
     Run GA application, creates a population of given size 'pop_size' and evolve through given number of generations
     :param generations_count: number of generations to be evolved
     :param pop_size: population size, initially through out the evolution and return
+    :param quest_rule_number: quest rule number (motivation) to limit population quest types
     :return: population of given size evolved given number of times
     """
-    population = init(pop_size=pop_size)
+    population = init(pop_size=pop_size, quest_rule_number=quest_rule_number)
 
+    start_time = datetime.now()
+    diff = None
+    diff_i = None
     for i in range(generations_count):
         population = generation(population)[:pop_size]
         if len(population) < pop_size:
             population += init(pop_size=pop_size - len(population))
 
+        if int(100 * i / generations_count) % 20 == 0 and i:
+            if diff is None:
+                diff = datetime.now() - start_time
+                diff_i = i
+            remaining_secs = diff.total_seconds() * ((generations_count - i) / diff_i)
+            print(str(int(100 * i / generations_count)) + "% progressed | remaining time:", str(timedelta(seconds=remaining_secs)))
+
+    print("------ finished ------ process time:", str(datetime.now() - start_time), "------")
     return population

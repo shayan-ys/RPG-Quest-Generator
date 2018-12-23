@@ -1,7 +1,7 @@
 from Playground.info import print_player_intel, print_player_belongings, print_player_places, \
     print_npc_intel, print_npc_belongings, print_npc_place
 from Playground.progress import Progress
-from Playground.helper import query_yes_no
+from Playground.helper import query_yes_no, ga_quest_generator
 
 from Data.statics import Playground
 from Grammar.actions import Terminals as T, NonTerminals as NT
@@ -37,6 +37,7 @@ class Play(cmd.Cmd):
         self.last_action = T.null
         self.last_args = []
         self.last_action_doable = False
+        quest.set_indices()
         self.progress = Progress(quest=quest)
         self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
@@ -85,7 +86,7 @@ class Play(cmd.Cmd):
                     quest_rule_number = rule_number
                     break
 
-            quest = quest_generator(root_type=NT.quest, root_rule_number=quest_rule_number)
+            quest = ga_quest_generator(quest_rule_number)
             if quest:
                 if query_yes_no("Do you want to play quest '%s'" % quest.genre()):
                     motive.delete_instance()

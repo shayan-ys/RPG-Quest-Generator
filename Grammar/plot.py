@@ -9,10 +9,12 @@ from anytree.exporter import DotExporter
 from copy import copy
 
 
-def build_anytree(grammar_root: Grammar.tree.Node, parent: anytree.Node = None, branch_index: int = 0,
+def build_anytree(grammar_root: Grammar.tree.Node, parent: anytree.Node = None,
                   semantics_indices: dict={}, current_level_index: int=None):
 
     if grammar_root.branches:
+        if not hasattr(grammar_root, 'index'):
+            print("WOW!")
         name = "-%s-\nNT.%s[%s]" % (grammar_root.index, grammar_root.action.name, grammar_root.rule)
     else:
         name = "-%s-\nT.%s" % (grammar_root.index, grammar_root.action.name)
@@ -34,7 +36,7 @@ def build_anytree(grammar_root: Grammar.tree.Node, parent: anytree.Node = None, 
 
     if grammar_root.branches:
         for i, branch in enumerate(grammar_root.branches):
-            build_anytree(grammar_root=branch, parent=anytree_node, branch_index=i,
+            build_anytree(grammar_root=branch, parent=anytree_node,
                           semantics_indices=semantics_indices, current_level_index=current_level_index)
 
     return anytree_node
