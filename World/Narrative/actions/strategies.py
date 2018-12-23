@@ -179,7 +179,42 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
     return steps
 
 
-def protection_2(NPC_protection_motivated: NPC):
+def reputation_2(target: NPC) -> list:
+    """
+    Kill enemies of target
+    :param target: given from higher level nodes
+    :return:
+    """
+    results = NPC.select().where(NPC.clan != target.clan).order_by(fn.Random()).limit(1)
+    if results:
+        enemy = results.get()
+    else:
+        # No NPC left in the world except the target
+        enemies_clan = Clan.select().where(Clan.id != target.clan).order_by(fn.Random()).get()
+        enemy = NPC.create(place=Place.select().order_by(fn.Random()).get(),
+                           clan=enemies_clan,
+                           name='arbitrary_npc_' + str(randint(100, 999)))
+
+    player = Player.current()
+    killing_report_intel = Intel.construct(other='arbitrary_killing_report_' + str(randint(100, 999)))
+    PlayerKnowledgeBook.create(player=player, intel=killing_report_intel)
+
+    # steps:
+    #   goto enemies place
+    #   kill enemies
+    #   goto target place
+    #   T.report intel(?) to target
+    steps = [
+        [enemy.place, enemy],
+        [enemy],
+        [target.place, target],
+        [killing_report_intel, target]
+    ]
+    print("==> Kill enemies", enemy, "and report it back to", target)
+    return steps
+
+
+def protection_2(NPC_protection_motivated: NPC) -> list:
     # find an NPC, who is ally to motivated_NPC and needs something, as well as an NPC who has that thing
     # and that need is not part of an exchange
     results = NPC.select(NPC, Need.item_id.alias('needed_item_id'))\

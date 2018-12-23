@@ -19,8 +19,18 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     return item_to_take.belongs_to_player == player
 
 
-def explore(area_location: Place):
+def explore(area_location: Place, npc: NPC, item: Item):
     player = Player.current()
+
+    if npc:
+        intel = Intel.construct(npc_place=npc)
+    elif item:
+        intel = Intel.construct(item_place=item)
+    else:
+        intel = None
+
+    if intel and not PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+        return False
 
     return player.place == area_location
 

@@ -20,7 +20,10 @@ class Progress:
         # local_quest.clean_nulls()
         local_quest.set_indices()
         self.quest = local_quest
+        self.semantics_indices = {}
+        self.semantics_parsed_for_branches = []
         self.current_node = local_quest
+        self.completed_indices = []
 
         export_grammar_plot(local_quest)
 

@@ -21,9 +21,9 @@ def quest_neutral(motivation: NT) -> List[List[BaseElement]]:
         motivated = results.get().npc
     else:
         # No motivated NPC found, create one
-        motivated = NPC.create(place=Place.select().order_by(fn.Random()).get(),
-                               clan=Clan.select().order_by(fn.Random()).get(),
-                               name='arbitrary_npc_' + str(randint(100, 999)))
+        place = Place.select().order_by(fn.Random()).get()
+        clan = Clan.select().order_by(fn.Random()).get()
+        motivated = NPC.create(place=place, clan=clan, name='arbitrary_npc_' + str(randint(100, 999)))
         Motivation.create(npc=motivated, action=motivation.value, motive=0.65)
 
     # todo: sort by distanced

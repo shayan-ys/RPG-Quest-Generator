@@ -1,7 +1,7 @@
 from World.Types import *
 from World.Types.Place import Place, two_point_distance, triangle_distance
 
-from Grammar.actions import NonTerminals as NT
+from Grammar.actions import NonTerminals as NT, Terminals as T
 
 
 class Clan(BaseElement, Named):
@@ -17,20 +17,21 @@ class Person(Model):
 class NPC(BaseElement, Person, Named):
     # Non Player Character
     def save(self, force_insert=False, only=None):
-        for dirty in self.dirty_fields:
-            if isinstance(dirty, ForeignKeyField) \
-                    and dirty.rel_model == Place:
-                try:
-                    old_place = NPC.get_by_id(self.id).place
-                except:
-                    old_place = None
-                if old_place != self.place:
-                    # remove npc_place knowledge from every player's knowledge book
-                    from World.Types.Intel import Intel
-                    from World.Types.BridgeModels import PlayerKnowledgeBook
-                    results = PlayerKnowledgeBook.select().join(Intel).where(Intel.npc_place == self.id)
-                    for res in results:
-                        res.delete_instance()
+        if self.id is not None:
+            for dirty in self.dirty_fields:
+                if isinstance(dirty, ForeignKeyField) \
+                        and dirty.rel_model == Place:
+                    try:
+                        old_place = NPC.get_by_id(self.id).place
+                    except:
+                        old_place = None
+                    if old_place != self.place:
+                        # remove npc_place knowledge from every player's knowledge book
+                        from World.Types.Intel import Intel
+                        from World.Types.BridgeModels import PlayerKnowledgeBook
+                        results = PlayerKnowledgeBook.select().join(Intel).where(Intel.npc_place == self.id)
+                        for res in results:
+                            res.delete_instance()
         super(NPC, self).save()
 
     def top_motive(self) -> ('Motivation', NT):
@@ -40,7 +41,7 @@ class NPC(BaseElement, Person, Named):
             motive = results[0]  # type: Motivation
             return motive, NT(motive.action)
 
-        return 0, NT.null
+        return 0, T.null
 
 
 class Motivation(BaseElement):

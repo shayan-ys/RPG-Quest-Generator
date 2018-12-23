@@ -34,6 +34,9 @@ class Play(cmd.Cmd):
         print("Starting a quest from:", quest.action)
         self.quest_in_progress = True
         self.quest_done = False
+        self.last_action = T.null
+        self.last_args = []
+        self.last_action_doable = False
         self.progress = Progress(quest=quest)
         self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
@@ -45,13 +48,12 @@ class Play(cmd.Cmd):
         self.progress.current_node = self.progress.quest
         self.quest_in_progress = False
         self.quest_done = True
+        Intel.delete_all_arbitrary()
         query = Item.delete().where(Item.name.contains('arbitrary'))
         query.execute()
         query = Place.delete().where(Place.name.contains('arbitrary'))
         query.execute()
         query = NPC.delete().where(NPC.name.contains('arbitrary'))
-        query.execute()
-        query = Intel.delete().where(NPC.name.contains('arbitrary'))
         query.execute()
 
     # ----- basic player commands -----
@@ -71,6 +73,10 @@ class Play(cmd.Cmd):
             print("talk and talk and talk ..!")
         else:
             motive, nt = npc.top_motive()
+
+            if nt == T.null:
+                print("not motivated, let's talk and talk ..!")
+                return
 
             # find quest rule number based on motive type
             quest_rule_number = None
@@ -113,17 +119,24 @@ class Play(cmd.Cmd):
         self.last_action_doable = True
 
     def do_explore(self, args):
-        """Move player to a named position. EXPLORE Rivervale"""
+        """Explore a place to find an NPC or Item. EXPLORE Rivervale item potion | EXPLORE Rivervale npc goblin"""
         args = parse(args)
-        if not self.check_length(args, 1):
+        if not self.check_length(args, 3):
             return
 
         dest = Place.get_or_none(Place.name == args[0])
+        if args[1] == 'item':
+            item = Item.get_or_none(Item.name == args[2])
+            if not self.set_inputs(action=T.explore, args=[dest, '', item]):
+                return
+            found = terminals.explore(area_location=dest, item=item)
+        else:
+            npc = NPC.get_or_none(NPC.name == args[2])
 
-        if not self.set_inputs(action=T.explore, args=[dest]):
-            return
+            if not self.set_inputs(action=T.explore, args=[dest, npc, '']):
+                return
+            found = terminals.explore(area_location=dest, npc=npc)
 
-        found = terminals.explore(area_location=dest)
         if not found:
             print("failed!")
             return
@@ -413,6 +426,9 @@ class Play(cmd.Cmd):
         if None in args:
             print("Error: Typo in one of the inputs")
             return False
+        for i, value in enumerate(args):
+            if value == '':
+                args[i] = None
 
         self.last_action = action
         self.last_args = args

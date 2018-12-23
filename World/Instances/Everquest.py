@@ -36,6 +36,7 @@ def create():
 
     steve_motive = Motivation.create(npc=steve, action=NT.knowledge.value, motive=0.6)
     tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.8)
+    npc_2_motive = Motivation.create(npc=npc_2, action=NT.reputation.value, motive=0.7)
 
     potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value, impact_factor=0.5)
     jum = Item.create(type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name='jum')[0], name='jum', place=None, belongs_to=npc_2)
@@ -83,15 +84,8 @@ def create():
     Exchange.create(npc=tomas, item=address_book, need=Need.get_or_create(npc=tomas, item=coin)[0])
 
     for place in Place.select():
-        PlayerKnowledgeBook.create(player=player, intel=Intel.construct(place_location=place))
+        intel = Intel.construct(place_location=place)
+        PlayerKnowledgeBook.create(player=player, intel=intel)
 
-    PlayerKnowledgeBook.create(player=player, intel=intel_tomas_loc)
-    PlayerKnowledgeBook.create(player=player, intel=Intel.construct(npc_place=steve))
-    # PlayerKnowledgeBook.create(player=player, intel=intel_qeynos_loc)
+    PlayerKnowledgeBook.create(player=player, intel=intel_npc2_loc)
     # PlayerKnowledgeBook.create(player=player, intel=Intel.construct(npc_place=steve))
-    # PlayerKnowledgeBook.create(player=player, intel=intel_bandage_loc)
-    # PlayerKnowledgeBook.create(player=player, intel=intel_lempeck_loc)
-
-    # todo: remove followings
-    # PlayerKnowledgeBook.create(player=player, intel=intel_npc2_loc)
-    # PlayerKnowledgeBook.create(player=player, intel=intel_goblin_loc)

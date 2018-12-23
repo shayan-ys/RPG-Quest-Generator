@@ -66,7 +66,7 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     return True
 
 
-def explore(area_location: Place):
+def explore(area_location: Place, npc: NPC=None, item: Item=None):
 
     # Todo: implement exploration around the location
 
@@ -76,14 +76,25 @@ def explore(area_location: Place):
     results = PlayerKnowledgeBook.select().join(Intel)\
         .where(PlayerKnowledgeBook.player == player, Intel.place_location == area_location).limit(1)
     if not results:
-        print("Location unknown (Intel not found in player's knowledge book)")
+        print("Location", area_location, "unknown (Intel not found in player's knowledge book)")
         return False
 
     # update Player's location
     player.place = area_location
     player.save()
-
     print("==> Explore around '", area_location, "'.")
+
+    if npc:
+        # find npc for player
+        intel = Intel.construct(npc_place=npc)
+    elif item:
+        intel = Intel.construct(item_place=item)
+    else:
+        intel = None
+    if intel:
+        PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+        print("Intel gathered", intel)
+
     return True
 
 

@@ -34,7 +34,8 @@ class Intel(BaseElement, Worthy):
     npc_place = ForeignKeyField(NPC, backref='intel_npc_place', null=True)
     item_place = ForeignKeyField(Item, backref='intel_item_place', null=True)
     holding_item = ForeignKeyField(Item, backref='intel_on_holder', null=True)
-    holding_holder = ForeignKeyField(NPC, backref='intel_on_belonging', null=True)
+    holding_holder = ForeignKeyField(NPC, backref='intel_on_belonging', null=True),
+    other = CharField(null=True)
 
     def data(self):
         if self.type == str(IntelTypes.spell.name):
@@ -47,10 +48,12 @@ class Intel(BaseElement, Worthy):
             return self.item_place
         elif self.type == str(IntelTypes.holding.name):
             return self.holding_item,  self.holding_holder
+        else:
+            return self.other
 
     @staticmethod
     def construct(spell: Spell=None, place_location: Place=None, npc_place: NPC=None, item_place: Item=None,
-                  holding_item: Item=None, holding_holder: NPC=None, worth: float=None) -> 'Intel':
+                  holding_item: Item=None, holding_holder: NPC=None, other: str=None, worth: float=None) -> 'Intel':
         if spell:
             intel_type = IntelTypes.spell
         elif place_location:
@@ -69,7 +72,7 @@ class Intel(BaseElement, Worthy):
 
         intel, created = Intel.get_or_create(
             type=intel_type.name, spell=spell, place_location=place_location, npc_place=npc_place, item_place=item_place,
-            holding_item=holding_item, holding_holder=holding_holder, worth=worth)
+            holding_item=holding_item, holding_holder=holding_holder, other=other, worth=worth)
 
         return intel
 
@@ -94,7 +97,33 @@ class Intel(BaseElement, Worthy):
             return Intel.select()\
                 .join(Item, on=(Intel.holding_item == Item.id))\
                 .where(Intel.type == intel_type, Item.name == args[0]).get()
+        elif intel_type == IntelTypes.other.name:
+            return Intel.select()\
+                .where(Intel.type == intel_type, Intel.other == args[0]).get()
         return None
+
+    @staticmethod
+    def delete_all_arbitrary():
+        # delete all Spell intel
+        results = Intel.select(Intel.id).join(Spell).where(Spell.name.contains('arbitrary'))
+        # delete all Place intel
+        results += Intel.select(Intel.id).join(Place, on=(Intel.place_location == Place.id))\
+            .where(Place.name.contains('arbitrary'))
+        # delete all NPC intel
+        results += Intel.select(Intel.id).join(NPC, on=(Intel.npc_place == NPC.id))\
+            .where(NPC.name.contains('arbitrary'))
+        # delete all Item intel
+        results += Intel.select(Intel.id).join(Item, on=(Intel.item_place == Item.id))\
+            .where(Item.name.contains('arbitrary'))
+        # delete all Holding intel
+        results += Intel.select(Intel.id).join(Item, on=(Intel.holding_item == Item.id))\
+            .where(Item.name.contains('arbitrary'))
+        # delete all Other intel
+        results += Intel.select(Intel.id).where(Intel.other.contains('arbitrary'))
+        results = list(results)
+
+        query = Intel.delete().where(Intel.id.in_(results))
+        query.execute()
 
     def __str__(self):
         if not self.type:
@@ -111,6 +140,9 @@ class Intel(BaseElement, Worthy):
                 return "%s's place (%s)" % (self.item_place, self.item_place.place)
         elif self.type == str(IntelTypes.holding.name):
             return str(self.holding_holder) + " holding item " + str(self.holding_item)
+        else:
+            # self.type == str(IntelTypes.other.name)
+            return str(self.other)
 
 
 list_of_models = [Intel, Spell]

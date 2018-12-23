@@ -138,23 +138,23 @@ arbitrary_quest1 = Node(NT.quest, 1,
                                   Leaf(T.null)),
                              Leaf(T.report)))
 
-arbitrary_quest2 = Node(NT.steal, 1,
-                        Node(NT.goto, 3,
-                             Node(NT.learn, 1,
-                                  Leaf(T.null)),
-                             Leaf(T.goto)),
-                        Leaf(T.stealth),
-                        Leaf(T.take))
+# arbitrary_quest2 = Node(NT.steal, 1,
+#                         Node(NT.goto, 3,
+#                              Node(NT.learn, 1,
+#                                   Leaf(T.null)),
+#                              Leaf(T.goto)),
+#                         Leaf(T.stealth),
+#                         Leaf(T.take))
 
-arbitrary_quest3 = Node(NT.quest, 9,
-                        Node(NT.equipment, 3,
-                             Node(NT.steal, 1,
-                                  Node(NT.goto, 3,
-                                       Node(NT.learn, 1,
-                                            Leaf(T.null)),
-                                       Leaf(T.goto)),
-                                  Leaf(T.stealth),
-                                  Leaf(T.take))))
+# arbitrary_quest3 = Node(NT.quest, 9,
+#                         Node(NT.equipment, 3,
+#                              Node(NT.steal, 1,
+#                                   Node(NT.goto, 3,
+#                                        Node(NT.learn, 1,
+#                                             Leaf(T.null)),
+#                                        Leaf(T.goto)),
+#                                   Leaf(T.stealth),
+#                                   Leaf(T.take))))
 
 arbitrary_quest4 = Node(NT.quest, 1,
                         Node(NT.knowledge, 2,
