@@ -6,6 +6,8 @@ class GAParams:
     selection_factor = 0.4
     mutation_factor = 0.1
     maximum_quest_depth = 10
+    generation_count = 20
+    population_size = 80
 
     class Fitness:
         class BellCurves:

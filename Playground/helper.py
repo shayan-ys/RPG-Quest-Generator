@@ -4,7 +4,8 @@ import sys
 
 
 def ga_quest_generator(motive_rule_number: int=None):
-    pop = ga.run(pop_size=50, generations_count=20, quest_rule_number=motive_rule_number)
+    pop = ga.run(quest_rule_number=motive_rule_number)
+    # return best quest created based on the quest rule_number
     return pop[0].tree
 
 

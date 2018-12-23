@@ -116,7 +116,7 @@ def generation(population: list) -> list:
     return sorted_pop
 
 
-def run(generations_count: int=100, pop_size: int=50, quest_rule_number: int=None) -> list:
+def run(generations_count: int=None, pop_size: int=None, quest_rule_number: int=None) -> list:
     """
     Run GA application, creates a population of given size 'pop_size' and evolve through given number of generations
     :param generations_count: number of generations to be evolved
@@ -124,6 +124,11 @@ def run(generations_count: int=100, pop_size: int=50, quest_rule_number: int=Non
     :param quest_rule_number: quest rule number (motivation) to limit population quest types
     :return: population of given size evolved given number of times
     """
+    if not generations_count:
+        generations_count = GAParams.generation_count
+    if not pop_size:
+        pop_size = GAParams.population_size
+
     population = init(pop_size=pop_size, quest_rule_number=quest_rule_number)
 
     start_time = datetime.now()
