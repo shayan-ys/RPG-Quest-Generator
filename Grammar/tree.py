@@ -193,6 +193,20 @@ class Node(Tree):
         self.flat()
         self.calc_depth()
 
+    def genre(self) -> str:
+        if self.action == NT.quest and self.branches:
+            action = self.branches[0].action
+            rule = self.branches[0].rule
+            is_nt = True if self.branches[0].branches else False
+        else:
+            action = self.action
+            rule = self.rule
+            is_nt = True if self.branches else False
+
+        if is_nt:
+            return '%s(%i)' % (action.name, rule)
+        return action.name
+
 
 class Leaf(Node):
     def __init__(self, action: T):

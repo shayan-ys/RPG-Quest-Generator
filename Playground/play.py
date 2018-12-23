@@ -1,8 +1,8 @@
 from Playground.info import print_player_intel, print_player_belongings, print_player_places, \
     print_npc_intel, print_npc_belongings, print_npc_place
 from Playground.progress import Progress
+from Playground.helper import query_yes_no
 
-from Data import quests
 from Data.statics import Playground
 from Grammar.actions import Terminals as T, NonTerminals as NT
 from Grammar.plot import export_semantics_plot
@@ -87,8 +87,11 @@ class Play(cmd.Cmd):
 
             quest = quest_generator(root_type=NT.quest, root_rule_number=quest_rule_number)
             if quest:
-                motive.delete_instance()
-                self.start_quest(quest)
+                if query_yes_no("Do you want to play quest '%s'" % quest.genre()):
+                    motive.delete_instance()
+                    self.start_quest(quest)
+                else:
+                    print("Quest", quest.genre(), "refused to be played! Maybe later, huh?")
             else:
                 print('quest not found!')
                 print('failed!')
