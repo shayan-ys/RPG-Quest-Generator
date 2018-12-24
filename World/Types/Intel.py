@@ -54,25 +54,26 @@ class Intel(BaseElement, Worthy):
     @staticmethod
     def construct(spell: Spell=None, place_location: Place=None, npc_place: NPC=None, item_place: Item=None,
                   holding_item: Item=None, holding_holder: NPC=None, other: str=None, worth: float=None) -> 'Intel':
-        if spell:
-            intel_type = IntelTypes.spell
-        elif place_location:
-            intel_type = IntelTypes.location
-        elif npc_place:
-            intel_type = IntelTypes.npc_place
-        elif item_place:
-            intel_type = IntelTypes.item_place
-        elif holding_item and holding_holder:
-            intel_type = IntelTypes.holding
-        else:
-            intel_type = IntelTypes.other
-
         if not worth:
             worth = Intel.default_worth
 
-        intel, created = Intel.get_or_create(
-            type=intel_type.name, spell=spell, place_location=place_location, npc_place=npc_place, item_place=item_place,
-            holding_item=holding_item, holding_holder=holding_holder, other=other, worth=worth)
+        if spell:
+            intel, created = Intel.get_or_create(type=IntelTypes.spell.name, spell=spell, defaults={'worth': worth})
+        elif place_location:
+            intel, created = Intel.get_or_create(type=IntelTypes.location.name, place_location=place_location,
+                                                 defaults={'worth': worth})
+        elif npc_place:
+            intel, created = Intel.get_or_create(type=IntelTypes.npc_place.name, npc_place=npc_place,
+                                                 defaults={'worth': worth})
+        elif item_place:
+            intel, created = Intel.get_or_create(type=IntelTypes.item_place.name, spell=item_place,
+                                                 defaults={'worth': worth})
+        elif holding_item and holding_holder:
+            intel, created = Intel.get_or_create(type=IntelTypes.holding.name,
+                                                 holding_item=holding_item, holding_holder=holding_holder,
+                                                 defaults={'worth': worth})
+        else:
+            intel, created = Intel.get_or_create(type=IntelTypes.other.name, other=other, defaults={'worth': worth})
 
         return intel
 

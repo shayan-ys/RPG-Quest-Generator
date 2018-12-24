@@ -35,7 +35,8 @@ def create():
     goblin = NPC.create(name='goblin', place=dalaran, clan=horde)
 
     steve_motive = Motivation.create(npc=steve, action=NT.knowledge.value, motive=0.6)
-    tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.8)
+    tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.7)
+    lempeck_motive = Motivation.create(npc=lempeck, action=NT.protection.value, motive=0.9)
     npc_2_motive = Motivation.create(npc=npc_2, action=NT.reputation.value, motive=0.7)
 
     potion = Item.create(type=ItemTypes.tool.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0], name='potion', place=None, belongs_to=qeynos, usage=T.treat.value, impact_factor=0.5)
