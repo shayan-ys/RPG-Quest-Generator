@@ -1,5 +1,4 @@
 from peewee import *
-from enum import Enum
 
 
 db = SqliteDatabase('Databases/world.db', pragmas={

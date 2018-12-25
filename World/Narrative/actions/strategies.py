@@ -4,12 +4,11 @@ from World.Types.Place import Place
 from World.Types.Intel import Intel, Spell
 from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook
+from World.Types.Log import Message
 
 from Grammar.actions import Terminals as T
 from helper import sort_by_list
 from random import randint
-
-# todo: use pre-filled favour book to choose between NPCs
 
 
 def knowledge_1(NPC_target: NPC):
@@ -50,6 +49,7 @@ def knowledge_1(NPC_target: NPC):
         [item, NPC_target]
     ]
     print("==> Deliver item", item, "to", NPC_target, "for study")
+    Message.instruction("Deliver item '%s' to '%s' for study" % (item, NPC_target))
     return steps
 
 
@@ -63,9 +63,6 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     already_known_intel_list += Intel.select(Intel.id)\
         .join(PlayerKnowledgeBook)\
         .where(PlayerKnowledgeBook.player == player)
-
-    for intel in already_known_intel_list:
-        print(Intel.get_by_id(intel.id))
 
     results = NPC.select(NPC, Intel.id.alias('intel_id'))\
         .join(NPCKnowledgeBook)\
@@ -84,6 +81,7 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         results = NPC.select().where(NPC.clan != NPC_knowledge_motivated.clan)
         if not results:
             # no enemy found, pick any NPC
+            Message.debug("knowledge_2: no enemy found, pick any NPC")
             results = NPC.select()
 
         locations_scores = [player.distance(res.place) for res in results]
@@ -93,6 +91,7 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         new_intel_list = Intel.select().where(Intel.id.not_in(already_known_intel_list)).order_by(Intel.worth.desc())
         if new_intel_list:
             # add the most valuable intel to the NPC knowledge book
+            Message.debug("knowledge_2: add the most valuable intel to the NPC knowledge book")
             spy_intel = new_intel_list[0]
         else:
             # no new intel found, create a new intel
@@ -107,7 +106,8 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     ]
 
     print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
-
+    Message.instruction("Spy on '%s' to get the intel '%s' for '%s'." %
+                        (spy_target, spy_intel, NPC_knowledge_motivated))
     return steps
 
 
@@ -175,7 +175,7 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         [intended_intel, NPC_knowledge_motivated]
     ]
     print("==> Interview '", NPC_knowledgeable, "' to get the intel '", intended_intel, "'.")
-
+    Message.instruction("Interview '%'s, to get the intel '%s'" % (NPC_knowledgeable, intended_intel))
     return steps
 
 
@@ -211,6 +211,7 @@ def reputation_2(target: NPC) -> list:
         [killing_report_intel, target]
     ]
     print("==> Kill enemies", enemy, "and report it back to", target)
+    Message.instruction("Kill enemy '%s' and report it back to '%s'" % (enemy, target))
     return steps
 
 
@@ -288,5 +289,5 @@ def protection_2(NPC_protection_motivated: NPC) -> list:
     ]
 
     print("==> Treat or repair '%s' using '%s'." % (npc_in_need, needed_item))
-
+    Message.instruction("Treat or repair '%s' using '%s'" % (npc_in_need, needed_item))
     return steps

@@ -7,7 +7,6 @@ from Data.statics import Playground
 from Grammar.actions import Terminals as T, NonTerminals as NT
 from Grammar.plot import export_semantics_plot
 from Grammar.rules import rules
-from GA.operators import quest_generator
 
 from World.Narrative.actions import terminals
 from World.Narrative.effects import is_done_method
@@ -15,6 +14,7 @@ from World.Types.Intel import Intel
 from World.Types.Item import Item
 from World.Types.Person import NPC, Player
 from World.Types.Place import Place
+from World.Types.Log import Message
 
 import cmd
 

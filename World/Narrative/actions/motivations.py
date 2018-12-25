@@ -2,6 +2,7 @@ from World.Types import fn, JOIN
 from World.Types import BaseElement
 from World.Types.Person import Clan, NPC, Motivation
 from World.Types.Place import Place
+from World.Types.Log import Message
 
 from Grammar.actions import NonTerminals as NT
 
@@ -26,15 +27,13 @@ def quest_neutral(motivation: NT) -> List[List[BaseElement]]:
         motivated = NPC.create(place=place, clan=clan, name='arbitrary_npc_' + str(randint(100, 999)))
         Motivation.create(npc=motivated, action=motivation.value, motive=0.65)
 
-    # todo: sort by distanced
-
     # steps:
     #   give useful info to this NPC
     steps = [
         [motivated]
     ]
     print("==> '%s' has '%s' motivation!" % (motivated.name, motivation.name))
-
+    Message.instruction("NPC '%s' has '%s' motivation" % (motivated.name, motivation.name))
     return steps
 
 
