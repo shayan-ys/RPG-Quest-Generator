@@ -5,6 +5,7 @@ from World.Types.Intel import Intel, IntelTypes, Spell
 from World.Types.Place import Place
 from World.Types.Person import Clan, NPC, Motivation, Player
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook, ReadableKnowledgeBook
+from World.Types.Names import NPCName, ItemName, PlaceName, SpellName
 
 
 def create():
@@ -24,6 +25,11 @@ def create():
     acherus = Place.create(name='acherus', x=10, y=40)
     alcaz = Place.create(name='alcaz', x=90, y=60)
 
+    PlaceName.create(name='hamilton')
+    PlaceName.create(name='denver')
+    PlaceName.create(name='munich')
+    PlaceName.create(name='quebec')
+
     player = Player.create(name='player_1', place=beach, clan=alliance)
 
     qeynos = NPC.create(name='qeynos', place=azshara, clan=alliance)
@@ -33,6 +39,12 @@ def create():
     lempeck = NPC.create(name='lempeck', place=harbor, clan=alliance, health_meter=0.7)  # = Denros
     bixies = NPC.create(name='bixies', place=cataclysm, clan=horde)
     goblin = NPC.create(name='goblin', place=dalaran, clan=horde)
+
+    NPCName.create(name='gabriel')
+    NPCName.create(name='mariah')
+    NPCName.create(name='sia')
+    NPCName.create(name='silva')
+    NPCName.create(name='berg')
 
     steve_motive = Motivation.create(npc=steve, action=NT.knowledge.value, motive=0.6)
     tomas_motive = Motivation.create(npc=tomas, action=NT.protection.value, motive=0.7)
@@ -52,6 +64,9 @@ def create():
                                                text="'Earth, grass, trees and seeds reveal the path to suit my needs'"))
     spell_2 = Intel.construct(spell=Spell.create(name="flat_earth", text="Earth is flat! LoL"))
     spell_3 = Intel.construct(spell=Spell.create(name="gravity", text="Gravity is a myth"))
+
+    # SpellName.create()
+
     NPCKnowledgeBook.create(npc=goblin, intel=spell)
     NPCKnowledgeBook.create(npc=bixies, intel=spell_2)
     NPCKnowledgeBook.create(npc=steve, intel=spell_2)

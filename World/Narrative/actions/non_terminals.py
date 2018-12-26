@@ -5,6 +5,7 @@ from World.Types.Intel import Intel, IntelTypes
 from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import Need, Exchange, ReadableKnowledgeBook, NPCKnowledgeBook, PlayerKnowledgeBook
 from World.Types.Log import Message
+from World.Types.Names import NPCName, ItemName, PlaceName
 from World.Narrative import helper as narrative_helper
 
 from Data.statics import World as WorldParams
@@ -36,7 +37,7 @@ def sub_quest_1(suggested_destination: Place=None):
             # not enough places to go, then create a new place unknown to player
             new_x = randint(WorldParams.minimum_distance, WorldParams.reachable_distance)
             new_y = randint(WorldParams.minimum_distance, WorldParams.reachable_distance)
-            place_to_go = Place.create(name='arbitrary_' + str(randint(100, 999)), x=new_x, y=new_y)
+            place_to_go = Place.create(name=PlaceName.fetch_new(), x=new_x, y=new_y)
 
     player.next_location = place_to_go
     player.save()
@@ -204,7 +205,7 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
             # player already knows where the place is exactly,
             # so create a new place at the same location with a different name, now player doesn't know!
-            destination = Place.create(name='arbitrary_' + str(randint(100, 999)), x=destination.x, y=destination.y)
+            destination = Place.create(name=PlaceName.fetch_new(), x=destination.x, y=destination.y)
             intel = Intel.construct(place_location=destination)
 
     if not intel:
@@ -304,7 +305,7 @@ def learn_2(required_intel: Intel):
             # No NPC left in the world
             knowledgeable_npc = NPC.create(place=Place.select().order_by(fn.Random()).get(),
                                            clan=Clan.select().order_by(fn.Random()).get(),
-                                           name='arbitrary_npc_' + str(randint(100, 999)))
+                                           name=NPCName.fetch_new())
             Message.debug("No NPC left in the world, new one %s created for learn_2" % knowledgeable_npc)
         else:
             locations_scores = [player.distance(row.place) for row in results]
@@ -369,7 +370,7 @@ def learn_3(required_intel: Intel):
 
         book_containing_intel = Item.create(type=ItemTypes.readable.name,
                                             generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
-                                            name='address_book_' + str(randint(100, 999)), place=known_place)
+                                            name=ItemName.fetch_new(), place=known_place)
         ReadableKnowledgeBook.create(readable=book_containing_intel, intel=required_intel)
         PlayerKnowledgeBook.create(player=player, intel=Intel.construct(item_place=book_containing_intel))
 

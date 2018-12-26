@@ -83,7 +83,7 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
     player = Player.current()
 
     if player.place != area_location:
-        Message.instruction("Player is not at the area '%s'")
+        Message.instruction("Player is not at the area '%s'" % area_location)
         return False
 
     # check if player knows the location

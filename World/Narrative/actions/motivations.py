@@ -3,6 +3,7 @@ from World.Types import BaseElement
 from World.Types.Person import Clan, NPC, Motivation
 from World.Types.Place import Place
 from World.Types.Log import Message
+from World.Types.Names import NPCName, ItemName, PlaceName
 
 from Grammar.actions import NonTerminals as NT
 
@@ -24,7 +25,7 @@ def quest_neutral(motivation: NT) -> List[List[BaseElement]]:
         # No motivated NPC found, create one
         place = Place.select().order_by(fn.Random()).get()
         clan = Clan.select().order_by(fn.Random()).get()
-        motivated = NPC.create(place=place, clan=clan, name='arbitrary_npc_' + str(randint(100, 999)))
+        motivated = NPC.create(place=place, clan=clan, name=NPCName.fetch_new())
         Motivation.create(npc=motivated, action=motivation.value, motive=0.65)
 
     # steps:

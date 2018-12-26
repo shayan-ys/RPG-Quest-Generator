@@ -5,6 +5,7 @@ from World.Types.Intel import Intel, Spell
 from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook
 from World.Types.Log import Message
+from World.Types.Names import NPCName, ItemName, PlaceName, SpellName
 
 from Grammar.actions import Terminals as T
 from helper import sort_by_list
@@ -33,7 +34,7 @@ def knowledge_1(NPC_target: NPC):
             # No NPC left in the world except the target
             new_item_holder = NPC.create(place=Place.select().order_by(fn.Random()).get(),
                                          clan=Clan.select().order_by(fn.Random()).get(),
-                                         name='arbitrary_npc_' + str(randint(100, 999)))
+                                         name=NPCName.fetch_new())
         item = Item.create(
             type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
             name='arbitrary_item_unknown_' + str(randint(100, 999)),
@@ -95,7 +96,7 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
             spy_intel = new_intel_list[0]
         else:
             # no new intel found, create a new intel
-            spy_intel = Intel.construct(spell=Spell.create(name='arbitrary_' + str(randint(100, 999)),
+            spy_intel = Intel.construct(spell=Spell.create(name=SpellName.fetch_new(),
                                                            text='magical arbitrary spell'))
         NPCKnowledgeBook.create(npc=spy_target, intel=spy_intel)
 
@@ -148,7 +149,7 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
             intended_intel = new_intel_list[0]
         else:
             # no new intel found, create a new intel
-            intended_intel = Intel.construct(spell=Spell.create(name='arbitrary_' + str(randint(100, 999)),
+            intended_intel = Intel.construct(spell=Spell.create(name=SpellName.fetch_new(),
                                                                 text='magical arbitrary spell'))
         results = NPC.select().where(NPC.clan == player.clan)
         if not results:
@@ -175,7 +176,7 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         [intended_intel, NPC_knowledge_motivated]
     ]
     # print("==> Interview '", NPC_knowledgeable, "' to get the intel '", intended_intel, "'.")
-    Message.instruction("Interview '%'s, to get the intel '%s'" % (NPC_knowledgeable, intended_intel))
+    Message.instruction("Interview '%s's, to get the intel '%s'" % (NPC_knowledgeable, intended_intel))
     return steps
 
 
