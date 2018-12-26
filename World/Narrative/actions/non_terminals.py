@@ -103,11 +103,36 @@ def goto_1(destination: Place, npc: NPC=None, item: Item=None):
 
 def goto_2(destination: Place, npc: NPC=None, item: Item=None):
     """
-    Just wander around and look.
+    Explore destination to find npc or item
     :return:
     """
     # place_location[1] is destination
     # area around location[1] is given to player to explore and find location[1]
+    player = Player.current()
+
+    # ensure player doesn't already know where the NPC or item is
+    if npc:
+        intel = Intel.construct(npc_place=npc)
+        if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+            npc.place = Place.select().order_by(fn.Random()).get()
+            npc.save()
+            destination = npc.place
+        event_target_str = npc
+    elif item:
+        intel = Intel.construct(item_place=item)
+        if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+            if item.belongs_to:
+                holder = item.belongs_to
+                holder.place = Place.select().order_by(fn.Random()).get()
+                holder.save()
+                destination = holder.place
+            else:
+                item.place = Place.select().order_by(fn.Random()).get()
+                item.save()
+                destination = item.place
+        event_target_str = item
+    else:
+        event_target_str = ''
 
     # steps:
     # T.explore
@@ -115,20 +140,12 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
         [destination, npc, item]
     ]
 
-    if npc:
-        event_target_str = npc
-    elif item:
-        event_target_str = item
-    else:
-        event_target_str = ''
-
     if event_target_str:
-        event_dest_str = destination
+        print("==> Explore around", destination, "to find", event_target_str)
     else:
-        event_dest_str = str(event_target_str) + ' (' + str(destination) + ')'
+        print("==> Explore around", str(event_target_str) + ' (' + str(destination) + ')', "to find", event_target_str)
 
-    print("==> Explore around", event_dest_str, "to find", npc, item)
-    Message.instruction("Explore around %s to find %s" % (event_dest_str, event_target_str))
+    Message.instruction("Explore around %s to find %s" % (destination, event_target_str))
 
     return steps
 

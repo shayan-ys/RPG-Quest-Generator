@@ -27,6 +27,11 @@ def talk(npc: NPC):
         Message.instruction("Player is not at the NPC '%s' place, can't talk to him" % npc)
         return False
 
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=npc)):
+        print("Player doesn't know where the NPC (%s) is" % npc)
+        Message.instruction("Player doesn't know where the NPC (%s) is" % npc)
+        return False
+
     print("==> Talking to", npc)
     Message.achievement("Talking to '%s'" % npc)
     return True
