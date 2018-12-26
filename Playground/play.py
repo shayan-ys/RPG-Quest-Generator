@@ -442,6 +442,14 @@ class Play(cmd.Cmd):
         if None in args:
             print("Error: Typo in one of the inputs")
             return False
+        if action in [T.goto, T.explore] or \
+                (self.progress and
+                 action == self.progress.current_node.action and args == self.progress.get_current_semantics()):
+            # action is among sanctioned actions or it is the next action with correct arguments
+            pass
+        else:
+            print("Error: Action is not allowed at the moment")
+            return False
         for i, value in enumerate(args):
             if value == '':
                 args[i] = None
@@ -463,7 +471,6 @@ class Play(cmd.Cmd):
 
             if self.last_action_doable:
                 self.last_action_doable = False
-
                 level_completed = False
 
                 for i in range(Playground.max_level_skip_loop):
@@ -474,25 +481,22 @@ class Play(cmd.Cmd):
                         # check if next step is already done before (check world's effects)
                         level_already_done = is_done_method(self.progress.current_node)(*self.progress.get_current_semantics())
                         if level_already_done:
-                            print("Already done, skip")
+                            # print("Already done, skip")
                             self.last_action = self.progress.current_node.action
                             self.last_args = self.progress.get_current_semantics()
                         else:
                             break
 
-                Message.print_queue(debug_mode=Playground.debug_mode)
+                self.progress.print_progress()
 
                 # check if quest is completed
                 if level_completed and 0 in self.progress.completed_indices:
                     self.finish_quest()
 
-            self.progress.print_progress()
             export_semantics_plot(self.progress.quest, semantics_indices=self.progress.semantics_indices,
                                   current_level_index=self.progress.current_node.index)
 
-        else:
-            if self.last_action_doable:
-                Message.print_queue(debug_mode=Playground.debug_mode)
+        Message.print_queue(debug_mode=Playground.debug_mode)
 
 
 def parse(arg):

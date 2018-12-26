@@ -100,7 +100,10 @@ class Progress:
                     # go down the tree, player should first complete parent's branches
                     for branch in node.branches:
                         if branch.index not in self.completed_indices:
-                            self.update_active_level(branch)
+                            # if completed skip
+                            if branch.index not in self.semantics_parsed_for_branches:
+                                # don't parse branches which already parsed
+                                self.update_active_level(branch)
                             if not self.find_next_active_level(branch):
                                 return False
                 else:

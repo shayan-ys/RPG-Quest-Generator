@@ -82,6 +82,10 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
 
     player = Player.current()
 
+    if player.place != area_location:
+        Message.instruction("Player is not at the area '%s'")
+        return False
+
     # check if player knows the location
     results = PlayerKnowledgeBook.select().join(Intel)\
         .where(PlayerKnowledgeBook.player == player, Intel.place_location == area_location).limit(1)
@@ -103,7 +107,7 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
         target = ''
 
     # print("==> Explore around '", area_location, "'.")
-    Message.achievement("Player found '%s' by exploring '%s'" % (target, area_location))
+    Message.achievement("The player found '%s' by exploring '%s'" % (target, area_location))
 
     if npc:
         # find npc for player (give npc place intel to player)

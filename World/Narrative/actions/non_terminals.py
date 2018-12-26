@@ -145,7 +145,7 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
     # else:
         # print("==> Explore around", str(event_target_str) + ' (' + str(destination) + ')', "to find", event_target_str)
 
-    Message.instruction("Explore around %s to find %s" % (destination, event_target_str))
+    Message.instruction("Explore around '%s' to find '%s'" % (destination, event_target_str))
 
     return steps
 
