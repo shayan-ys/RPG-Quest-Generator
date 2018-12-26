@@ -41,6 +41,7 @@ class Play(cmd.Cmd):
         self.progress = Progress(quest=quest)
         self.progress.check_action_proceed(self.last_action, self.last_args)
         self.progress.print_progress()
+        Message.print_queue(debug_mode=Playground.debug_mode)
         export_semantics_plot(quest, semantics_indices=self.progress.semantics_indices,
                               current_level_index=self.progress.current_node.index)
 
@@ -118,8 +119,10 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("gave", item_to_give, ", took", item_to_take)
+        print("player's belongings updated.")
         print_player_belongings()
+        print("NPC belongings updated.")
+        print_npc_belongings(item_holder)
         self.last_action_doable = True
 
     def do_explore(self, args):
@@ -144,7 +147,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("moved to:", Player.current().place)
+
         self.last_action_doable = True
 
     def do_gather(self, args):
@@ -162,18 +165,18 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("Item added to belongings.")
+        print("player's belongings updated.")
         print_player_belongings()
         self.last_action_doable = True
 
     def do_give(self, args):
-        """Give an NPC something. GIVE Goblin bandage"""
+        """Give an NPC something. GIVE bandage Goblin"""
         args = parse(args)
         if not self.check_length(args, 2):
             return
 
-        item = Item.get_or_none(Item.name == args[1])
-        npc = NPC.get_or_none(NPC.name == args[0])
+        item = Item.get_or_none(Item.name == args[0])
+        npc = NPC.get_or_none(NPC.name == args[1])
 
         if not self.set_inputs(action=T.give, args=[item, npc]):
             return
@@ -223,7 +226,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("stealth done!")
+
         self.last_action_doable = True
 
     def do_take(self, args):
@@ -292,7 +295,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("moved to:", Player.current().place)
+
         self.last_action_doable = True
 
     def do_kill(self, args):
@@ -310,7 +313,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("target killed (health_meter set to " + str(npc.health_meter) + ")")
+
         self.last_action_doable = True
 
     def do_listen(self, args):
@@ -369,7 +372,7 @@ class Play(cmd.Cmd):
         if not found:
             print("failed!")
             return
-        print("Item effect on the NPC,", item.impact_factor, "NPC health meter:", npc.health_meter)
+        print("NPC health meter:", npc.health_meter)
         self.last_action_doable = True
 
     def do_player(self, args):
@@ -477,6 +480,8 @@ class Play(cmd.Cmd):
                         else:
                             break
 
+                Message.print_queue(debug_mode=Playground.debug_mode)
+
                 # check if quest is completed
                 if level_completed and 0 in self.progress.completed_indices:
                     self.finish_quest()
@@ -484,6 +489,10 @@ class Play(cmd.Cmd):
             self.progress.print_progress()
             export_semantics_plot(self.progress.quest, semantics_indices=self.progress.semantics_indices,
                                   current_level_index=self.progress.current_node.index)
+
+        else:
+            if self.last_action_doable:
+                Message.print_queue(debug_mode=Playground.debug_mode)
 
 
 def parse(arg):

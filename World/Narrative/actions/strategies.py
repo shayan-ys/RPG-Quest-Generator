@@ -48,7 +48,7 @@ def knowledge_1(NPC_target: NPC):
         [NPC_target.place, NPC_target],
         [item, NPC_target]
     ]
-    print("==> Deliver item", item, "to", NPC_target, "for study")
+    # print("==> Deliver item", item, "to", NPC_target, "for study")
     Message.instruction("Deliver item '%s' to '%s' for study" % (item, NPC_target))
     return steps
 
@@ -105,7 +105,7 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         [spy_target, spy_intel, NPC_knowledge_motivated]
     ]
 
-    print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
+    # print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
     Message.instruction("Spy on '%s' to get the intel '%s' for '%s'." %
                         (spy_target, spy_intel, NPC_knowledge_motivated))
     return steps
@@ -174,7 +174,7 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         [NPC_knowledge_motivated.place],
         [intended_intel, NPC_knowledge_motivated]
     ]
-    print("==> Interview '", NPC_knowledgeable, "' to get the intel '", intended_intel, "'.")
+    # print("==> Interview '", NPC_knowledgeable, "' to get the intel '", intended_intel, "'.")
     Message.instruction("Interview '%'s, to get the intel '%s'" % (NPC_knowledgeable, intended_intel))
     return steps
 
@@ -210,7 +210,7 @@ def reputation_2(target: NPC) -> list:
         [target.place, target],
         [killing_report_intel, target]
     ]
-    print("==> Kill enemies", enemy, "and report it back to", target)
+    # print("==> Kill enemies", enemy, "and report it back to", target)
     Message.instruction("Kill enemy '%s' and report it back to '%s'" % (enemy, target))
     return steps
 
@@ -288,6 +288,6 @@ def protection_2(NPC_protection_motivated: NPC) -> list:
         [needed_item, npc_in_need]
     ]
 
-    print("==> Treat or repair '%s' using '%s'." % (npc_in_need, needed_item))
+    # print("==> Treat or repair '%s' using '%s'." % (npc_in_need, needed_item))
     Message.instruction("Treat or repair '%s' using '%s'" % (npc_in_need, needed_item))
     return steps

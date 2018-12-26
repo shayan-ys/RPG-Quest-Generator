@@ -32,7 +32,7 @@ def quest_neutral(motivation: NT) -> List[List[BaseElement]]:
     steps = [
         [motivated]
     ]
-    print("==> '%s' has '%s' motivation!" % (motivated.name, motivation.name))
+    # print("==> '%s' has '%s' motivation!" % (motivated.name, motivation.name))
     Message.instruction("NPC '%s' has '%s' motivation" % (motivated.name, motivation.name))
     return steps
 

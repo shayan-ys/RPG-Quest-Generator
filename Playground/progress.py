@@ -1,4 +1,5 @@
 from World import Narrative
+from World.Types.Log import Message
 
 from Grammar.tree import Node
 from Grammar.actions import NonTerminals as NT, Terminals as T
@@ -74,14 +75,14 @@ class Progress:
         return []
 
     def print_progress(self, full: bool=False):
-        # print("level:", self.current_node.index, ", current-node:", self.current_node.action, self.current_node.rule,
-        #       ", branches:", [(branch.action, branch.rule) for branch in self.current_node.branches])
-        # print("semantics:", self.semantics_indices)
-        print("level:", self.current_node.index, ", current-node:", self.current_node.action)
+        # print("level:", self.current_node.index, ", current-node:", self.current_node.action)
+        Message.debug("level: %i, current-node: %s" % (self.current_node.index, self.current_node.action))
         if full:
-            print("semantics:", self.semantics_indices)
+            # print("semantics:", self.semantics_indices)
+            Message.debug("semantics: %s" % self.semantics_indices)
         else:
-            print("semantics:", self.get_current_semantics())
+            # print("semantics:", self.get_current_semantics())
+            Message.debug("semantics: %s" % self.get_current_semantics())
 
     def find_next_active_level(self, node: Node=None):
 

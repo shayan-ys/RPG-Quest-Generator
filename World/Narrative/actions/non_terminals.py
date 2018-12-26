@@ -47,7 +47,7 @@ def sub_quest_1(suggested_destination: Place=None):
         [place_to_go]
     ]
 
-    print("==> Goto '%s'." % place_to_go)
+    # print("==> Goto '%s'." % place_to_go)
     Message.instruction("Goto '%s'." % place_to_go)
 
     return steps
@@ -62,7 +62,7 @@ def goto_1(destination: Place, npc: NPC=None, item: Item=None):
         event_dest_str = str(npc if npc else item) + ' (' + str(destination) + ')'
     else:
         event_dest_str = str(destination)
-    print('==> Already at your destination,', event_dest_str)
+    # print('==> Already at your destination,', event_dest_str)
     Message.instruction("Already at your destination %s" % event_dest_str)
 
     player = Player.current()
@@ -114,7 +114,7 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
     if npc:
         intel = Intel.construct(npc_place=npc)
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
-            npc.place = Place.select().order_by(fn.Random()).get()
+            npc.place = Place.select().where(Place.id != destination).order_by(fn.Random()).get()
             npc.save()
             destination = npc.place
         event_target_str = npc
@@ -123,11 +123,11 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
             if item.belongs_to:
                 holder = item.belongs_to
-                holder.place = Place.select().order_by(fn.Random()).get()
+                holder.place = Place.select().where(Place.id != destination).order_by(fn.Random()).get()
                 holder.save()
                 destination = holder.place
             else:
-                item.place = Place.select().order_by(fn.Random()).get()
+                item.place = Place.select().where(Place.id != destination).order_by(fn.Random()).get()
                 item.save()
                 destination = item.place
         event_target_str = item
@@ -140,10 +140,10 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
         [destination, npc, item]
     ]
 
-    if event_target_str:
-        print("==> Explore around", destination, "to find", event_target_str)
-    else:
-        print("==> Explore around", str(event_target_str) + ' (' + str(destination) + ')', "to find", event_target_str)
+    # if event_target_str:
+        # print("==> Explore around", destination, "to find", event_target_str)
+    # else:
+        # print("==> Explore around", str(event_target_str) + ' (' + str(destination) + ')', "to find", event_target_str)
 
     Message.instruction("Explore around %s to find %s" % (destination, event_target_str))
 
@@ -234,7 +234,7 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
         destination_str = str(npc if npc else item) + ' (' + str(destination) + ')'
     else:
         destination_str = str(destination)
-    print("==> Find out how to get to '", destination_str, "', then goto it.")
+    # print("==> Find out how to get to '", destination_str, "', then goto it.")
     Message.instruction("Find out how to get to '%s', then go to it" % destination_str)
 
     return steps
@@ -261,7 +261,7 @@ def learn_1(required_intel: Intel):
 
         PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(place_location=place))
 
-    print("==> Intel '%s' added." % required_intel)
+    # print("==> Intel '%s' added." % required_intel)
     Message.event("Intel '%s' discovered" % required_intel)
     return [[]]
 
@@ -326,8 +326,8 @@ def learn_2(required_intel: Intel):
         [required_intel, knowledgeable_npc]
     ]
 
-    print("==> Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
-          (knowledgeable_npc, knowledgeable_npc.place, required_intel, knowledgeable_npc))
+    # print("==> Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
+    #       (knowledgeable_npc, knowledgeable_npc.place, required_intel, knowledgeable_npc))
     Message.instruction("==> Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
                         (knowledgeable_npc, knowledgeable_npc.place, required_intel, knowledgeable_npc))
 
@@ -385,8 +385,8 @@ def learn_3(required_intel: Intel):
         [book_containing_intel],
         [required_intel, book_containing_intel]
     ]
-    print("==> Goto", book_containing_intel, "(", book_containing_intel.place_(), "), get '",
-          book_containing_intel, "', and read the intel '", required_intel, "' from it.")
+    # print("==> Goto", book_containing_intel, "(", book_containing_intel.place_(), "), get '",
+    #       book_containing_intel, "', and read the intel '", required_intel, "' from it.")
     Message.instruction("Goto %s (%s), get '%s', and read the intel '%s' from it" %
                         (book_containing_intel, book_containing_intel.place_(), book_containing_intel, required_intel))
 
@@ -456,15 +456,15 @@ def learn_4(required_intel: Intel):
         [required_intel, informer]
     ]
 
-    print("==> Get '", item_to_exchange, "', perform sub-quest, give the acquired item to '", informer,
-          "' in return get an intel on '", required_intel, "'")
+    # print("==> Get '", item_to_exchange, "', perform sub-quest, give the acquired item to '", informer,
+    #       "' in return get an intel on '", required_intel, "'")
     Message.instruction("Get '%s', perform sub-quest, give the acquired item to '%s' in return get an intel on '%s'" %
                         (item_to_exchange, informer, required_intel))
     return steps
 
 
 def get_1(item_to_fetch: Item):
-    print("==> You already have the item.")
+    # print("==> You already have the item.")
 
     # if not, add it to player's belongings
     item_to_fetch.belongs_to_player = Player.current()
@@ -534,7 +534,7 @@ def get_2(item_to_fetch: Item):
     steps = [
         [item_to_fetch, item_holder]
     ]
-    print("==> Steal '", item_to_fetch, "' from '", item_holder, "'.")
+    # print("==> Steal '", item_to_fetch, "' from '", item_holder, "'.")
     Message.instruction("Steal '%s' from '%s'" % (item_to_fetch, item_holder))
 
     return steps
@@ -569,7 +569,7 @@ def get_3(item_to_fetch: Item):
         [dest, None, item_to_fetch],
         [item_to_fetch]
     ]
-    print("==> Goto '%s' and gather '%s'." % (dest, item_to_fetch))
+    # print("==> Goto '%s' and gather '%s'." % (dest, item_to_fetch))
     Message.instruction("Goto '%s' and gather '%s'." % (dest, item_to_fetch))
 
     return steps
@@ -649,8 +649,8 @@ def get_4(item_to_fetch: Item):
             [item_holder.place, item_holder],
             [item_holder, item_to_give, item_to_fetch]
         ]
-        print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
-              (item_holder.place, item_holder, item_to_give, item_to_fetch))
+        # print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+        #       (item_holder.place, item_holder, item_to_give, item_to_fetch))
         Message.instruction("Do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
                             (item_holder.place, item_holder, item_to_give, item_to_fetch))
         return steps
@@ -668,8 +668,8 @@ def get_4(item_to_fetch: Item):
         [item_holder.place, item_holder],
         [item_holder, item_to_give, item_to_fetch]
     ]
-    print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
-          (item_to_give.place_(), item_to_give, item_holder.place, item_holder, item_to_give, item_to_fetch))
+    # print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+    #       (item_to_give.place_(), item_to_give, item_holder.place, item_holder, item_to_give, item_to_fetch))
     Message.instruction("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
                         (item_to_give.place_(), item_to_give, item_holder.place, item_holder, item_to_give,
                          item_to_fetch))
@@ -699,7 +699,7 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
         [item_holder],
         [item_to_steal, item_holder]
     ]
-    print("==> Goto '", item_holder_place, "', sneak up on '", item_holder, "', and take '", item_to_steal, "'.")
+    # print("==> Goto '", item_holder_place, "', sneak up on '", item_holder, "', and take '", item_to_steal, "'.")
     Message.instruction("Goto '%s', sneak up on '%s', and take '%s'" % (item_holder_place, item_holder, item_to_steal))
 
     return steps
@@ -726,7 +726,7 @@ def steal_2(item_to_steal: Item, item_holder: NPC):
         [item_to_steal]
     ]
 
-    print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
+    # print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
     Message.instruction("Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))
 
     return steps
@@ -756,8 +756,8 @@ def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
         [intel_needed, receiver]
     ]
 
-    print("==> Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
-          (spy_on, spy_on.place, spy_on, intel_needed, receiver, receiver.place, receiver))
+    # print("==> Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
+    #       (spy_on, spy_on.place, spy_on, intel_needed, receiver, receiver.place, receiver))
     Message.instruction("==> Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
                         (spy_on, spy_on.place, spy_on, intel_needed, receiver, receiver.place, receiver))
 
@@ -793,7 +793,7 @@ def capture_1(target: NPC):
         [target.place, target],
         [target]
     ]
-    print("==> Get '%s', then goto '%s' (%s) and capture '%s'" % (item_to_fetch, target, target.place, target))
+    # print("==> Get '%s', then goto '%s' (%s) and capture '%s'" % (item_to_fetch, target, target.place, target))
     Message.instruction("==> Get '%s', then goto '%s' (%s) and capture '%s'" %
                         (item_to_fetch, target, target.place, target))
     return steps
@@ -817,7 +817,7 @@ def kill_1(target: NPC):
         [target]
     ]
 
-    print("==> Goto '%s' and kill '%s'." % (target.place, target))
+    # print("==> Goto '%s' and kill '%s'." % (target.place, target))
     Message.instruction("Goto '%s' and kill '%s'." % (target.place, target))
 
     return steps
