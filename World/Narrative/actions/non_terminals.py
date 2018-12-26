@@ -706,7 +706,7 @@ def steal_2(item_to_steal: Item, item_holder: NPC):
     steps = [
         [item_holder.place, item_holder],
         [item_holder],
-        [item_to_steal, item_holder]
+        [item_to_steal]
     ]
 
     print("==> Goto and kill '%s', then take '%s'." % (item_holder, item_to_steal))

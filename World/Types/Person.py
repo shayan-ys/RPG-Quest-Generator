@@ -44,6 +44,10 @@ class NPC(BaseElement, Person, Named):
         return 0, T.null
 
 
+class NPCDead(BaseElement, Person, Named):
+    health_meter = FloatField(default=0)
+
+
 class Motivation(BaseElement):
     npc = ForeignKeyField(NPC, backref='motivations')
     action = SmallIntegerField(default=0, constraints=[Check('action >= 0')])
@@ -113,4 +117,4 @@ class PlayerAllies(BaseElement):
         )
 
 
-list_of_models = [Clan, NPC, Motivation, Player, Enemies, Allies, PlayerEnemies, PlayerAllies]
+list_of_models = [Clan, NPC, NPCDead, Motivation, Player, Enemies, Allies, PlayerEnemies, PlayerAllies]

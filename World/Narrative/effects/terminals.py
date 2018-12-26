@@ -55,7 +55,7 @@ def stealth(target: NPC):
     return False
 
 
-def take(item_to_take: Item, item_holder: NPC):
+def take(item_to_take: Item, item_holder: NPC=None):
     player = Player.current()
 
     return item_to_take.belongs_to_player == player

@@ -12,7 +12,7 @@ from World.Narrative.actions import terminals
 from World.Narrative.effects import is_done_method
 from World.Types.Intel import Intel
 from World.Types.Item import Item
-from World.Types.Person import NPC, Player
+from World.Types.Person import NPC, NPCDead, Player
 from World.Types.Place import Place
 from World.Types.Log import Message
 
@@ -227,21 +227,30 @@ class Play(cmd.Cmd):
         self.last_action_doable = True
 
     def do_take(self, args):
-        """Take something from an NPC. TAKE Goblin bandage"""
+        """Take something from an NPC. TAKE bandage Goblin"""
         args = parse(args)
         if not self.check_length(args, 2):
             return
 
-        item = Item.get_or_none(Item.name == args[1])
-        npc = NPC.get_or_none(NPC.name == args[0])
+        item = Item.get_or_none(Item.name == args[0])
+        npc = NPC.get_or_none(NPC.name == args[1])
+        dead = NPCDead.get_or_none(NPCDead.name == args[1])
 
-        if not self.set_inputs(action=T.take, args=[item, npc]):
-            return
+        if not npc and dead:
+            # npc is dead, loot him
+            if not self.set_inputs(action=T.take, args=[item]):
+                return
+            found = terminals.take_loot(item_to_take=item, loot_npc=dead)
+        else:
+            # npc is alive, or not found among dead, can't loot
+            if not self.set_inputs(action=T.take, args=[item, npc]):
+                return
+            found = terminals.take(item_to_take=item, item_holder=npc)
 
-        found = terminals.take(item_to_take=item, item_holder=npc)
         if not found:
             print("failed!")
             return
+
         print("player's belongings updated.")
         print_player_belongings()
         print("NPC belongings updated.")

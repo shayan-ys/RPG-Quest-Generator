@@ -1,4 +1,4 @@
-from World.Types.Person import Player, NPC
+from World.Types.Person import Player, NPC, NPCDead
 from World.Types.Place import Place
 from World.Types.Item import Item, ItemTypes
 from World.Types.Intel import Intel
@@ -206,7 +206,10 @@ def stealth(target: NPC):
     return True
 
 
-def take(item_to_take: Item, item_holder: NPC):
+def take(item_to_take: Item, item_holder: NPC=None):
+
+    if item_holder is None:
+        return take_loot(item_to_take)
 
     player = Player.current()
 
@@ -234,6 +237,36 @@ def take(item_to_take: Item, item_holder: NPC):
 
     print("==> Take '%s'." % item_to_take)
     Message.achievement("Item '%s' taken" % item_to_take)
+    return True
+
+
+def take_loot(item_to_take: Item, loot_npc: NPCDead=None):
+
+    player = Player.current()
+
+    # check if the item belongs to dead
+    if not loot_npc:
+        # NPC confirmed dead already, object among dead is given
+        try:
+            holder = item_to_take.belongs_to
+        except:
+            # holder not found = dead
+            Message.debug("Item '%s' holder is dead")
+            holder = None
+
+        if holder:
+            # holder is alive
+            return take(item_to_take, item_holder=holder)
+
+    # remove item from holder's belongings and add to player's
+    item_to_take.belongs_to = None
+    item_to_take.belongs_to_player = player
+    item_to_take.save()
+
+    # FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
+
+    print("==> Take '%s' by looting" % item_to_take)
+    Message.achievement("Item '%s' taken by looting" % item_to_take)
     return True
 
 
@@ -309,6 +342,7 @@ def kill(target: NPC):
     print("==> Kill '%s'." % target)
     Message.achievement("NPC '%s' has been killed" % target)
 
+    NPCDead.create(name=target.name, place=target.place, clan=target.clan)
     target.delete_instance()
 
     return True
