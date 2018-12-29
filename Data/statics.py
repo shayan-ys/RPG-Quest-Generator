@@ -52,7 +52,7 @@ class XP:
 
 
 class Playground:
-    debug_mode = True
+    debug_mode = False
     max_level_skip_loop = 100
 
 
