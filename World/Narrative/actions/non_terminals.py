@@ -75,6 +75,7 @@ def goto_1(destination: Place, npc: NPC=None, item: Item=None):
         intel = Intel.construct(npc_place=npc)
         PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
         Message.debug("NPC (%s) moved to the player location (%s)" % (npc, player.place))
+        Message.event("%s moved to your location" % npc)
     elif item:
         # move item or the holder
         if item.belongs_to:
@@ -93,11 +94,13 @@ def goto_1(destination: Place, npc: NPC=None, item: Item=None):
             intel = Intel.construct(item_place=item)
             PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
             Message.debug("Item (%s) moved to the player location (%s)" % (item, player.place))
+        Message.event("Item %s moved to your location" % item)
     else:
         # update player's location
         player.place = destination
         player.save()
         Message.debug("Player moved to %s location" % event_dest_str)
+        Message.event("Player has been moved to %s location" % destination)
 
     return [[]]
 
@@ -115,22 +118,27 @@ def goto_2(destination: Place, npc: NPC=None, item: Item=None):
     if npc:
         intel = Intel.construct(npc_place=npc)
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+            # player knows where the NPC is, move the NPC then
             npc.place = Place.select().where(Place.id != destination).order_by(fn.Random()).get()
             npc.save()
             destination = npc.place
+            Message.event("You just missed '%s' he has moved to somewhere else" % npc)
         event_target_str = npc
     elif item:
         intel = Intel.construct(item_place=item)
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
+            # player knows where the Item is, move the item or item's holder
             if item.belongs_to:
                 holder = item.belongs_to
                 holder.place = Place.select().where(Place.id != destination).order_by(fn.Random()).get()
                 holder.save()
                 destination = holder.place
+                Message.event("Item '%s's holder just has been moved to somewhere else" % item)
             else:
                 item.place = Place.select().where(Place.id != destination).order_by(fn.Random()).get()
                 item.save()
                 destination = item.place
+                Message.event("Item '%s' just has been moved to somewhere else" % item)
         event_target_str = item
     else:
         event_target_str = ''
@@ -187,7 +195,8 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
                     destination = narrative_helper.create_place()
                 holder.place = destination
                 holder.save()
-                Message.event("Item holder (%s) is moved somewhere else (item: %s)" % (item.belongs_to, item))
+                Message.debug("Item holder (%s) is moved somewhere else (item: %s)" % (item.belongs_to, item))
+                Message.event("Item '%s's holder has been just moved to somewhere else" % item)
         else:
             intel = Intel.get_or_none(type=IntelTypes.item_place.name, item_place=item)
             if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
@@ -199,7 +208,7 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
                     destination = narrative_helper.create_place()
                 item.place = destination
                 item.save()
-                Message.event("Item (%s) has been misplaced" % item)
+                Message.event("Item '%s' has been misplaced" % item)
     else:
         intel = Intel.get_or_none(type=IntelTypes.location.name, place_location=destination)
         if PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
@@ -207,6 +216,7 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
             # so create a new place at the same location with a different name, now player doesn't know!
             destination = Place.create(name=PlaceName.fetch_new(), x=destination.x, y=destination.y)
             intel = Intel.construct(place_location=destination)
+            Message.event("Change of plans, destination is now '%s'" % destination)
 
     if not intel:
         # create the correct type of intel based on what is being asked
@@ -329,7 +339,7 @@ def learn_2(required_intel: Intel):
 
     # print("==> Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
     #       (knowledgeable_npc, knowledgeable_npc.place, required_intel, knowledgeable_npc))
-    Message.instruction("==> Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
+    Message.instruction("Do a sub-quest, goto '%s (%s)', listen intel '%s' from '%s'." %
                         (knowledgeable_npc, knowledgeable_npc.place, required_intel, knowledgeable_npc))
 
     return steps
@@ -471,7 +481,7 @@ def get_1(item_to_fetch: Item):
     item_to_fetch.belongs_to_player = Player.current()
     item_to_fetch.save()
 
-    Message.event("Player got the item '%s'" % item_to_fetch)
+    Message.event("Item '%s' acquired" % item_to_fetch)
 
     return []
 
@@ -552,14 +562,14 @@ def get_3(item_to_fetch: Item):
         dest = item_to_fetch.place
     elif item_to_fetch.belongs_to:
         # someone took it and put it in a specific place, put it where the NPC is
-        Message.event("Someone has stolen the item '%s' and put it somewhere else!" % item_to_fetch)
+        Message.event("Someone has stolen the item '%s' and put it somewhere else" % item_to_fetch)
         dest = item_to_fetch.belongs_to.place
         item_to_fetch.belongs_to = None
         item_to_fetch.place = dest
         item_to_fetch.save()
     else:
         # player already has the item or no one has it, put it in a random place
-        Message.event("Someone has stolen the item '%s' and put it in a random place!" % item_to_fetch)
+        Message.event("Someone has stolen the item '%s' and has put it in a random place" % item_to_fetch)
         dest = Place.select().order_by(fn.Random()).get()
         item_to_fetch.place = dest
         item_to_fetch.save()
@@ -671,7 +681,7 @@ def get_4(item_to_fetch: Item):
     ]
     # print("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
     #       (item_to_give.place_(), item_to_give, item_holder.place, item_holder, item_to_give, item_to_fetch))
-    Message.instruction("==> Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
+    Message.instruction("Goto '%s', get '%s', do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
                         (item_to_give.place_(), item_to_give, item_holder.place, item_holder, item_to_give,
                          item_to_fetch))
     return steps
@@ -759,7 +769,7 @@ def spy_1(spy_on: NPC, intel_needed: Intel, receiver: NPC):
 
     # print("==> Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
     #       (spy_on, spy_on.place, spy_on, intel_needed, receiver, receiver.place, receiver))
-    Message.instruction("==> Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
+    Message.instruction("Goto '%s' (%s), spy on '%s' to get intel '%s', goto '%s' (%s), report the intel to '%s'." %
                         (spy_on, spy_on.place, spy_on, intel_needed, receiver, receiver.place, receiver))
 
     return steps
@@ -795,7 +805,7 @@ def capture_1(target: NPC):
         [target]
     ]
     # print("==> Get '%s', then goto '%s' (%s) and capture '%s'" % (item_to_fetch, target, target.place, target))
-    Message.instruction("==> Get '%s', then goto '%s' (%s) and capture '%s'" %
+    Message.instruction("Get '%s', then goto '%s' (%s) and capture '%s'" %
                         (item_to_fetch, target, target.place, target))
     return steps
 

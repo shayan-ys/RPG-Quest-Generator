@@ -9,6 +9,7 @@ class MessageLevels(Enum):
     event = auto()
     instruction = auto()
     achievement = auto()
+    error = auto()
 
 
 class Message(BaseElement):
@@ -37,6 +38,10 @@ class Message(BaseElement):
     def achievement(msg: str) -> 'Message':
         return Message.construct(level=MessageLevels.achievement, text=msg)
 
+    @staticmethod
+    def error(msg: str) -> 'Message':
+        return Message.construct(level=MessageLevels.error, text=msg)
+
     class Meta:
         indexes = (
             (('level', 'text'), True),
@@ -51,15 +56,17 @@ class Message(BaseElement):
         msgs = msgs.order_by(Message.created.asc())
         for m in msgs:
             if m.level == MessageLevels.debug.name:
-                print("##> %s" % m.text)
+                print("##> %s." % m.text)
             elif m.level == MessageLevels.event.name:
-                print("!~> %s" % m.text)
+                print("!~> %s." % m.text)
             elif m.level == MessageLevels.instruction.name:
-                print("--> %s" % m.text)
+                print("--> %s." % m.text)
             elif m.level == MessageLevels.achievement.name:
-                print("++> %s" % m.text)
+                print("++> %s." % m.text)
+            elif m.level == MessageLevels.error.name:
+                print("!!> Error: %s!" % m.text)
             else:
-                print("??> %s" % m.text)
+                print("??> %s." % m.text)
 
         # delete all messages, even debug messages in non-debug mode otherwise they'd just stack up
         query = Message.delete()

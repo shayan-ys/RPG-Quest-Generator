@@ -24,12 +24,12 @@ def talk(npc: NPC):
     player = Player.current()
     if player.place != npc.place:
         # print("Player is not at the npc's place_location,", npc.place)
-        Message.instruction("Player is not at the NPC '%s' place, can't talk to him" % npc)
+        Message.error("You are not at the NPC '%s's place, can't talk to him" % npc)
         return False
 
     if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=npc)):
         # print("Player doesn't know where the NPC (%s) is" % npc)
-        Message.instruction("Player doesn't know where the NPC (%s) is" % npc)
+        Message.error("NPC '%s's current location is unknown" % npc)
         return False
 
     # print("==> Talking to", npc)
@@ -58,7 +58,7 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     if item_holder.place != player.place:
         # print("Player is not at the item_holder's place_location,", item_holder.place)
         Message.debug("Player is not at the item_holder (%s) place_location (%s)" % (item_holder, item_holder.place))
-        Message.instruction("Player is not at the item_holder (%s) location" % item_holder)
+        Message.error("You are not at the item holder (%s) location" % item_holder)
         return False
 
     # update Player's belongings
@@ -83,7 +83,7 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
     player = Player.current()
 
     if player.place != area_location:
-        Message.instruction("Player is not at the area '%s'" % area_location)
+        Message.error("You are not at the area '%s'" % area_location)
         return False
 
     # check if player knows the location
@@ -92,7 +92,7 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
     if not results:
         # print("Location", area_location, "unknown (Intel not found in player's knowledge book)")
         Message.debug("Location %s unknown (Intel not found in player's knowledge book)" % area_location)
-        Message.instruction("Location %s unknown to the player" % area_location)
+        Message.error("Location %s is unknown" % area_location)
         return False
 
     # update Player's location
@@ -107,7 +107,7 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
         target = ''
 
     # print("==> Explore around '", area_location, "'.")
-    Message.achievement("The player found '%s' by exploring '%s'" % (target, area_location))
+    Message.achievement("You have found '%s' by exploring '%s'" % (target, area_location))
 
     if npc:
         # find npc for player (give npc place intel to player)
@@ -132,8 +132,8 @@ def gather(item_to_gather: Item):
     if item_to_gather.place != player.place:
         # print("Player is not at the item's location to gather it")
         Message.debug("Player is not at the item '%s's location (%s) to gather it" %
-                            (item_to_gather, item_to_gather.place))
-        Message.instruction("Player is not at the item '%s's location to gather it" % item_to_gather)
+                      (item_to_gather, item_to_gather.place))
+        Message.error("You are not at the item '%s's location to gather it" % item_to_gather)
         return False
 
     # update Player's belongings
@@ -151,14 +151,14 @@ def give(item: Item, receiver: NPC):
     player = Player.current()
     if item.belongs_to_player != player:
         # print("Player doesn't have the item")
-        Message.instruction("Player doesn't have the item (%s) to give" % item)
+        Message.error("You don't have the item (%s) to give" % item)
         return False
 
     # check if player is at receiver's location
     if player.place != receiver.place:
         # print("Player is not at the receiver NPC's location,", receiver.place)
         Message.debug("Player is not at the receiver NPC (%s) location (%s)" % (receiver, receiver.place))
-        Message.instruction("Player is not at the receiver NPC (%s) location" % receiver)
+        Message.error("You are not at the receiver's (%s) location" % receiver)
         return False
 
     item.belongs_to_player = None
@@ -180,15 +180,15 @@ def spy(spy_on: NPC, intel_target: Intel):
     # check if player is at target's location
     if player.place != spy_on.place:
         # print("Player is not at the target NPC's location")
-        Message.debug("Player is not at the NPC (%s) location (%s) for spy" % (spy_on, spy_on.place))
-        Message.instruction("Player is not at the NPC '%s's location for spy" % spy_on)
+        Message.debug("Player is not at the NPC (%s) location (%s) to spy" % (spy_on, spy_on.place))
+        Message.error("You are not at the NPC '%s's location to spy" % spy_on)
         return False
 
     # check if the target has the piece of intel
     if not NPCKnowledgeBook.get_or_none(npc=spy_on, intel=intel_target):
         # print("Target hasn't the intel")
         Message.debug("Target (%s) does not have the intel (%s) player wanted" % (spy_on, intel_target))
-        Message.event("Target (%s) does not have the intel (%s) player wanted" % (spy_on, intel_target))
+        Message.error("Target (%s) does not have the intel (%s) player wanted" % (spy_on, intel_target))
         return False
 
     # update Player's intel
@@ -207,7 +207,7 @@ def stealth(target: NPC):
     if player.place != target.place:
         # print("Player is not at the target's place_location", target.place)
         Message.debug("Player is not at the target (%s) place_location (%s)" % (target, target.place))
-        Message.instruction("Player is not at the target NPC '%s's location" % target)
+        Message.error("You are not at the target '%s's location" % target)
         return False
 
     # print("==> Stealth on '", target, "'.")
@@ -227,14 +227,14 @@ def take(item_to_take: Item, item_holder: NPC=None):
         # print("NPC", item_holder, "doesn't have the item", item_to_take, "to take")
         Message.debug("NPC '%s' doesn't have the item '%s' to give. It belongs to '%s'" %
                       (item_holder, item_to_take, item_to_take.belongs_to))
-        Message.event("NPC '%s' doesn't have the item '%s' to give" % (item_holder, item_to_take))
+        Message.error("NPC '%s' doesn't have the item '%s' to give" % (item_holder, item_to_take))
         return False
 
     # check if player is at item_holder's place_location
     if item_holder.place != player.place:
         # print("Player is not at the item_holder's place_location", item_holder.place)
         Message.debug("Player is not at the item_holder (%s) place_location (%s)" % (item_holder, item_holder.place))
-        Message.instruction("Player is not at the NPC '%s' location" % item_holder)
+        Message.error("You are not at the NPC '%s's location" % item_holder)
         return False
 
     # remove item from holder's belongings and add to player's
@@ -275,7 +275,7 @@ def take_loot(item_to_take: Item, loot_npc: NPCDead=None):
     # FavoursBook.construct(item_holder, -item_to_take.worth_(), player)
 
     # print("==> Take '%s' by looting" % item_to_take)
-    Message.achievement("Item '%s' taken by looting" % item_to_take)
+    Message.achievement("Item '%s' has taken by looting" % item_to_take)
     return True
 
 
@@ -288,7 +288,7 @@ def read(intel: Intel, readable: Item):
         # print("ReadableKnowledgeBook not found")
         Message.debug("Readable '%s' does not contain the intel '%s', ReadableKnowledgeBook not found" %
                       (readable, intel))
-        Message.event("Readable '%s' does not contain the intel player looking for" % readable)
+        Message.error("Readable '%s' does not contain the intel player looking for" % readable)
         return False
 
     player = Player.current()
@@ -306,14 +306,14 @@ def read(intel: Intel, readable: Item):
             # print("Player neither own the readable (%s), nor at the item's place_location" % readable.place_())
             Message.debug("Player neither own the readable (%s), nor at the item's place_location (%s)" %
                           (readable, readable.place_()))
-            Message.instruction("Player neither own the readable (%s), nor at the item's location" % readable)
+            Message.error("You neither own the readable (%s), nor are at the item's location" % readable)
             return False
 
     # update Player's intel
     NarrativeHelper.add_intel(intel)
 
     # print("==> Read '%s' from '%s'." % (intel, readable))
-    Message.achievement("By reading '%s' intel '%s' learned" % (readable, intel))
+    Message.achievement("By reading '%s', intel '%s' has been learned" % (readable, intel))
     return True
 
 
@@ -326,7 +326,7 @@ def goto(destination: Place):
         .where(PlayerKnowledgeBook.player == player, Intel.place_location == destination).limit(1)
     if not results:
         # print("Location '", destination, "' unknown (Intel not found in player's knowledge book)")
-        Message.instruction("Location '%s' is unknown to the player" % destination)
+        Message.error("Location '%s' is unknown" % destination)
         return False
 
     # update Player's location
@@ -345,7 +345,7 @@ def kill(target: NPC):
     # check if player is at target place_location
     if player.place != target.place:
         # print("Player is not at target's location,", target.place)
-        Message.instruction("Player is not at the target '%s's location" % target)
+        Message.error("You are not at the target '%s's location" % target)
         return False
 
     # print("==> Kill '%s'." % target)
@@ -362,7 +362,7 @@ def listen(intel: Intel, informer: NPC):
     # check if informer has the intel
     if not NPCKnowledgeBook.get_or_none(intel=intel, npc=informer):
         # print("Informer hasn't the intel player wants")
-        Message.event("Informer hasn't the intel (%s) player wants" % intel)
+        Message.error("Informer doesn't have the intel (%s) player wants" % intel)
         return False
 
     player = Player.current()
@@ -370,7 +370,7 @@ def listen(intel: Intel, informer: NPC):
     # check if player is in the informer place_location
     if informer.place != player.place:
         # print("Player is not at the informer's place_location,", informer.place)
-        Message.instruction("Player is not at the informer (%s)'s location" % informer)
+        Message.error("You are not at the informer's (%s) location" % informer)
         return False
 
     # update Player's intel
@@ -389,14 +389,14 @@ def report(intel: Intel, target: NPC):
     # check if player has the intel
     if not PlayerKnowledgeBook.get_or_none(player=player, intel=intel):
         # print("Player doesn't have the intel")
-        Message.instruction("Player doesn't have the intel '%s'" % intel)
+        Message.error("You don't have the intel '%s'" % intel)
         return False
 
     # check if player is in the target place_location
     if target.place != player.place:
         # print("Player is not at the target's place_location,", target.place)
         Message.debug("Player is not at the target (%s) location (%s)" % (target, target.place))
-        Message.instruction("Player is not at the target (%s) location" % target)
+        Message.error("You are not at the target's (%s) location" % target)
         return False
 
     # update Player's favours book if target hasn't have it already
@@ -416,21 +416,21 @@ def use(item_to_use: Item, target: NPC):
     # check if player has the item
     if item_to_use.belongs_to_player != player:
         # print("Player doesn't have the item,", item_to_use)
-        Message.instruction("Player doesn't have the item (%s)" % item_to_use)
+        Message.error("You don't have the item (%s)" % item_to_use)
         return False
 
     # check if player at target's place_location
     if target.place != player.place:
         # print("Player is not at the target's place_location,", target.place)
         Message.debug("Player is not at the target '%s's location (%s)" % (target, target.place))
-        Message.instruction("Player is not at the target '%s's location" % target)
+        Message.error("You are not at the target '%s's location" % target)
         return False
 
     # check if item is a tool
     if item_to_use.type != ItemTypes.tool.name:
         # print("Item is not usable, it's not a tool, it is a,", item_to_use.type)
         Message.debug("Item '%s' is not a tool, not usable, it's a '%s'" % (item_to_use, item_to_use.type))
-        Message.event("Item '%s' is not a tool, not usable" % item_to_use)
+        Message.error("Item '%s' is not a tool, not usable" % item_to_use)
         return False
 
     item_to_use.use(npc=target)
