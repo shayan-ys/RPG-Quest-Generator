@@ -60,6 +60,7 @@ class XP:
 class Playground:
     debug_mode = False
     max_level_skip_loop = 100
+    default_damage_power = 0.3
 
 
 class World:

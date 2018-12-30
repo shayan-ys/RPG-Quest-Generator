@@ -19,7 +19,7 @@ class Message(BaseElement):
 
     @staticmethod
     def construct(level: MessageLevels, text: str) -> 'Message':
-        msg, created = Message.get_or_create(level=level.name, text=text)
+        msg, created = Message.get_or_create(level=level.name, text=text.capitalize())
         return msg
 
     @staticmethod
@@ -68,8 +68,11 @@ class Message(BaseElement):
             else:
                 print("??> %s." % m.text)
 
-        # delete all messages, even debug messages in non-debug mode otherwise they'd just stack up
-        query = Message.delete()
+        # delete messages
+        if debug_mode:
+            query = Message.delete()
+        else:
+            query = Message.delete().where(Message.level != MessageLevels.debug.name)
         query.execute()
 
 

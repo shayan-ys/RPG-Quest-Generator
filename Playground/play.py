@@ -126,19 +126,19 @@ class Play(cmd.Cmd):
         self.last_action_doable = True
 
     def do_explore(self, args):
-        """Explore a place to find an NPC or Item. EXPLORE Rivervale item potion | EXPLORE Rivervale npc goblin"""
+        """Explore current location to find an NPC or Item. EXPLORE item potion | EXPLORE npc goblin"""
         args = parse(args)
-        if not self.check_length(args, 3):
+        if not self.check_length(args, 2):
             return
 
-        dest = Place.get_or_none(Place.name == args[0])
-        if args[1] == 'item':
-            item = Item.get_or_none(Item.name == args[2])
+        dest = Player.current().place
+        if args[0] == 'item':
+            item = Item.get_or_none(Item.name == args[1])
             if not self.set_inputs(action=T.explore, args=[dest, '', item]):
                 return
             found = terminals.explore(area_location=dest, item=item)
         else:
-            npc = NPC.get_or_none(NPC.name == args[2])
+            npc = NPC.get_or_none(NPC.name == args[1])
 
             if not self.set_inputs(action=T.explore, args=[dest, npc, '']):
                 return
@@ -310,6 +310,24 @@ class Play(cmd.Cmd):
             return
 
         found = terminals.kill(target=npc)
+        if not found:
+            print("failed!")
+            return
+
+        self.last_action_doable = True
+
+    def do_damage(self, args):
+        """Damage an NPC. KILL Goblin"""
+        args = parse(args)
+        if not self.check_length(args, 1):
+            return
+
+        npc = NPC.get_or_none(NPC.name == args[0])
+
+        if not self.set_inputs(action=T.damage, args=[npc]):
+            return
+
+        found = terminals.damage(target=npc)
         if not found:
             print("failed!")
             return

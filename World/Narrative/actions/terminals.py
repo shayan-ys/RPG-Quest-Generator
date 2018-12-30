@@ -86,11 +86,14 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
         Message.error("You are not at the area '%s'" % area_location)
         return False
 
+    if (npc and npc.place != area_location) or (item and item.place != area_location):
+        Message.error("What you're looking for, is not here")
+        return False
+
     # check if player knows the location
     results = PlayerKnowledgeBook.select().join(Intel)\
         .where(PlayerKnowledgeBook.player == player, Intel.place_location == area_location).limit(1)
     if not results:
-        # print("Location", area_location, "unknown (Intel not found in player's knowledge book)")
         Message.debug("Location %s unknown (Intel not found in player's knowledge book)" % area_location)
         Message.error("Location %s is unknown" % area_location)
         return False
@@ -119,7 +122,7 @@ def explore(area_location: Place, npc: NPC=None, item: Item=None):
     if intel:
         PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
         # print("Intel gathered", intel)
-        Message.achievement("Intel '%s' learned" % intel)
+        Message.achievement("Intel '%s' learned" % intel.detail())
 
     return True
 
@@ -195,7 +198,7 @@ def spy(spy_on: NPC, intel_target: Intel):
     NarrativeHelper.add_intel(intel_target)
 
     # print("==> Spy on '%s' to get intel '%s'." % (spy_on, intel_target))
-    Message.achievement("Intel '%s' gathered by spying on '%s'" % (intel_target, spy_on))
+    Message.achievement("Intel '%s' gathered by spying on '%s'" % (intel_target.detail(), spy_on))
     return True
 
 
@@ -313,7 +316,7 @@ def read(intel: Intel, readable: Item):
     NarrativeHelper.add_intel(intel)
 
     # print("==> Read '%s' from '%s'." % (intel, readable))
-    Message.achievement("By reading '%s', intel '%s' has been learned" % (readable, intel))
+    Message.achievement("By reading '%s', intel '%s' has been learned" % (readable, intel.detail()))
     return True
 
 
@@ -357,6 +360,28 @@ def kill(target: NPC):
     return True
 
 
+def damage(target: NPC):
+
+    player = Player.current()
+
+    # check if player is at target place_location
+    if player.place != target.place:
+        Message.error("You are not at the target '%s's location" % target)
+        return False
+
+    target.health_meter -= 0.3
+    if target.health_meter <= 0:
+        NPCDead.create(name=target.name, place=target.place, clan=target.clan)
+        Message.achievement("NPC '%s' has been killed" % target)
+        target.delete_instance()
+    else:
+        Message.debug("NPC '%s' has been damaged, current health meter: %s" % (target, target.health_meter))
+        Message.achievement("NPC '%s' has been damaged" % target)
+        target.save()
+
+    return True
+
+
 def listen(intel: Intel, informer: NPC):
 
     # check if informer has the intel
@@ -378,7 +403,7 @@ def listen(intel: Intel, informer: NPC):
     FavoursBook.construct(informer, -intel.worth_(), player)
 
     # print("==> Listen to '%s' to get the intel '%s'." % (informer, intel))
-    Message.achievement("Intel '%s' acquired by listening to '%s'" % (intel, informer))
+    Message.achievement("Intel '%s' acquired by listening to '%s'" % (intel.detail(), informer))
     return True
 
 
@@ -406,7 +431,7 @@ def report(intel: Intel, target: NPC):
         NPCKnowledgeBook.create(npc=target, intel=intel)
 
     # print("==> Report '%s' to '%s'." % (intel, target))
-    Message.achievement("Intel '%s' reported to the NPC '%s'" % (intel, target))
+    Message.achievement("Intel '%s' reported to the NPC '%s'" % (intel.detail(), target))
     return True
 
 

@@ -6,6 +6,7 @@ from World.Types.Item import Item, ItemTypes, GenericItem
 from World.Types.BridgeModels import Need, Exchange, NPCKnowledgeBook, PlayerKnowledgeBook
 from World.Types.Log import Message
 from World.Types.Names import NPCName, ItemName, PlaceName, SpellName
+from World.Narrative import helper
 
 from Grammar.actions import Terminals as T
 from helper import sort_by_list
@@ -50,7 +51,7 @@ def knowledge_1(NPC_target: NPC):
         [item, NPC_target]
     ]
     # print("==> Deliver item", item, "to", NPC_target, "for study")
-    Message.instruction("Deliver item '%s' to '%s' for study" % (item, NPC_target))
+    Message.instruction("%s: Get item '%s' for me, I want to study it" % (NPC_target, item))
     return steps
 
 
@@ -107,8 +108,8 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
     ]
 
     # print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
-    Message.instruction("Spy on '%s' to get the intel '%s' for '%s'." %
-                        (spy_target, spy_intel, NPC_knowledge_motivated))
+    Message.instruction("%s: Spy on '%s' to get the intel '%s' for me" %
+                        (NPC_knowledge_motivated, spy_target, spy_intel))
     return steps
 
 
@@ -176,25 +177,148 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         [intended_intel, NPC_knowledge_motivated]
     ]
     # print("==> Interview '", NPC_knowledgeable, "' to get the intel '", intended_intel, "'.")
-    Message.instruction("Interview '%s's, to get the intel '%s'" % (NPC_knowledgeable, intended_intel))
+    Message.instruction("%s: Ask '%s' about '%s'" % (NPC_knowledge_motivated, NPC_knowledgeable, intended_intel))
     return steps
 
 
-def reputation_2(target: NPC) -> list:
+def comfort_1(motivated: NPC) -> list:
     """
-    Kill enemies of target
-    :param target: given from higher level nodes
+    Obtain luxuries for the motivated NPC
+    :param motivated:
     :return:
     """
-    results = NPC.select().where(NPC.clan != target.clan).order_by(fn.Random()).limit(1)
+    # get item useful for motivated
+
+    needed_item = Item.select().join(Need).where(Need.npc == motivated, Item.belongs_to_player.is_null())\
+        .order_by(fn.Random()).limit(1)
+    if needed_item:
+        # motivated NPC need some items
+        item = needed_item[0]
+    else:
+        # motivated NPC doesn't have any needs
+        items_in_world = Item.select().where(Item.belongs_to_player.is_null()).order_by(Item.worth.desc()).limit(1)
+        if items_in_world:
+            item = items_in_world[0]
+        else:
+            # item not found in the world
+            place = Place.select().order_by(fn.Random()).limit(1)
+            if place:
+                place = place[0]
+            else:
+                Message.debug("No place found in the World!")
+                place = helper.create_place(known_to_player=False)
+            item = Item.create(
+                type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
+                name='arbitrary_item_' + str(randint(100, 999)),
+                place=place, worth=1)
+            Message.debug("No Item found in the world, item created: %s" % item)
+
+    # steps:
+    #   get
+    #   goto
+    #   give
+    steps = [
+        [item],
+        [motivated.place, motivated],
+        [item, motivated]
+    ]
+
+    Message.instruction("%s: Get luxury item '%s' for me" % (motivated, item))
+    return steps
+
+
+def comfort_2(motivated: NPC) -> list:
+    """
+    Kill pests
+    :param motivated:
+    :return:
+    """
+    # find enemy of motivated, or create one
+    results = NPC.select().where(NPC.clan != motivated.clan).order_by(fn.Random()).limit(1)
     if results:
         enemy = results.get()
     else:
-        # No NPC left in the world except the target
-        enemies_clan = Clan.select().where(Clan.id != target.clan).order_by(fn.Random()).get()
+        # No NPC left in the world except the motivated
+        enemies_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).get()
         enemy = NPC.create(place=Place.select().order_by(fn.Random()).get(),
                            clan=enemies_clan,
-                           name='arbitrary_npc_' + str(randint(100, 999)))
+                           name=NPCName.fetch_new())
+
+    player = Player.current()
+    damage_report_intel = Intel.construct(other='arbitrary_pest_damage_report_' + str(randint(100, 999)))
+    PlayerKnowledgeBook.create(player=player, intel=damage_report_intel)
+
+    # steps:
+    #   goto enemies place
+    #   kill enemies
+    #   goto motivated place
+    #   T.report intel(?) to motivated
+    steps = [
+        [enemy.place, enemy],
+        [enemy],
+        [motivated.place, motivated],
+        [damage_report_intel, motivated]
+    ]
+
+    Message.instruction("%s: Take care of that pest '%s' for me" % (motivated, enemy))
+    return steps
+
+
+def reputation_1(motivated: NPC) -> list:
+    """
+    Obtain rare items
+    :param motivated:
+    :return:
+    """
+    # find high worth item
+
+    worthy_item = Item.select().where(Item.belongs_to_player.is_null()).order_by(Item.worth.desc()).limit(1)
+    if worthy_item:
+        # item found for NPC
+        item = worthy_item[0]
+    else:
+        # item not found in the world
+        place = Place.select().order_by(fn.Random()).limit(1)
+        if place:
+            place = place[0]
+        else:
+            Message.debug("No place found in the World!")
+            place = helper.create_place(known_to_player=False)
+        item = Item.create(
+            type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
+            name='arbitrary_item_' + str(randint(100, 999)),
+            place=place, worth=1)
+        Message.debug("No Item found in the world, item created: %s" % item)
+
+    # steps:
+    #   get
+    #   goto
+    #   give
+    steps = [
+        [item],
+        [motivated.place, motivated],
+        [item, motivated]
+    ]
+
+    Message.instruction("%s: Get the rare item '%s' for me" % (motivated, item))
+    return steps
+
+
+def reputation_2(motivated: NPC) -> list:
+    """
+    Kill enemies of motivated
+    :param motivated: given from higher level nodes
+    :return:
+    """
+    results = NPC.select().where(NPC.clan != motivated.clan).order_by(fn.Random()).limit(1)
+    if results:
+        enemy = results.get()
+    else:
+        # No NPC left in the world except the motivated
+        enemies_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).get()
+        enemy = NPC.create(place=Place.select().order_by(fn.Random()).get(),
+                           clan=enemies_clan,
+                           name=NPCName.fetch_new())
 
     player = Player.current()
     killing_report_intel = Intel.construct(other='arbitrary_killing_report_' + str(randint(100, 999)))
@@ -203,16 +327,268 @@ def reputation_2(target: NPC) -> list:
     # steps:
     #   goto enemies place
     #   kill enemies
-    #   goto target place
-    #   T.report intel(?) to target
+    #   goto motivated place
+    #   T.report intel(?) to motivated
     steps = [
         [enemy.place, enemy],
         [enemy],
-        [target.place, target],
-        [killing_report_intel, target]
+        [motivated.place, motivated],
+        [killing_report_intel, motivated]
     ]
-    # print("==> Kill enemies", enemy, "and report it back to", target)
-    Message.instruction("Kill enemy '%s' and report it back to '%s'" % (enemy, target))
+    # print("==> Kill enemies", enemy, "and report it back to", motivated)
+    Message.instruction("%s: Kill my enemy '%s', and report it" % (motivated, enemy))
+    return steps
+
+
+def reputation_3(motivated: NPC) -> list:
+    """
+    Visit a dangerous place
+    :param motivated:
+    :return:
+    """
+    # goto an enemies place
+    enemies = NPC.select().where(NPC.clan != motivated.clan).order_by(fn.Random()).limit(1)
+    if enemies:
+        place = enemies[0].place
+    else:
+        place = Place.select().order_by(fn.Random()).limit(1)
+        if place:
+            place = place[0]
+        else:
+            Message.debug("No place found in the World!")
+            place = helper.create_place(known_to_player=False)
+
+    player = Player.current()
+    danger_report_intel = Intel.construct(other='arbitrary_danger_report_' + str(randint(100, 999)))
+    PlayerKnowledgeBook.create(player=player, intel=danger_report_intel)
+
+    # steps
+    #   goto
+    #   goto
+    #   report
+    steps = [
+        [place],
+        [motivated.place, motivated],
+        [danger_report_intel, motivated]
+    ]
+    Message.instruction("%s: Goto the dangerous '%s' and report what you've seen there" % (motivated, place))
+    return steps
+
+
+def serenity_1(motivated: NPC):
+    """
+    Revenge, Justice
+    :param motivated:
+    :return:
+    """
+    enemies = NPC.select().where(NPC.clan != motivated.clan).order_by(fn.Random()).limit(1)
+    if enemies:
+        target = enemies[0]
+    else:
+        place = Place.select().order_by(fn.Random()).limit(1)
+        if place:
+            place = place[0]
+        else:
+            Message.debug("No place found in the World!")
+            place = helper.create_place(known_to_player=False)
+        enemy_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).limit(1).get()
+        target = NPC.create(clan=enemy_clan, name=NPCName.fetch_new(), place=place)
+
+    # steps
+    #   goto
+    #   damage
+    steps = [
+        [target.place, target],
+        [target]
+    ]
+    Message.instruction("%s: Get my revenge from '%s'" % (motivated, target))
+    return steps
+
+
+def serenity_4(motivated: NPC) -> list:
+    """
+    Check on NPC(1)
+    :param motivated:
+    :return:
+    """
+    # find ally NPC to motivated get generated intel about health and well being
+    allies = NPC.select().where(NPC.clan == motivated.clan, NPC.id != motivated).order_by(fn.Random()).limit(1)
+    if allies:
+        target = allies[0]
+    else:
+        place = Place.select().order_by(fn.Random()).limit(1)
+        if place:
+            place = place[0]
+        else:
+            Message.debug("No place found in the World!")
+            place = helper.create_place(known_to_player=False)
+        target = NPC.create(clan=motivated.clan, name=NPCName.fetch_new(), place=place)
+
+    well_being_intel = Intel.construct(other='arbitrary_well_being_report_' + str(randint(100, 999)))
+    NPCKnowledgeBook.create(npc=target, intel=well_being_intel)
+    # steps
+    #   goto
+    #   listen
+    #   goto
+    #   report
+    steps = [
+        [target.place, target],
+        [well_being_intel, target],
+        [motivated.place, motivated],
+        [well_being_intel, motivated]
+    ]
+    Message.instruction("%s: Check on my friend, '%s' ask how he's doing for me" % (motivated, target))
+    return steps
+
+
+def serenity_5(motivated: NPC) -> list:
+    """
+    Check on NPC(2)
+    :param motivated:
+    :return:
+    """
+    # find ally NPC to motivated get an item from he/she
+    allies = NPC.select().where(NPC.clan == motivated.clan, NPC.id != motivated).order_by(fn.Random()).limit(1)
+    if allies:
+        target = allies[0]
+    else:
+        place = Place.select().order_by(fn.Random()).limit(1)
+        if place:
+            place = place[0]
+        else:
+            Message.debug("No place found in the World!")
+            place = helper.create_place(known_to_player=False)
+        target = NPC.create(clan=motivated.clan, name=NPCName.fetch_new(), place=place)
+
+    belongings = Item.select().where(Item.belongs_to == target.id).order_by(fn.Random()).limit(1)
+    if belongings:
+        item = belongings[0]
+    else:
+        item = Item.create(
+            type=ItemTypes.singleton.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
+            name='arbitrary_item_' + str(randint(100, 999)),
+            belongs_to=target)
+    # steps
+    #   goto
+    #   take
+    #   goto
+    #   give
+    steps = [
+        [target.place, target],
+        [item, target],
+        [motivated.place, motivated],
+        [item, motivated]
+    ]
+    Message.instruction("%s: Get item '%s' from my friend, '%s' for me" % (motivated, item, target))
+    return steps
+
+
+def conquest_1(motivated: NPC) -> list:
+    """
+    Attack enemy
+    :param motivated:
+    :return:
+    """
+    # find enemy of motivated, or create one
+    results = NPC.select().where(NPC.clan != motivated.clan).order_by(fn.Random()).limit(1)
+    if results:
+        enemy = results.get()
+    else:
+        # No NPC left in the world except the motivated
+        enemies_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).get()
+        enemy = NPC.create(place=Place.select().order_by(fn.Random()).get(),
+                           clan=enemies_clan,
+                           name=NPCName.fetch_new())
+
+    # steps:
+    #   goto enemies place
+    #   damage enemies
+    steps = [
+        [enemy.place, enemy],
+        [enemy]
+    ]
+
+    Message.instruction("%s: Damage my enemy '%s' or me" % (motivated, enemy))
+    return steps
+
+
+def conquest_2(motivated: NPC) -> list:
+    """
+    Steal stuff
+    :param motivated:
+    :return:
+    """
+    # find something an enemy to motivated has
+    item = None
+    enemy_ids = NPC.select(NPC.id).where(NPC.clan != motivated.clan)
+    if enemy_ids:
+        items = Item.select().where(Item.belongs_to.in_(enemy_ids)).order_by(fn.Random()).limit(1)
+        if items:
+            item = items[0]
+
+    if not item:
+        place = Place.select().order_by(fn.Random()).limit(1)
+        if place:
+            place = place[0]
+        else:
+            Message.debug("No place found in the World!")
+            place = helper.create_place(known_to_player=False)
+        enemy_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).limit(1).get()
+        target = NPC.create(clan=enemy_clan, name=NPCName.fetch_new(), place=place)
+        item = Item.create(
+            type=ItemTypes.singleton.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
+            name='arbitrary_item_' + str(randint(100, 999)),
+            belongs_to=target)
+
+    # steps
+    #   goto
+    #   steal
+    #   goto
+    #   give
+    steps = [
+        [item.place_(), None, item],
+        [item, item.belongs_to],
+        [motivated.place, motivated],
+        [item, motivated]
+    ]
+    Message.instruction("%s: Steal item '%s' from '%s' for me" % (motivated, item, item.belongs_to))
+    return steps
+
+
+def protection_1(motivated: NPC) -> list:
+    """
+    Attack threatening entities
+    :param motivated:
+    :return:
+    """
+    # find enemy of motivated, or create one
+    results = NPC.select().where(NPC.clan != motivated.clan).order_by(fn.Random()).limit(1)
+    if results:
+        enemy = results.get()
+    else:
+        # No NPC left in the world except the motivated
+        enemies_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).get()
+        enemy = NPC.create(place=Place.select().order_by(fn.Random()).get(),
+                           clan=enemies_clan,
+                           name=NPCName.fetch_new())
+
+    player = Player.current()
+    threat_report_intel = Intel.construct(other='arbitrary_threat_damage_report_' + str(randint(100, 999)))
+    PlayerKnowledgeBook.create(player=player, intel=threat_report_intel)
+
+    # steps:
+    #   goto enemies place
+    #   kill enemies
+    #   goto motivated place
+    #   T.report intel(?) to motivated
+    steps = [
+        [enemy.place, enemy],
+        [enemy],
+        [motivated.place, motivated],
+        [threat_report_intel, motivated]
+    ]
+
+    Message.instruction("%s: Relieve me of '%s' threats, then report it" % (motivated, enemy))
     return steps
 
 
@@ -290,5 +666,5 @@ def protection_2(NPC_protection_motivated: NPC) -> list:
     ]
 
     # print("==> Treat or repair '%s' using '%s'." % (npc_in_need, needed_item))
-    Message.instruction("Treat or repair '%s' using '%s'" % (npc_in_need, needed_item))
+    Message.instruction("%s: Treat my friend '%s' using '%s'" % (NPC_protection_motivated, npc_in_need, needed_item))
     return steps

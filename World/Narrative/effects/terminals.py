@@ -1,7 +1,7 @@
 from World.Types.BridgeModels import PlayerKnowledgeBook, NPCKnowledgeBook
 from World.Types.Intel import Intel
 from World.Types.Item import Item
-from World.Types.Person import NPC, Player
+from World.Types.Person import NPC, NPCDead, Player
 from World.Types.Place import Place
 
 """return True if action is already done, look for its impact on the world"""
@@ -14,8 +14,6 @@ def null(*args):
 def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
     player = Player.current()
 
-    # todo: think about the item_to_give, maybe it should check that too, it's not completely useless after all,
-    # increases the owing factor
     return item_to_take.belongs_to_player == player
 
 
@@ -73,7 +71,13 @@ def goto(destination: Place):
     return player.place == destination
 
 
+def damage(target: NPC):
+    return target.health_meter < 1.0
+
+
 def kill(target: NPC):
+    if NPCDead.get_or_none(name=target.name):
+        return True
     return target.health_meter == 0
 
 
@@ -88,6 +92,4 @@ def report(intel: Intel, target: NPC):
 
 
 def use(item_to_use: Item, target: NPC):
-    # todo: how to check if item is already being used on an NPC. Maybe items should be consumable, but not everything
-    # is consumable, like a sword to "damage" the NPC.
     return False

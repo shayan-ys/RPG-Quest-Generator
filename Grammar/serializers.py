@@ -34,6 +34,12 @@ def deserialize_tree_json_str(tree_json_str: str) -> Tree:
     return deserialize_tree_json(tree_dict)
 
 
+def read_file():
+    with open('Results/output.json', 'r') as outfile:
+        data = json.load(outfile)
+        return deserialize_tree_json(tree_json=data)
+
+
 def write_file(tree: Tree):
     with open('Results/output.json', 'w') as outfile:
         json.dump(tree.serialize(), outfile)

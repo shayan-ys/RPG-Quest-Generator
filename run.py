@@ -17,10 +17,10 @@ db.drop_tables(list_of_models)
 db.create_tables(list_of_models)
 Everquest.create()
 
-# random.seed(3)
-#
-# Play().cmdloop()
+random.seed(3)
 
-run(generations_count=200, pop_size=25)
+Play().cmdloop()
+
+# run(generations_count=200, pop_size=25)
 
 db.close()

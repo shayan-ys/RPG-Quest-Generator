@@ -93,22 +93,22 @@ class Progress:
         # if not is_action_done_method(*self.semantics_indices[node.index]):
         if node.index not in self.completed_indices and node.action != T.null:
 
-            if node.action != NT.sub_quest:
-                # todo: sub_quest is being skipped which is wrong!!! problem is addressed on Oct 24 should think about
+            # if node.action != NT.sub_quest:
+            #     # todo: sub_quest is being skipped which is wrong!!! problem is addressed on Oct 24 should think about
 
-                if node.branches:
-                    # go down the tree, player should first complete parent's branches
-                    for branch in node.branches:
-                        if branch.index not in self.completed_indices:
-                            # if completed skip
-                            if branch.index not in self.semantics_parsed_for_branches:
-                                # don't parse branches which already parsed
-                                self.update_active_level(branch)
-                            if not self.find_next_active_level(branch):
-                                return False
-                else:
-                    # terminal waiting to be completed
-                    return False
+            if node.branches:
+                # go down the tree, player should first complete parent's branches
+                for branch in node.branches:
+                    if branch.index not in self.completed_indices:
+                        # if completed skip
+                        if branch.index not in self.semantics_parsed_for_branches:
+                            # don't parse branches which already parsed
+                            self.update_active_level(branch)
+                        if not self.find_next_active_level(branch):
+                            return False
+            else:
+                # terminal waiting to be completed
+                return False
 
         self.completed_indices.append(node.index)
         return True

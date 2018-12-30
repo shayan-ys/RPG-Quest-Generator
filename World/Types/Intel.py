@@ -2,6 +2,9 @@ from World.Types import *
 from World.Types.Item import Item
 from World.Types.Person import NPC, Player
 from World.Types.Place import Place
+from World.Types.Log import Message
+
+from Data.statics import Playground as PlayParams
 
 from enum import Enum, auto
 
@@ -66,7 +69,7 @@ class Intel(BaseElement, Worthy):
             intel, created = Intel.get_or_create(type=IntelTypes.npc_place.name, npc_place=npc_place,
                                                  defaults={'worth': worth})
         elif item_place:
-            intel, created = Intel.get_or_create(type=IntelTypes.item_place.name, spell=item_place,
+            intel, created = Intel.get_or_create(type=IntelTypes.item_place.name, item_place=item_place,
                                                  defaults={'worth': worth})
         elif holding_item and holding_holder:
             intel, created = Intel.get_or_create(type=IntelTypes.holding.name,
@@ -126,7 +129,7 @@ class Intel(BaseElement, Worthy):
         query = Intel.delete().where(Intel.id.in_(results))
         query.execute()
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self.type:
             return str(self.type)
 
@@ -136,11 +139,47 @@ class Intel(BaseElement, Worthy):
             return str(self.place_location) + " location"
         elif self.type == str(IntelTypes.npc_place.name) or self.type == str(IntelTypes.item_place.name):
             if self.npc_place:
-                return "%s's place (%s)" % (self.npc_place, self.npc_place.place)
+                if PlayParams.debug_mode:
+                    return "%s's place (%s)" % (self.npc_place, self.npc_place.place)
+                else:
+                    return "%s's place" % self.npc_place
+            elif self.item_place:
+                if PlayParams.debug_mode:
+                    return "%s's place (%s)" % (self.item_place, self.item_place.place)
+                else:
+                    return "%s's place" % self.item_place
             else:
-                return "%s's place (%s)" % (self.item_place, self.item_place.place)
+                Message.debug(
+                    "Error! neither item_place nor npc_place but type: %s. Intel id:%i" % (self.type, self.id))
+                return "unknown"
         elif self.type == str(IntelTypes.holding.name):
-            return str(self.holding_holder) + " holding item " + str(self.holding_item)
+            if PlayParams.debug_mode:
+                return str(self.holding_holder) + " holding item " + str(self.holding_item)
+            else:
+                return "%s's holder" % self.holding_item
+        else:
+            # self.type == str(IntelTypes.other.name)
+            return str(self.other)
+
+    def detail(self) -> str:
+        if not self.type:
+            return str(self.type)
+
+        if self.type == str(IntelTypes.spell.name):
+            return "spell %s: %s" % (self.spell, self.spell.text)
+        elif self.type == str(IntelTypes.location.name):
+            return "location %s is at: %s,%s" % (self.place_location, self.place_location.x, self.place_location.y)
+        elif self.type == str(IntelTypes.npc_place.name) or self.type == str(IntelTypes.item_place.name):
+            if self.npc_place:
+                return "NPC %s located at %s" % (self.npc_place, self.npc_place.place)
+            elif self.item_place:
+                return "Item %s located at %s" % (self.item_place, self.item_place.place)
+            else:
+                Message.debug(
+                    "Error! neither item_place nor npc_place but type: %s. Intel id:%i" % (self.type, self.id))
+                return "unknown"
+        elif self.type == str(IntelTypes.holding.name):
+            return "%s holding %s" % (self.holding_holder, self.holding_item)
         else:
             # self.type == str(IntelTypes.other.name)
             return str(self.other)
