@@ -16,8 +16,11 @@ def print_player_intel(player: Player=None):
         player = Player.current()
 
     results = Intel.select().join(PlayerKnowledgeBook).where(PlayerKnowledgeBook.player == player)
+    detailed = []
+    for intel in results:
+        detailed.append(intel.detail())
     print("intel:")
-    print_indented(results)
+    print_indented(detailed)
 
 
 def print_player_belongings(player: Player=None):

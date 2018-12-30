@@ -351,12 +351,10 @@ def kill(target: NPC):
         Message.error("You are not at the target '%s's location" % target)
         return False
 
-    # print("==> Kill '%s'." % target)
-    Message.achievement("NPC '%s' has been killed" % target)
-
     NPCDead.create(name=target.name, place=target.place, clan=target.clan)
-    target.delete_instance()
 
+    Message.achievement("NPC '%s' has been killed" % target)
+    target.delete_instance(recursive=True)
     return True
 
 
@@ -371,9 +369,7 @@ def damage(target: NPC):
 
     target.health_meter -= 0.3
     if target.health_meter <= 0:
-        NPCDead.create(name=target.name, place=target.place, clan=target.clan)
-        Message.achievement("NPC '%s' has been killed" % target)
-        target.delete_instance()
+        return kill(target)
     else:
         Message.debug("NPC '%s' has been damaged, current health meter: %s" % (target, target.health_meter))
         Message.achievement("NPC '%s' has been damaged" % target)

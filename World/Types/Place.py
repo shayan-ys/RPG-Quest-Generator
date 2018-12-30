@@ -6,11 +6,6 @@ class Place(BaseElement, Named):
     x = IntegerField(default=0, constraints=[Check('x >= 0')])
     y = IntegerField(default=0, constraints=[Check('y >= 0')])
 
-    class Meta:
-        indexes = (
-            (('x', 'y'), True),
-        )
-
 
 def angle(adjacent_1: float, adjacent_2: float, far_hand: float) -> float:
     """

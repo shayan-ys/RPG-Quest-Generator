@@ -438,15 +438,15 @@ class Play(cmd.Cmd):
             return
 
         if cat == "intel":
-            print_npc_intel(npc)
+            print_npc_intel(npc, debug=True)
         elif cat == "items" or cat == "item" or cat == "belongings" or cat == "belonging":
-            print_npc_belongings(npc)
+            print_npc_belongings(npc, debug=True)
         elif cat == "places" or cat == "place_location" or cat == "locations" or cat == "location":
-            print_npc_place(npc)
+            print_npc_place(npc, debug=True)
         else:
-            print_npc_intel(npc)
-            print_npc_belongings(npc)
-            print_npc_place(npc)
+            print_npc_intel(npc, debug=True)
+            print_npc_belongings(npc, debug=True)
+            print_npc_place(npc, debug=True)
 
     def do_progress(self, args):
         """Print Progress status, PROGRESS"""
