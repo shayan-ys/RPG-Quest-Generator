@@ -7,6 +7,7 @@ from Data.statics import GAParams
 from helper import grouped
 
 import numpy as np
+import csv
 from datetime import datetime, timedelta
 
 
@@ -77,6 +78,13 @@ def generation(population: list) -> list:
     :param population: population from generation number n
     :return: population for generation number n+1
     """
+
+    # store elite group
+    if GAParams.elite_group_size:
+        elite = population[:GAParams.elite_group_size]
+    else:
+        elite = []
+
     # select parents
     if not population or len(population) < 2:
         return []
@@ -103,6 +111,10 @@ def generation(population: list) -> list:
             population[mute_index].tree = mutant
             population[mute_index].evaluate()
 
+    # add elite back in
+    if elite:
+        population += elite
+
     # evaluate
     sorted_pop = []
     for individual in population:
@@ -113,7 +125,27 @@ def generation(population: list) -> list:
             insert_index += 1
         sorted_pop.insert(insert_index, individual)
 
+    # trim population if elite was added
+    if elite:
+        sorted_pop = sorted_pop[:-GAParams.elite_group_size]
+
     return sorted_pop
+
+
+stat_headers = ['i', 'max', 'avg', 'median']
+
+
+def population_stat(population: list) -> list:
+    score_np = np.array([individual.score for individual in population])
+    prc = GAParams.statistics_float_precision
+    return [round(np.max(score_np), prc), round(np.average(score_np), prc),
+            round(float(np.median(score_np)), prc)]
+
+
+def save_statistics(stat_array: list):
+    with open('Results/population-statistics.csv', 'w', newline='') as stat_file:
+        cr = csv.writer(stat_file, delimiter=',')
+        cr.writerows(stat_array)
 
 
 def run(generations_count: int=None, pop_size: int=None, quest_rule_number: int=None) -> list:
@@ -134,17 +166,34 @@ def run(generations_count: int=None, pop_size: int=None, quest_rule_number: int=
     start_time = datetime.now()
     diff = None
     diff_i = None
+    stat = []
     for i in range(generations_count):
         population = generation(population)[:pop_size]
+
         if len(population) < pop_size:
             population += init(pop_size=pop_size - len(population))
 
-        if int(100 * i / generations_count) % 20 == 0 and i:
+        # calculate and print progress percentages
+        if GAParams.print_progress_bar and \
+                int(100 * i / generations_count) % 20 == 0 and i:
             if diff is None:
                 diff = datetime.now() - start_time
                 diff_i = i
             remaining_secs = diff.total_seconds() * ((generations_count - i) / diff_i)
             print(str(int(100 * i / generations_count)) + "% progressed | remaining time:", str(timedelta(seconds=remaining_secs)))
+
+        # record statistics
+        if GAParams.record_statistics:
+            stat_row = population_stat(population)
+            stat.append([i + 1] + stat_row)
+            if stat_row[0] == 1:
+                # best individual score reached 1.0, max, so break the evolution
+                break
+        elif np.max([individual.score for individual in population]) == 1:
+            break
+
+    if stat:
+        save_statistics([stat_headers] + stat)
 
     print("------ finished ------ process time:", str(datetime.now() - start_time), "------")
     return population

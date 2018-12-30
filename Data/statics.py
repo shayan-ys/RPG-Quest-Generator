@@ -5,9 +5,15 @@ from Grammar.actions import Terminals as T
 class GAParams:
     selection_factor = 0.4
     mutation_factor = 0.1
-    maximum_quest_depth = 10
+    maximum_quest_depth = 7
     generation_count = 20
     population_size = 80
+    elite_group_size = 3
+
+    print_progress_bar = True
+    print_progress_split_count = 5
+    record_statistics = True
+    statistics_float_precision = 3
 
     class Fitness:
         class BellCurves:

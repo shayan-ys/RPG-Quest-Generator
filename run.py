@@ -3,6 +3,7 @@ from World.Types import Place, Person, Item, Intel, BridgeModels, Log, Names
 
 from World.Instances import Everquest
 from Playground.play import Play
+from GA.ga import run
 
 import random
 
@@ -16,8 +17,10 @@ db.drop_tables(list_of_models)
 db.create_tables(list_of_models)
 Everquest.create()
 
-random.seed(3)
+# random.seed(3)
+#
+# Play().cmdloop()
 
-Play().cmdloop()
+run(generations_count=200, pop_size=25)
 
 db.close()

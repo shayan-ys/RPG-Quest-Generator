@@ -74,7 +74,7 @@ def quest_generator(root_type: NT=NT.quest, root_rule_number: int=None) -> Node:
 
         rules_for_type = rules[node_type]
 
-        if rule_number and rule_number in rules_for_type:
+        if root_rule_number and rule_number and rule_number in rules_for_type:
             rule_requirements_list = rules_for_type[rule_number]
         else:
             if depth > 0:
@@ -88,7 +88,7 @@ def quest_generator(root_type: NT=NT.quest, root_rule_number: int=None) -> Node:
             if type(action_type) == T:
                 branch = Leaf(action_type)
             else:
-                branch = recursion(node_type=action_type, depth=depth-1, rule_number=rule_number)
+                branch = recursion(node_type=action_type, depth=depth-1)
             branches.append(branch)
 
         return Node(node_type, rule_number, *branches)
