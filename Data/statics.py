@@ -12,7 +12,7 @@ class GAParams:
 
     print_progress_bar = True
     print_progress_split_count = 5
-    record_statistics = True
+    record_statistics = False
     statistics_float_precision = 3
 
     class Fitness:

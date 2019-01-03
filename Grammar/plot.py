@@ -1,7 +1,5 @@
 import Grammar.tree
-from Data import quests
-from World.Types.Person import NPC
-from World.Types.Intel import Intel
+from Data import quests, statics
 
 import anytree
 from anytree.exporter import DotExporter
@@ -13,8 +11,6 @@ def build_anytree(grammar_root: Grammar.tree.Node, parent: anytree.Node = None,
                   semantics_indices: dict={}, current_level_index: int=None):
 
     if grammar_root.branches:
-        if not hasattr(grammar_root, 'index'):
-            print("WOW!")
         name = "-%s-\nNT.%s[%s]" % (grammar_root.index, grammar_root.action.name, grammar_root.rule)
     else:
         name = "-%s-\nT.%s" % (grammar_root.index, grammar_root.action.name)
@@ -49,8 +45,9 @@ def export_grammar_plot(quest: Grammar.tree.Node=None):
         quest.set_indices()
     grammar = build_anytree(grammar_root=quest)
 
-    for pre, fill, node in anytree.RenderTree(grammar):
-        print("%s%s" % (pre, str(node.name).replace("\n", " ")))
+    if statics.Playground.debug_mode:
+        for pre, fill, node in anytree.RenderTree(grammar):
+            print("%s%s" % (pre, str(node.name).replace("\n", " ")))
 
     DotExporter(grammar).to_picture("Results/Trees/grammar.png")
 

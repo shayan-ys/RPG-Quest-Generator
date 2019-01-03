@@ -37,7 +37,7 @@ class Intel(BaseElement, Worthy):
     npc_place = ForeignKeyField(NPC, backref='intel_npc_place', null=True)
     item_place = ForeignKeyField(Item, backref='intel_item_place', null=True)
     holding_item = ForeignKeyField(Item, backref='intel_on_holder', null=True)
-    holding_holder = ForeignKeyField(NPC, backref='intel_on_belonging', null=True),
+    holding_holder = ForeignKeyField(NPC, backref='intel_on_belonging', null=True)
     other = CharField(null=True)
 
     def data(self):

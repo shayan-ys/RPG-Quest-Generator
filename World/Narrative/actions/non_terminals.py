@@ -114,15 +114,17 @@ def goto_1(destination: Place, npc: NPC=None, item: Item=None):
             PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
             Message.debug("Item (%s) holder (%s) moved to the player location (%s)" % (item, item.belongs_to,
                                                                                        player.place))
+            Message.event("Item '%s's holder moved to your location" % item)
         elif item.belongs_to_player:
             Message.debug("Player already has the item %s" % item)
+            Message.event("You already have the item '%s'" % item)
         else:
             item.place = player.place
             item.save()
             intel = Intel.construct(item_place=item)
             PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
             Message.debug("Item (%s) moved to the player location (%s)" % (item, player.place))
-        Message.event("Item %s has been moved to your location" % item)
+            Message.event("Item '%s' has been moved to your location" % item)
     else:
         # update player's location
         player.place = destination
@@ -261,9 +263,14 @@ def goto_3(destination: Place, npc: NPC=None, item: Item=None):
     if PlayParams.debug_mode and (npc or item):
         destination_str = str(npc if npc else item) + ' (' + str(destination) + ')'
     else:
-        destination_str = str(destination)
+        if npc:
+            destination_str = npc
+        elif item:
+            destination_str = item
+        else:
+            destination_str = destination
 
-    Message.instruction("Find out how to get to '%s', then go to it" % destination_str)
+    Message.instruction("Find out how to get to '%s' location, then go to it" % destination_str)
 
     return steps
 

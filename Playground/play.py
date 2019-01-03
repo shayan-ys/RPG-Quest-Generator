@@ -261,7 +261,7 @@ class Play(cmd.Cmd):
         self.last_action_doable = True
 
     def do_read(self, args):
-        """Read a piece of intel from a book (intel: type intel_value). READ place_location goblin_place address_book"""
+        """Read a piece of intel from a book (intel: type intel_value). READ location goblin_place address_book"""
         args = parse(args)
         if not self.check_length(args, 3):
             return
