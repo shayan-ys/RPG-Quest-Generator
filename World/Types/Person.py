@@ -61,7 +61,6 @@ class Motivation(BaseElement):
 
 class Player(BaseElement, Person, Named):
     next_location = ForeignKeyField(Place, backref='player_next_place', null=True)
-    coins = IntegerField(default=0, constraints=[Check('coins >= 0')])
 
     def distance(self, candid_dest: Place) -> float:
         current = Place.get_by_id(self.place.id)
@@ -77,44 +76,4 @@ class Player(BaseElement, Person, Named):
         return Player.get()
 
 
-class Enemies(BaseElement):
-    npc_one = ForeignKeyField(NPC)
-    npc_two = ForeignKeyField(NPC)
-
-    class Meta:
-        indexes = (
-            (('npc_one', 'npc_two'), True),
-        )
-
-
-class Allies(BaseElement):
-    npc_one = ForeignKeyField(NPC)
-    npc_two = ForeignKeyField(NPC)
-
-    class Meta:
-        indexes = (
-            (('npc_one', 'npc_two'), True),
-        )
-
-
-class PlayerEnemies(BaseElement):
-    player = ForeignKeyField(NPC)
-    npc = ForeignKeyField(NPC)
-
-    class Meta:
-        indexes = (
-            (('player', 'npc',), True),
-        )
-
-
-class PlayerAllies(BaseElement):
-    player = ForeignKeyField(NPC)
-    npc = ForeignKeyField(NPC)
-
-    class Meta:
-        indexes = (
-            (('player', 'npc',), True),
-        )
-
-
-list_of_models = [Clan, NPC, NPCDead, Motivation, Player, Enemies, Allies, PlayerEnemies, PlayerAllies]
+list_of_models = [Clan, NPC, NPCDead, Motivation, Player]
