@@ -1,6 +1,6 @@
 from World.Types import *
 from World.Types.Item import Item
-from World.Types.Person import NPC, Player
+from World.Types.Person import NPC
 from World.Types.Place import Place
 from World.Types.Log import Message
 
@@ -24,8 +24,6 @@ class IntelTypes(Enum):
     npc_place = auto()
     # item_place is a general information about an item's place, belonging (to an NPC), or the player himself
     item_place = auto()
-    # probably should be removed since item_place is generalized
-    holding = auto()
     other = auto()
 
 
@@ -36,8 +34,6 @@ class Intel(BaseElement, Worthy):
     place_location = ForeignKeyField(Place, backref='intel_place_location', null=True)
     npc_place = ForeignKeyField(NPC, backref='intel_npc_place', null=True)
     item_place = ForeignKeyField(Item, backref='intel_item_place', null=True)
-    holding_item = ForeignKeyField(Item, backref='intel_on_holder', null=True)
-    holding_holder = ForeignKeyField(NPC, backref='intel_on_belonging', null=True)
     other = CharField(null=True)
 
     def data(self):
@@ -49,14 +45,12 @@ class Intel(BaseElement, Worthy):
             return self.npc_place
         elif self.type == str(IntelTypes.item_place.name):
             return self.item_place
-        elif self.type == str(IntelTypes.holding.name):
-            return self.holding_item,  self.holding_holder
         else:
             return self.other
 
     @staticmethod
     def construct(spell: Spell=None, place_location: Place=None, npc_place: NPC=None, item_place: Item=None,
-                  holding_item: Item=None, holding_holder: NPC=None, other: str=None, worth: float=None) -> 'Intel':
+                  other: str=None, worth: float=None) -> 'Intel':
         if not worth:
             worth = Intel.default_worth
 
@@ -70,10 +64,6 @@ class Intel(BaseElement, Worthy):
                                                  defaults={'worth': worth})
         elif item_place:
             intel, created = Intel.get_or_create(type=IntelTypes.item_place.name, item_place=item_place,
-                                                 defaults={'worth': worth})
-        elif holding_item and holding_holder:
-            intel, created = Intel.get_or_create(type=IntelTypes.holding.name,
-                                                 holding_item=holding_item, holding_holder=holding_holder,
                                                  defaults={'worth': worth})
         else:
             intel, created = Intel.get_or_create(type=IntelTypes.other.name, other=other, defaults={'worth': worth})
@@ -96,11 +86,6 @@ class Intel(BaseElement, Worthy):
         elif intel_type == IntelTypes.item_place.name:
             return Intel.select().join(Item, on=(Intel.item_place == Item.id))\
                 .where(Intel.type == intel_type, Item.name == args[0]).get()
-
-        elif intel_type == IntelTypes.holding.name:
-            return Intel.select()\
-                .join(Item, on=(Intel.holding_item == Item.id))\
-                .where(Intel.type == intel_type, Item.name == args[0]).get()
         elif intel_type == IntelTypes.other.name:
             return Intel.select()\
                 .where(Intel.type == intel_type, Intel.other == args[0]).get()
@@ -118,9 +103,6 @@ class Intel(BaseElement, Worthy):
             .where(NPC.name.contains('arbitrary'))
         # delete all Item intel
         results += Intel.select(Intel.id).join(Item, on=(Intel.item_place == Item.id))\
-            .where(Item.name.contains('arbitrary'))
-        # delete all Holding intel
-        results += Intel.select(Intel.id).join(Item, on=(Intel.holding_item == Item.id))\
             .where(Item.name.contains('arbitrary'))
         # delete all Other intel
         results += Intel.select(Intel.id).where(Intel.other.contains('arbitrary'))
@@ -152,11 +134,6 @@ class Intel(BaseElement, Worthy):
                 Message.debug(
                     "Error! neither item_place nor npc_place but type: %s. Intel id:%i" % (self.type, self.id))
                 return "unknown"
-        elif self.type == str(IntelTypes.holding.name):
-            if PlayParams.debug_mode:
-                return str(self.holding_holder) + " holding item " + str(self.holding_item)
-            else:
-                return "%s's holder" % self.holding_item
         else:
             # self.type == str(IntelTypes.other.name)
             return str(self.other)
@@ -178,8 +155,6 @@ class Intel(BaseElement, Worthy):
                 Message.debug(
                     "Error! neither item_place nor npc_place but type: %s. Intel id:%i" % (self.type, self.id))
                 return "unknown"
-        elif self.type == str(IntelTypes.holding.name):
-            return "%s holding %s" % (self.holding_holder, self.holding_item)
         else:
             # self.type == str(IntelTypes.other.name)
             return str(self.other)

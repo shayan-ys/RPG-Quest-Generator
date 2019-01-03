@@ -16,8 +16,7 @@ def add_item_place_intel(item: Item):
         PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(item_place=item))
         PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(place_location=item.place))
     elif item.belongs_to:
-        PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(holding_item=item,
-                                                                               holding_holder=item.belongs_to))
+        PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(item_place=item))
         PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(npc_place=item.belongs_to))
         PlayerKnowledgeBook.get_or_create(player=player, intel=Intel.construct(place_location=item.belongs_to.place))
     else:
