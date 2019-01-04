@@ -203,7 +203,7 @@ def comfort_1(motivated: NPC) -> list:
                 place = place[0]
             else:
                 Message.debug("No place found in the World!")
-                place = helper.create_place(known_to_player=False)
+                place = helper.create_place()
             item = Item.create(
                 type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
                 name='arbitrary_item_' + str(randint(100, 999)),
@@ -280,7 +280,7 @@ def reputation_1(motivated: NPC) -> list:
             place = place[0]
         else:
             Message.debug("No place found in the World!")
-            place = helper.create_place(known_to_player=False)
+            place = helper.create_place()
         item = Item.create(
             type=ItemTypes.unknown.name, generic=GenericItem.get_or_create(name=ItemTypes.singleton.name)[0],
             name='arbitrary_item_' + str(randint(100, 999)),
@@ -352,7 +352,7 @@ def reputation_3(motivated: NPC) -> list:
             place = place[0]
         else:
             Message.debug("No place found in the World!")
-            place = helper.create_place(known_to_player=False)
+            place = helper.create_place()
 
     player = Player.current()
     danger_report_intel = Intel.construct(other='arbitrary_danger_report_' + str(randint(100, 999)))
@@ -386,7 +386,7 @@ def serenity_1(motivated: NPC):
             place = place[0]
         else:
             Message.debug("No place found in the World!")
-            place = helper.create_place(known_to_player=False)
+            place = helper.create_place()
         enemy_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).limit(1).get()
         target = NPC.create(clan=enemy_clan, name=NPCName.fetch_new(), place=place)
 
@@ -453,7 +453,7 @@ def serenity_5(motivated: NPC) -> list:
             place = place[0]
         else:
             Message.debug("No place found in the World!")
-            place = helper.create_place(known_to_player=False)
+            place = helper.create_place()
         target = NPC.create(clan=motivated.clan, name=NPCName.fetch_new(), place=place)
 
     belongings = Item.select().where(Item.belongs_to == target.id).order_by(fn.Random()).limit(1)
@@ -528,7 +528,7 @@ def conquest_2(motivated: NPC) -> list:
             place = place[0]
         else:
             Message.debug("No place found in the World!")
-            place = helper.create_place(known_to_player=False)
+            place = helper.create_place()
         enemy_clan = Clan.select().where(Clan.id != motivated.clan).order_by(fn.Random()).limit(1).get()
         target = NPC.create(clan=enemy_clan, name=NPCName.fetch_new(), place=place)
         item = Item.create(
