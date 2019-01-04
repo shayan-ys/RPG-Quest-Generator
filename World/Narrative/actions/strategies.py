@@ -50,7 +50,6 @@ def knowledge_1(NPC_target: NPC):
         [NPC_target.place, NPC_target],
         [item, NPC_target]
     ]
-    # print("==> Deliver item", item, "to", NPC_target, "for study")
     Message.instruction("%s: Get item '%s' for me, I want to study it" % (NPC_target, item))
     return steps
 
@@ -107,7 +106,6 @@ def knowledge_2(NPC_knowledge_motivated: NPC):
         [spy_target, spy_intel, NPC_knowledge_motivated]
     ]
 
-    # print("==> Spy on '%s' to get the intel '%s' for '%s'." % (spy_target, spy_intel, NPC_knowledge_motivated))
     Message.instruction("%s: Spy on '%s' to get the intel '%s' for me" %
                         (NPC_knowledge_motivated, spy_target, spy_intel))
     return steps
@@ -176,7 +174,6 @@ def knowledge_3(NPC_knowledge_motivated: NPC):
         [NPC_knowledge_motivated.place],
         [intended_intel, NPC_knowledge_motivated]
     ]
-    # print("==> Interview '", NPC_knowledgeable, "' to get the intel '", intended_intel, "'.")
     Message.instruction("%s: Ask '%s' about '%s'" % (NPC_knowledge_motivated, NPC_knowledgeable, intended_intel))
     return steps
 
@@ -335,7 +332,6 @@ def reputation_2(motivated: NPC) -> list:
         [motivated.place, motivated],
         [killing_report_intel, motivated]
     ]
-    # print("==> Kill enemies", enemy, "and report it back to", motivated)
     Message.instruction("%s: Kill my enemy '%s', and report it" % (motivated, enemy))
     return steps
 
@@ -421,7 +417,7 @@ def serenity_4(motivated: NPC) -> list:
             place = place[0]
         else:
             Message.debug("No place found in the World!")
-            place = helper.create_place(known_to_player=False)
+            place = helper.create_place()
         target = NPC.create(clan=motivated.clan, name=NPCName.fetch_new(), place=place)
 
     well_being_intel = Intel.construct(other='arbitrary_well_being_report_' + str(randint(100, 999)))
@@ -665,6 +661,5 @@ def protection_2(NPC_protection_motivated: NPC) -> list:
         [needed_item, npc_in_need]
     ]
 
-    # print("==> Treat or repair '%s' using '%s'." % (npc_in_need, needed_item))
     Message.instruction("%s: Treat my friend '%s' using '%s'" % (NPC_protection_motivated, npc_in_need, needed_item))
     return steps

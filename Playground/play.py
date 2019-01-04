@@ -499,7 +499,6 @@ class Play(cmd.Cmd):
                         # check if next step is already done before (check world's effects)
                         level_already_done = is_done_method(self.progress.current_node)(*self.progress.get_current_semantics())
                         if level_already_done:
-                            # print("Already done, skip")
                             self.last_action = self.progress.current_node.action
                             self.last_args = self.progress.get_current_semantics()
                         else:

@@ -512,7 +512,6 @@ def learn_4(required_intel: Intel):
 
 
 def get_1(item_to_fetch: Item):
-    # print("==> You already have the item.")
 
     # if not, add it to player's belongings
     item_to_fetch.belongs_to_player = Player.current()
@@ -660,8 +659,6 @@ def get_4(item_to_fetch: Item):
             [item_holder.place, item_holder],
             [item_holder, item_to_give, item_to_fetch]
         ]
-        # print("==> Do a sub-quest, goto '%s' to meet '%s' and exchange '%s' with '%s'" %
-        #       (item_holder.place, item_holder, item_to_give, item_to_fetch))
         Message.instruction("Do a sub-quest, meet '%s' and exchange '%s' with '%s'" %
                             (item_holder, item_to_give, item_to_fetch))
         return steps

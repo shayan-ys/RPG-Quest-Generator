@@ -58,9 +58,6 @@ class Progress:
 
         if root.branches:
             children_pre_semantics = Narrative.find(root)(*pre_semantics)
-            # if not children_pre_semantics:
-            #     print(Narrative.find(root).__name__)
-            #     print(pre_semantics)
 
             for i, branch in enumerate(root.branches):
                 if branch.action == T.null:
@@ -75,13 +72,10 @@ class Progress:
         return []
 
     def print_progress(self, full: bool=False):
-        # print("level:", self.current_node.index, ", current-node:", self.current_node.action)
         Message.debug("level: %i, current-node: %s" % (self.current_node.index, self.current_node.action))
         if full:
-            # print("semantics:", self.semantics_indices)
             Message.debug("semantics: %s" % self.semantics_indices)
         else:
-            # print("semantics:", self.get_current_semantics())
             Message.debug("semantics: %s" % self.get_current_semantics())
 
     def find_next_active_level(self, node: Node=None):
