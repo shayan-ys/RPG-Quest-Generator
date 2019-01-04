@@ -403,6 +403,10 @@ def learn_3(required_intel: Intel):
     player.next_location = book_containing_intel.place_()
     player.save()
 
+    intel = Intel.construct(item_place=book_containing_intel)
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    Message.achievement("Intel '%s' learned" % intel.detail())
+
     # steps:
     # goto: place_location[1]
     # get: book[1]
@@ -487,6 +491,10 @@ def learn_4(required_intel: Intel):
     player.next_location = informer.place
     player.save()
 
+    intel = Intel.construct(item_place=item_to_get_for_exchange)
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    Message.achievement("Intel '%s' learned" % intel.detail())
+
     # steps:
     # get
     # sub-quest
@@ -554,6 +562,15 @@ def get_3(item_to_fetch: Item):
         dest = Place.select().order_by(fn.Random()).get()
         item_to_fetch.place = dest
         item_to_fetch.save()
+
+    player = Player.current()
+    player.next_location = dest
+    player.save()
+
+    intel = Intel.construct(item_place=item_to_fetch)
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    Message.achievement("Intel '%s' learned" % intel.detail())
+
     # steps:
     # goto
     # gather
@@ -621,6 +638,10 @@ def get_4(item_to_fetch: Item):
     player.next_location = item_holder.place
     player.save()
 
+    intel = Intel.construct(item_place=item_to_fetch)
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    Message.achievement("Intel '%s' learned" % intel.detail())
+
     # check for player belonging for the exchange item
     if item_to_give.is_singleton():
         player_owns = (item_to_give.belongs_to_player == player)
@@ -677,6 +698,10 @@ def steal_1(item_to_steal: Item, item_holder: NPC):
     player.next_location = item_holder_place
     player.save()
 
+    intel = Intel.construct(item_place=item_to_steal)
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    Message.achievement("Intel '%s' learned" % intel.detail())
+
     # steps:
     #   goto: place_location[1]
     #   T.stealth: stealth NPC[1]
@@ -701,6 +726,10 @@ def steal_2(item_to_steal: Item, item_holder: NPC):
     player = Player.current()
     player.next_location = item_holder.place
     player.save()
+
+    intel = Intel.construct(item_place=item_to_steal)
+    PlayerKnowledgeBook.get_or_create(player=player, intel=intel)
+    Message.achievement("Intel '%s' learned" % intel.detail())
 
     # steps:
     # goto holder

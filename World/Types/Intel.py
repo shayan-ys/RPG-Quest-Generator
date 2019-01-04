@@ -150,7 +150,13 @@ class Intel(BaseElement, Worthy):
             if self.npc_place:
                 return "NPC %s located at %s" % (self.npc_place, self.npc_place.place)
             elif self.item_place:
-                return "Item %s located at %s" % (self.item_place, self.item_place.place)
+                if self.item_place.place:
+                    return "Item %s located at %s" % (self.item_place, self.item_place.place)
+                elif self.item_place.belongs_to.place:
+                    return "Item %s belongs to %s" % (self.item_place, self.item_place.belongs_to)
+                else:
+                    Message.debug("Error! item_place intel doesn't have place nor belongs_to")
+                    return "unknown"
             else:
                 Message.debug(
                     "Error! neither item_place nor npc_place but type: %s. Intel id:%i" % (self.type, self.id))
