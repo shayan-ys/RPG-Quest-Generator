@@ -2,7 +2,7 @@ from World import Narrative
 from World.Types.Log import Message
 
 from Grammar.tree import Node
-from Grammar.actions import NonTerminals as NT, Terminals as T
+from Grammar.actions import Terminals as T
 from Grammar.plot import export_grammar_plot
 
 from copy import copy
@@ -30,27 +30,6 @@ class Progress:
 
         self.semantics_indices[0] = []
         self.get_narratives(root=local_quest, pre_semantics=[])
-
-    def find_node(self, index: int=None) -> Node:
-        if index is None:
-            index = self.current_node.index
-        elif index == self.current_node.index:
-            return self.current_node
-
-        def traverse_quest(root: Node):
-
-            if root.index >= index:
-                return root
-
-            if root.branches:
-                for branch in root.branches:
-                    node = traverse_quest(branch)
-                    if node.index >= index:
-                        return node
-
-            return root
-
-        return traverse_quest(root=self.quest)
 
     def get_narratives(self, root: Node, pre_semantics: list):
         if root.index in self.semantics_parsed_for_branches:
@@ -83,12 +62,7 @@ class Progress:
         if node is None:
             node = self.current_node
 
-        # is_action_done_method = results.find(node)
-        # if not is_action_done_method(*self.semantics_indices[node.index]):
         if node.index not in self.completed_indices and node.action != T.null:
-
-            # if node.action != NT.sub_quest:
-            #     # todo: sub_quest is being skipped which is wrong!!! problem is addressed on Oct 24 should think about
 
             if node.branches:
                 # go down the tree, player should first complete parent's branches

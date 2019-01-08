@@ -317,7 +317,7 @@ class Play(cmd.Cmd):
         self.last_action_doable = True
 
     def do_damage(self, args):
-        """Damage an NPC. KILL Goblin"""
+        """Damage an NPC. Damage Goblin"""
         args = parse(args)
         if not self.check_length(args, 1):
             return
@@ -393,6 +393,7 @@ class Play(cmd.Cmd):
         print("NPC health meter:", npc.health_meter)
         self.last_action_doable = True
 
+    # ---- listing information commands ----
     def do_player(self, args):
         """Print player's info (type player <category>). PLAYER intel"""
         args = parse(args)
@@ -456,6 +457,7 @@ class Play(cmd.Cmd):
 
         self.progress.print_progress(full=True)
 
+    # ----- helper methods -----
     def set_inputs(self, action: T, args: list) -> bool:
         if None in args:
             print("Error: Typo in one of the inputs")
@@ -484,7 +486,6 @@ class Play(cmd.Cmd):
 
     def postcmd(self, stop, line):
         # after loop
-
         if self.quest_in_progress:
 
             if self.last_action_doable:

@@ -6,7 +6,7 @@ class GAParams:
     selection_factor = 0.4
     mutation_factor = 0.1
     maximum_quest_depth = 7
-    generation_count = 20
+    generation_count = 100
     population_size = 80
     elite_group_size = 3
 
