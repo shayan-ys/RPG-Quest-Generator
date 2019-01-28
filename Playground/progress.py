@@ -32,10 +32,17 @@ class Progress:
         self.get_narratives(root=local_quest, pre_semantics=[])
 
     def get_narratives(self, root: Node, pre_semantics: list):
+        """
+        Run narration functions for Non-terminal nodes that weren't parsed already
+        :param root:
+        :param pre_semantics:
+        :return:
+        """
         if root.index in self.semantics_parsed_for_branches:
             return
 
         if root.branches:
+            # Parse only Non-terminals
             children_pre_semantics = Narrative.find(root)(*pre_semantics)
 
             for i, branch in enumerate(root.branches):
@@ -83,6 +90,7 @@ class Progress:
 
     def update_active_level(self, new_node: Node):
         # using previous node
+        # only non-terminal actions
         self.get_narratives(self.current_node, pre_semantics=self.get_current_semantics())
 
         # update active level

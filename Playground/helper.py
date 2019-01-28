@@ -5,11 +5,11 @@ import sys
 
 
 def ga_quest_generator(motive_rule_number: int=None):
-    pop = ga.run(quest_rule_number=motive_rule_number)
-    # return best quest created based on the quest rule_number
-    quest = pop[0].tree
-    serializers.write_file(quest)
-    # quest = serializers.read_file()
+    # pop = ga.run(quest_rule_number=motive_rule_number)
+    # # return best quest created based on the quest rule_number
+    # quest = pop[0].tree
+    # serializers.write_file(quest)
+    quest = serializers.read_file()
     return quest
 
 

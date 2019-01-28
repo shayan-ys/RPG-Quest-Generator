@@ -10,6 +10,10 @@ from copy import copy
 def build_anytree(grammar_root: Grammar.tree.Node, parent: anytree.Node = None,
                   semantics_indices: dict={}, current_level_index: int=None):
 
+    # if grammar_root.branches:
+    #     name = "NT.%s[%s]" % (grammar_root.action.name, grammar_root.rule)
+    # else:
+    #     name = "T.%s" % grammar_root.action.name
     if grammar_root.branches:
         name = "-%s-\nNT.%s[%s]" % (grammar_root.index, grammar_root.action.name, grammar_root.rule)
     else:
