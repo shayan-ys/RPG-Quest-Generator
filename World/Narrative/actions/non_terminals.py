@@ -53,21 +53,23 @@ def sub_quest_2(suggested_destination: Place=None) -> list:
     player = Player.current()
 
     if suggested_destination:
-        place_to_go = suggested_destination
+        return_point = suggested_destination
     else:
-        results = Place.select()\
-            .join(Intel)\
-            .join(PlayerKnowledgeBook, JOIN.LEFT_OUTER)\
-            .group_by(Intel).having(fn.COUNT(PlayerKnowledgeBook.id) == 0)
+        return_point = player.place
 
-        locations_scores = [player.distance(place) for place in results]
-        results = sort_by_list(results, locations_scores)
+    results = Place.select()\
+        .join(Intel)\
+        .join(PlayerKnowledgeBook, JOIN.LEFT_OUTER)\
+        .group_by(Intel).having(fn.COUNT(PlayerKnowledgeBook.id) == 0)
 
-        if results:
-            place_to_go = results[0]
-        else:
-            # not enough places to go, then create a new place unknown to player
-            place_to_go = narrative_helper.create_place()
+    locations_scores = [player.distance(place) for place in results]
+    results = sort_by_list(results, locations_scores)
+
+    if results:
+        place_to_go = results[0]
+    else:
+        # not enough places to go, then create a new place unknown to player
+        place_to_go = narrative_helper.create_place()
 
     player.next_location = place_to_go
     player.save()
@@ -79,9 +81,9 @@ def sub_quest_2(suggested_destination: Place=None) -> list:
     steps = [
         [place_to_go],
         [],
-        [player.place]
+        [return_point]
     ]
-    Message.instruction("Goto '%s' do another Quest, then go back to '%s'" % (place_to_go, player.place))
+    Message.instruction("Goto '%s' do another Quest, then go to '%s'" % (place_to_go, return_point))
     return steps
 
 
