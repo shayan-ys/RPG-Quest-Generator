@@ -504,7 +504,7 @@ def conquest_1(motivated: NPC) -> list:
         [enemy]
     ]
 
-    Message.instruction("%s: Damage my enemy '%s' or me" % (motivated, enemy))
+    Message.instruction("%s: Damage my enemy '%s' for me" % (motivated, enemy))
     return steps
 
 

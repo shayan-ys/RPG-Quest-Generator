@@ -115,5 +115,5 @@ def create():
         intel = Intel.construct(place_location=place)
         PlayerKnowledgeBook.create(player=player, intel=intel)
 
-    PlayerKnowledgeBook.create(player=player, intel=intel_npc2_loc)
+    # PlayerKnowledgeBook.create(player=player, intel=intel_npc2_loc)
     # PlayerKnowledgeBook.create(player=player, intel=Intel.construct(npc_place=steve))

@@ -1,5 +1,5 @@
 from World.Types.BridgeModels import PlayerKnowledgeBook, NPCKnowledgeBook
-from World.Types.Intel import Intel
+from World.Types.Intel import Intel, IntelTypes
 from World.Types.Item import Item
 from World.Types.Person import NPC, Player
 
@@ -11,11 +11,13 @@ def print_indented(data: list):
         print(" --", i)
 
 
-def print_player_intel(player: Player=None):
+def print_player_intel(player: Player=None, print_locations: bool=False):
     if not player:
         player = Player.current()
 
     results = Intel.select().join(PlayerKnowledgeBook).where(PlayerKnowledgeBook.player == player)
+    if not print_locations:
+        results = results.where(Intel.type != IntelTypes.location)
     detailed = []
     for intel in results:
         detailed.append(intel.detail())

@@ -46,7 +46,7 @@ class Play(cmd.Cmd):
                               current_level_index=self.progress.current_node.index)
 
     def finish_quest(self):
-        print("WOW quest completed!!!!")
+        print("Congratulations!! Quest completed!!!!")
         self.progress.current_node = self.progress.quest
         self.quest_in_progress = False
         self.quest_done = True

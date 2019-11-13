@@ -52,6 +52,12 @@ def exchange(item_holder: NPC, item_to_give: Item, item_to_take: Item):
         Message.error("You are not at the item holder (%s) location" % item_holder)
         return False
 
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=item_holder)):
+        Message.debug("Player does not know where the NPC (%s) is located" % item_holder)
+        Message.error("Player does not know where the NPC is located")
+        return False
+
     # update Player's belongings
     item_to_take.belongs_to = None
     item_to_take.belongs_to_player = player
@@ -126,6 +132,12 @@ def gather(item_to_gather: Item):
         Message.error("You are not at the item '%s's location to gather it" % item_to_gather)
         return False
 
+    # check if player know where the item is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(item_place=item_to_gather)):
+        Message.debug("Player does not know where the item (%s) is located" % item_to_gather)
+        Message.error("Player does not know where the item is located")
+        return False
+
     # update Player's belongings
     item_to_gather.belongs_to_player = player
     item_to_gather.save()
@@ -148,6 +160,12 @@ def give(item: Item, receiver: NPC):
         Message.error("You are not at the receiver's (%s) location" % receiver)
         return False
 
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=receiver)):
+        Message.debug("Player does not know where the NPC (%s) is located" % receiver)
+        Message.error("Player does not know where the NPC is located")
+        return False
+
     item.belongs_to_player = None
     item.belongs_to = receiver
     item.save()
@@ -167,6 +185,12 @@ def spy(spy_on: NPC, intel_target: Intel):
     if player.place != spy_on.place:
         Message.debug("Player is not at the NPC (%s) location (%s) to spy" % (spy_on, spy_on.place))
         Message.error("You are not at the NPC '%s's location to spy" % spy_on)
+        return False
+
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=intel_target)):
+        Message.debug("Player does not know where the NPC (%s) is located" % intel_target)
+        Message.error("Player does not know where the NPC is located")
         return False
 
     # check if the target has the piece of intel
@@ -192,6 +216,12 @@ def stealth(target: NPC):
         Message.error("You are not at the target '%s's location" % target)
         return False
 
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=target)):
+        Message.debug("Player does not know where the NPC (%s) is located" % target)
+        Message.error("Player does not know where the NPC is located")
+        return False
+
     Message.achievement("Successfully snuck on '%s'" % target)
     return True
 
@@ -214,6 +244,12 @@ def take(item_to_take: Item, item_holder: NPC=None):
     if item_holder.place != player.place:
         Message.debug("Player is not at the item_holder (%s) place_location (%s)" % (item_holder, item_holder.place))
         Message.error("You are not at the NPC '%s's location" % item_holder)
+        return False
+
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=item_holder)):
+        Message.debug("Player does not know where the NPC (%s) is located" % item_holder)
+        Message.error("Player does not know where the NPC is located")
         return False
 
     # remove item from holder's belongings and add to player's
@@ -317,6 +353,12 @@ def kill(target: NPC):
         Message.error("You are not at the target '%s's location" % target)
         return False
 
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=target)):
+        Message.debug("Player does not know where the NPC (%s) is located" % target)
+        Message.error("Player does not know where the NPC is located")
+        return False
+
     NPCDead.create(name=target.name, place=target.place, clan=target.clan)
 
     Message.achievement("NPC '%s' has been killed" % target)
@@ -331,6 +373,12 @@ def damage(target: NPC):
     # check if player is at target place_location
     if player.place != target.place:
         Message.error("You are not at the target '%s's location" % target)
+        return False
+
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=target)):
+        Message.debug("Player does not know where the NPC (%s) is located" % target)
+        Message.error("Player does not know where the NPC is located")
         return False
 
     target.health_meter -= 0.3
@@ -358,6 +406,12 @@ def listen(intel: Intel, informer: NPC):
         Message.error("You are not at the informer's (%s) location" % informer)
         return False
 
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=informer)):
+        Message.debug("Player does not know where the NPC (%s) is located" % informer)
+        Message.error("Player does not know where the NPC is located")
+        return False
+
     # update Player's intel
     NarrativeHelper.add_intel(intel)
     FavoursBook.construct(informer, -intel.worth_(), player)
@@ -379,6 +433,12 @@ def report(intel: Intel, target: NPC):
     if target.place != player.place:
         Message.debug("Player is not at the target (%s) location (%s)" % (target, target.place))
         Message.error("You are not at the target's (%s) location" % target)
+        return False
+
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=target)):
+        Message.debug("Player does not know where the NPC (%s) is located" % target)
+        Message.error("Player does not know where the NPC is located")
         return False
 
     # update Player's favours book if target hasn't have it already
@@ -405,10 +465,10 @@ def use(item_to_use: Item, target: NPC):
         Message.error("You are not at the target '%s's location" % target)
         return False
 
-    # check if item is a tool
-    if item_to_use.type != ItemTypes.tool.name:
-        Message.debug("Item '%s' is not a tool, not usable, it's a '%s'" % (item_to_use, item_to_use.type))
-        Message.error("Item '%s' is not a tool, not usable" % item_to_use)
+    # check if player know where the receiver is
+    if not PlayerKnowledgeBook.get_or_none(player=player, intel=Intel.construct(npc_place=target)):
+        Message.debug("Player does not know where the NPC (%s) is located" % target)
+        Message.error("Player does not know where the NPC is located")
         return False
 
     item_to_use.use(npc=target)
